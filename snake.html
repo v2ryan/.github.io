@@ -159,17 +159,31 @@
             
             // 初始化游戏
             function initGame() {
+                // 随机生成蛇的初始位置（保持在画面中央区域）
+                const centerX = Math.floor(gridWidth / 2);
+                const centerY = Math.floor(gridHeight / 2);
+                const offset = 3; // 中心区域范围
+                
+                // 在中央区域随机选择一个位置
+                const randomX = centerX + Math.floor(Math.random() * (offset * 2 + 1)) - offset;
+                const randomY = centerY + Math.floor(Math.random() * (offset * 2 + 1)) - offset;
+                
+                // 确保位置在有效范围内
+                const startX = Math.max(2, Math.min(gridWidth - 3, randomX));
+                const startY = Math.max(2, Math.min(gridHeight - 3, randomY));
+                
                 // 蛇的初始位置
                 snake = [
-                    {x: 5, y: 5}
+                    {x: startX, y: startY}
                 ];
                 
                 // 随机生成食物
                 generateFood();
                 
-                // 初始方向
-                direction = 'right';
-                nextDirection = 'right';
+                // 随机初始方向
+                const directions = ['up', 'down', 'left', 'right'];
+                direction = directions[Math.floor(Math.random() * directions.length)];
+                nextDirection = direction;
                 
                 // 分数重置
                 score = 0;
@@ -262,11 +276,11 @@
                         break;
                 }
                 
-                // 检查边界碰撞 (穿墙)
-                if (head.x < 0) head.x = gridWidth - 1;
-                if (head.x >= gridWidth) head.x = 0;
-                if (head.y < 0) head.y = gridHeight - 1;
-                if (head.y >= gridHeight) head.y = 0;
+                // 检查边界碰撞 (死亡)
+                if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
+                    gameOver();
+                    return;
+                }
                 
                 // 检查自身碰撞
                 for (let i = 0; i < snake.length; i++) {
@@ -306,6 +320,13 @@
             // 开始游戏
             function startGame() {
                 if (!gameRunning) {
+                    // 如果没有设置方向（可能是首次启动），使用initGame中设置的随机方向
+                    if (!direction) {
+                        const directions = ['up', 'down', 'left', 'right'];
+                        direction = directions[Math.floor(Math.random() * directions.length)];
+                        nextDirection = direction;
+                    }
+                    
                     gameRunning = true;
                     gameInterval = setInterval(update, gameSpeed);
                     startBtn.disabled = true;
@@ -314,10 +335,24 @@
             
             // 重新开始游戏
             function restartGame() {
+                // 移除可能存在的事件监听器
+                canvas.removeEventListener('click', restartAfterGameOver);
+                
+                // 清除当前游戏循环
                 clearInterval(gameInterval);
                 gameRunning = false;
+                
+                // 重置游戏速度
                 gameSpeed = 150;
+                
+                // 确保方向键和触摸事件不会立即触发旧的方向
+                nextDirection = '';
+                direction = '';
+                
+                // 初始化游戏（会重新设置蛇的位置和随机方向）
                 initGame();
+                
+                // 允许开始按钮可用
                 startBtn.disabled = false;
             }
             
@@ -326,17 +361,109 @@
                 clearInterval(gameInterval);
                 gameRunning = false;
                 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                // 保存分数
+                saveScore(score);
+                
+                // 获取排行榜数据
+                const scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 ctx.font = '30px Arial';
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
-                ctx.fillText('游戏结束!', canvas.width / 2, canvas.height / 2 - 20);
-                ctx.font = '20px Arial';
-                ctx.fillText(`最终得分: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+                ctx.fillText('游戏结束!', canvas.width / 2, 60);
                 
+                ctx.font = '24px Arial';
+                ctx.fillText(`您的得分: ${score}`, canvas.width / 2, 100);
+                
+                // 显示排行榜
+                ctx.font = '20px Arial';
+                ctx.fillText('排行榜 TOP 10', canvas.width / 2, 140);
+                
+                // 绘制排行榜表头
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('排名', 50, 170);
+                ctx.fillText('玩家', 150, 170);
+                ctx.fillText('分数', 300, 170);
+                
+                // 绘制分割线
+                ctx.beginPath();
+                ctx.moveTo(40, 180);
+                ctx.lineTo(360, 180);
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+                
+                // 绘制排行榜数据
+                let y = 200;
+                scores.slice(0, 10).forEach((scoreData, index) => {
+                    // 高亮显示当前玩家的最新成绩
+                    if (scoreData.username === localStorage.getItem('username') && 
+                        scoreData.score === score && 
+                        new Date(scoreData.date).getTime() > Date.now() - 5000) { // 5秒内的成绩视为当前成绩
+                        ctx.fillStyle = '#4CAF50';
+                    } else {
+                        ctx.fillStyle = 'white';
+                    }
+                    
+                    ctx.fillText(`${index + 1}`, 50, y);
+                    ctx.fillText(`${scoreData.username}`, 150, y);
+                    ctx.fillText(`${scoreData.score}`, 300, y);
+                    
+                    y += 25;
+                });
+                
+                // 如果排行榜不足10条记录，显示提示信息
+                if (scores.length === 0) {
+                    ctx.fillStyle = '#ccc';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('暂无记录', canvas.width / 2, 250);
+                }
+                
+                // 添加重新开始按钮提示
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.font = '18px Arial';
+                ctx.fillText('点击下方按钮开始新游戏', canvas.width / 2, 380);
+                
+                // 确保按钮状态正确
                 startBtn.disabled = false;
+                
+                // 添加点击画布也可以重新开始游戏
+                canvas.addEventListener('click', restartAfterGameOver, { once: true });
+            }
+            
+            // 添加一个函数用于游戏结束后的重新开始
+            function restartAfterGameOver() {
+                restartGame();
+            }
+            
+            // 添加保存分数的函数
+            function saveScore(newScore) {
+                // 获取当前登录的用户名
+                const username = localStorage.getItem('username');
+                if (!username) return; // 如果未登录，不保存分数
+                
+                // 获取现有的分数记录
+                let scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
+                
+                // 添加新分数
+                scores.push({
+                    username: username,
+                    score: newScore,
+                    date: new Date().toISOString()
+                });
+                
+                // 按分数降序排序
+                scores.sort((a, b) => b.score - a.score);
+                
+                // 只保留前10名
+                scores = scores.slice(0, 10);
+                
+                // 保存回本地存储
+                localStorage.setItem('snakeScores', JSON.stringify(scores));
             }
             
             // 添加移动设备方向控制按钮事件
@@ -347,30 +474,81 @@
             
             upBtn.addEventListener('click', () => {
                 if (!gameRunning) {
-                    startGame();  // 如果游戏未运行，先开始游戏
+                    // 如果有分数，说明是游戏结束状态，需要完全重启
+                    if (score > 0) {
+                        restartGame();
+                        // 在重启完成后设置新方向并开始游戏
+                        setTimeout(() => {
+                            direction = 'up';
+                            nextDirection = 'up';
+                            startGame();
+                        }, 100);
+                    } else {
+                        // 首次游戏，直接设置方向并开始
+                        direction = 'up';
+                        nextDirection = 'up';
+                        startGame();
+                    }
+                } else if (direction !== 'down') {
+                    nextDirection = 'up';
                 }
-                if (direction !== 'down' && gameRunning) nextDirection = 'up';
             });
             
             downBtn.addEventListener('click', () => {
                 if (!gameRunning) {
-                    startGame();  // 如果游戏未运行，先开始游戏
+                    if (score > 0) {
+                        restartGame();
+                        setTimeout(() => {
+                            direction = 'down';
+                            nextDirection = 'down';
+                            startGame();
+                        }, 100);
+                    } else {
+                        direction = 'down';
+                        nextDirection = 'down';
+                        startGame();
+                    }
+                } else if (direction !== 'up') {
+                    nextDirection = 'down';
                 }
-                if (direction !== 'up' && gameRunning) nextDirection = 'down';
             });
             
             leftBtn.addEventListener('click', () => {
                 if (!gameRunning) {
-                    startGame();  // 如果游戏未运行，先开始游戏
+                    if (score > 0) {
+                        restartGame();
+                        setTimeout(() => {
+                            direction = 'left';
+                            nextDirection = 'left';
+                            startGame();
+                        }, 100);
+                    } else {
+                        direction = 'left';
+                        nextDirection = 'left';
+                        startGame();
+                    }
+                } else if (direction !== 'right') {
+                    nextDirection = 'left';
                 }
-                if (direction !== 'right' && gameRunning) nextDirection = 'left';
             });
             
             rightBtn.addEventListener('click', () => {
                 if (!gameRunning) {
-                    startGame();  // 如果游戏未运行，先开始游戏
+                    if (score > 0) {
+                        restartGame();
+                        setTimeout(() => {
+                            direction = 'right';
+                            nextDirection = 'right';
+                            startGame();
+                        }, 100);
+                    } else {
+                        direction = 'right';
+                        nextDirection = 'right';
+                        startGame();
+                    }
+                } else if (direction !== 'left') {
+                    nextDirection = 'right';
                 }
-                if (direction !== 'left' && gameRunning) nextDirection = 'right';
             });
             
             // 添加触摸滑动控制

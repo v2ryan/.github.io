@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>管理中心</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .nav {
+            display: flex;
+            margin-bottom: 20px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .nav-item {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            background-color: #4CAF50;
+            border-radius: 5px;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn-delete {
+            background-color: #f44336;
+        }
+        .btn-edit {
+            background-color: #2196F3;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- JSDOS: 这是管理中心页面 -->
+    <div class="container">
+        <h1>游戏中心管理系统</h1>
+        
+        <div class="nav">
+            <a class="nav-item active" data-section="members">会员管理</a>
+            <a class="nav-item" data-section="scores">分数排行</a>
+            <a class="nav-item" data-section="settings">系统设置</a>
+        </div>
+        
+        <!-- 会员管理部分 -->
+        <div id="members" class="section active">
+            <h2>会员管理</h2>
+            <button class="btn" id="add-member-btn">添加新会员</button>
+            
+            <div id="add-member-form" style="display: none; margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                <h3>添加/编辑会员</h3>
+                <div class="form-group">
+                    <label for="member-username">用户名</label>
+                    <input type="text" id="member-username">
+                </div>
+                <div class="form-group">
+                    <label for="member-password">密码</label>
+                    <input type="password" id="member-password">
+                </div>
+                <div class="form-group">
+                    <label for="member-role">角色</label>
+                    <select id="member-role">
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                    </select>
+                </div>
+                <button class="btn" id="save-member-btn">保存</button>
+                <button class="btn" id="cancel-member-btn" style="background-color: #ccc;">取消</button>
+            </div>
+            
+            <table id="members-table">
+                <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>角色</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 会员数据将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分数排行部分 -->
+        <div id="scores" class="section">
+            <h2>分数排行榜</h2>
+            <table id="scores-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>用户名</th>
+                        <th>分数</th>
+                        <th>日期</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 分数数据将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 系统设置部分 -->
+        <div id="settings" class="section">
+            <h2>系统设置</h2>
+            <div class="form-group">
+                <label for="game-difficulty">游戏难度</label>
+                <select id="game-difficulty">
+                    <option value="easy">简单</option>
+                    <option value="medium" selected>中等</option>
+                    <option value="hard">困难</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max-scores">排行榜最大记录数</label>
+                <input type="number" id="max-scores" value="10" min="5" max="50">
+            </div>
+            <button class="btn" id="save-settings-btn">保存设置</button>
+        </div>
+        
+        <a href="index.html" class="back-link">返回游戏中心</a>
+    </div>
+
+    <script>
+        // JSDOS: 管理中心的JavaScript代码
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查是否是管理员登录
+            const username = localStorage.getItem('username');
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            
+            if (!isLoggedIn || username !== 'admin') {
+                // 如果不是管理员，重定向到首页
+                alert('您没有权限访问管理中心！');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 导航切换
+            const navItems = document.querySelectorAll('.nav-item');
+            const sections = document.querySelectorAll('.section');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const sectionId = item.getAttribute('data-section');
+                    
+                    // 更新导航项的活动状态
+                    navItems.forEach(navItem => navItem.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // 更新部分的可见性
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === sectionId) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // 会员管理功能
+            const membersTable = document.getElementById('members-table').querySelector('tbody');
+            const addMemberBtn = document.getElementById('add-member-btn');
+            const addMemberForm = document.getElementById('add-member-form');
+            const saveMemberBtn = document.getElementById('save-member-btn');
+            const cancelMemberBtn = document.getElementById('cancel-member-btn');
+            const memberUsername = document.getElementById('member-username');
+            const memberPassword = document.getElementById('member-password');
+            const memberRole = document.getElementById('member-role');
+            
+            let editingMemberId = null;
+            
+            // 加载会员数据
+            function loadMembers() {
+                // 从本地存储获取会员数据
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                
+                // 确保管理员账户始终存在
+                if (!members.some(member => member.username === 'admin')) {
+                    members.push({
+                        id: 'admin',
+                        username: 'admin',
+                        password: 'password',
+                        role: 'admin',
+                        registerDate: new Date().toISOString()
+                    });
+                    localStorage.setItem('members', JSON.stringify(members));
+                }
+                
+                // 清空表格
+                membersTable.innerHTML = '';
+                
+                // 填充表格
+                members.forEach(member => {
+                    const row = document.createElement('tr');
+                    
+                    // 格式化日期
+                    const date = new Date(member.registerDate);
+                    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                    
+                    row.innerHTML = `
+                        <td>${member.username}</td>
+                        <td>${member.role === 'admin' ? '管理员' : '普通用户'}</td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            <button class="btn btn-edit" data-id="${member.id}">编辑</button>
+                            ${member.username !== 'admin' ? `<button class="btn btn-delete" data-id="${member.id}">删除</button>` : ''}
+                        </td>
+                    `;
+                    
+                    membersTable.appendChild(row);
+                });
+                
+                // 添加编辑和删除事件
+                document.querySelectorAll('.btn-edit').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const memberId = btn.getAttribute('data-id');
+                        editMember(memberId);
+                    });
+                });
+                
+                document.querySelectorAll('.btn-delete').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const memberId = btn.getAttribute('data-id');
+                        deleteMember(memberId);
+                    });
+                });
+            }
+            
+            // 编辑会员
+            function editMember(memberId) {
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                const member = members.find(m => m.id === memberId);
+                
+                if (member) {
+                    memberUsername.value = member.username;
+                    memberPassword.value = member.password;
+                    memberRole.value = member.role;
+                    
+                    editingMemberId = memberId;
+                    addMemberForm.style.display = 'block';
+                }
+            }
+            
+            // 删除会员
+            function deleteMember(memberId) {
+                if (confirm('确定要删除这个会员吗？')) {
+                    let members = JSON.parse(localStorage.getItem('members') || '[]');
+                    members = members.filter(member => member.id !== memberId);
+                    localStorage.setItem('members', JSON.stringify(members));
+                    
+                    loadMembers();
+                }
+            }
+            
+            // 添加会员按钮点击事件
+            addMemberBtn.addEventListener('click', () => {
+                // 重置表单
+                memberUsername.value = '';
+                memberPassword.value = '';
+                memberRole.value = 'user';
+                editingMemberId = null;
+                
+                // 显示表单
+                addMemberForm.style.display = 'block';
+            });
+            
+            // 取消按钮点击事件
+            cancelMemberBtn.addEventListener('click', () => {
+                addMemberForm.style.display = 'none';
+            });
+            
+            // 保存会员按钮点击事件
+            saveMemberBtn.addEventListener('click', () => {
+                const username = memberUsername.value.trim();
+                const password = memberPassword.value.trim();
+                const role = memberRole.value;
+                
+                if (!username || !password) {
+                    alert('用户名和密码不能为空！');
+                    return;
+                }
+                
+                let members = JSON.parse(localStorage.getItem('members') || '[]');
+                
+                if (editingMemberId) {
+                    // 更新现有会员
+                    members = members.map(member => {
+                        if (member.id === editingMemberId) {
+                            return {
+                                ...member,
+                                username,
+                                password,
+                                role
+                            };
+                        }
+                        return member;
+                    });
+                } else {
+                    // 检查用户名是否已存在
+                    if (members.some(member => member.username === username)) {
+                        alert('用户名已存在！');
+                        return;
+                    }
+                    
+                    // 添加新会员
+                    members.push({
+                        id: Date.now().toString(),
+                        username,
+                        password,
+                        role,
+                        registerDate: new Date().toISOString()
+                    });
+                }
+                
+                localStorage.setItem('members', JSON.stringify(members));
+                addMemberForm.style.display = 'none';
+                loadMembers();
+            });
+            
+            // 分数排行功能
+            const scoresTable = document.getElementById('scores-table').querySelector('tbody');
+            
+            function loadScores() {
+                const scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
+                
+                // 清空表格
+                scoresTable.innerHTML = '';
+                
+                // 填充表格
+                scores.forEach((score, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // 格式化日期
+                    const date = new Date(score.date);
+                    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${score.username}</td>
+                        <td>${score.score}</td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            <button class="btn btn-delete" data-index="${index}">删除</button>
+                        </td>
+                    `;
+                    
+                    scoresTable.appendChild(row);
+                });
+                
+                // 添加删除事件
+                document.querySelectorAll('#scores-table .btn-delete').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const index = parseInt(btn.getAttribute('data-index'));
+                        deleteScore(index);
+                    });
+                });
+            }
+            
+            // 删除分数记录
+            function deleteScore(index) {
+                if (confirm('确定要删除这条分数记录吗？')) {
+                    let scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
+                    scores.splice(index, 1);
+                    localStorage.setItem('snakeScores', JSON.stringify(scores));
+                    
+                    loadScores();
+                }
+            }
+            
+            // 系统设置功能
+            const gameDifficulty = document.getElementById('game-difficulty');
+            const maxScores = document.getElementById('max-scores');
+            const saveSettingsBtn = document.getElementById('save-settings-btn');
+            
+            // 加载设置
+            function loadSettings() {
+                const settings = JSON.parse(localStorage.getItem('gameSettings') || '{"difficulty":"medium","maxScores":10}');
+                
+                gameDifficulty.value = settings.difficulty;
+                maxScores.value = settings.maxScores;
+            }
+            
+            // 保存设置
+            saveSettingsBtn.addEventListener('click', () => {
+                const settings = {
+                    difficulty: gameDifficulty.value,
+                    maxScores: parseInt(maxScores.value)
+                };
+                
+                localStorage.setItem('gameSettings', JSON.stringify(settings));
+                alert('设置已保存！');
+            });
+            
+            // 初始化页面
+            loadMembers();
+            loadScores();
+            loadSettings();
+        });
+    </script>
+</body>
+</html> 

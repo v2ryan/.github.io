@@ -2,52 +2,215 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>游戏中心 - 登录</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
         .container {
-            text-align: center;
-            padding: 2rem;
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 300px;
+            max-width: 90%;
+            text-align: center;
         }
         h1 {
             color: #333;
+            margin-bottom: 20px;
         }
-        .game-button {
+        .login-form {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn {
             background-color: #4CAF50;
             border: none;
             color: white;
-            padding: 15px 32px;
+            padding: 12px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
-            margin: 10px 2px;
+            margin-top: 10px;
             cursor: pointer;
             border-radius: 5px;
-            transition: background-color 0.3s;
+            width: 100%;
         }
-        .game-button:hover {
+        .btn:hover {
             background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        .game-container {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .game-link {
+            display: block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            margin: 10px 0;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+        .game-link:hover {
+            background-color: #45a049;
+        }
+        .logout-btn {
+            background-color: #f44336;
+            margin-top: 20px;
+        }
+        .logout-btn:hover {
+            background-color: #d32f2f;
         }
     </style>
 </head>
 <body>
-    <!-- JSDOS: 这是一个简单的Hello World网页，点击按钮可以跳转到贪食蛇游戏 -->
-    <div class="container">
-        <h1>你好，世界！</h1>
-        <a href="snake.html" class="game-button">这是我的第一个HTML页面</a>
+    <!-- JSDOS: 这是游戏中心的登录页面 -->
+    <div class="container" id="login-container">
+        <h1>游戏中心</h1>
+        <div class="login-form">
+            <div class="form-group">
+                <label for="username">用户名</label>
+                <input type="text" id="username" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" placeholder="请输入密码">
+            </div>
+            <button class="btn" id="login-btn">登录</button>
+            <p class="error-message" id="error-message">用户名或密码错误，请重试！</p>
+        </div>
     </div>
+
+    <div class="container game-container" id="game-container">
+        <h1>欢迎来到游戏中心</h1>
+        <p>请选择您想玩的游戏：</p>
+        <a href="game-menu.html" class="game-link">贪食蛇游戏</a>
+        <!-- 添加管理中心入口，仅对管理员显示 -->
+        <a href="admin.html" class="game-link" id="admin-link" style="display: none; background-color: #2196F3;">管理中心</a>
+        <button class="btn logout-btn" id="logout-btn">退出登录</button>
+    </div>
+
+    <script>
+        // JSDOS: 登录系统的JavaScript代码
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginContainer = document.getElementById('login-container');
+            const gameContainer = document.getElementById('game-container');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+            
+            // 检查是否已登录
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                showGameContainer();
+            }
+            
+            // 登录按钮点击事件
+            loginBtn.addEventListener('click', () => {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                // 获取会员列表
+                const members = JSON.parse(localStorage.getItem('members') || '[]');
+                
+                // 如果会员列表为空，添加默认管理员账户
+                if (members.length === 0) {
+                    members.push({
+                        id: 'admin',
+                        username: 'admin',
+                        password: 'password',
+                        role: 'admin',
+                        registerDate: new Date().toISOString()
+                    });
+                    localStorage.setItem('members', JSON.stringify(members));
+                }
+                
+                // 查找匹配的会员
+                const member = members.find(m => m.username === username && m.password === password);
+                
+                if (member) {
+                    // 登录成功
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('userRole', member.role);
+                    showGameContainer();
+                } else {
+                    // 登录失败
+                    errorMessage.style.display = 'block';
+                    passwordInput.value = '';
+                }
+            });
+            
+            // 退出登录按钮点击事件
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                localStorage.removeItem('userRole');
+                showLoginContainer();
+            });
+            
+            // 显示游戏容器
+            function showGameContainer() {
+                loginContainer.style.display = 'none';
+                gameContainer.style.display = 'block';
+                
+                // 检查是否是管理员，显示或隐藏管理中心入口
+                const userRole = localStorage.getItem('userRole');
+                const adminLink = document.getElementById('admin-link');
+                
+                if (userRole === 'admin') {
+                    adminLink.style.display = 'block';
+                } else {
+                    adminLink.style.display = 'none';
+                }
+            }
+            
+            // 显示登录容器
+            function showLoginContainer() {
+                loginContainer.style.display = 'block';
+                gameContainer.style.display = 'none';
+                usernameInput.value = '';
+                passwordInput.value = '';
+                errorMessage.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
