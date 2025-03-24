@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>四子连珠游戏</title>
+    <link rel="stylesheet" href="fourinarow.css">
+</head>
+<body>
+    <!-- JSDOS: 这是一个四子连珠游戏 -->
+    <div class="game-container">
+        <h1>四子连珠</h1>
+        
+        <!-- 游戏模式选择界面 -->
+        <div class="mode-selection" id="mode-selection">
+            <h2>选择游戏模式</h2>
+            <button class="mode-btn" id="pve-btn">人机对战</button>
+            <button class="mode-btn" id="pvp-btn">双人对战</button>
+        </div>
+        
+        <!-- 游戏主界面 -->
+        <div class="game-board-container" id="game-board-container" style="display: none;">
+            <div class="game-status">
+                <p>当前玩家: <span id="current-player">红方</span></p>
+                <p id="game-message">请选择一列放置棋子</p>
+            </div>
+            
+            <!-- 显示当前选中列的提示 -->
+            <div class="column-preview" id="column-preview"></div>
+            
+            <!-- 游戏棋盘 -->
+            <div class="game-board" id="game-board">
+                <!-- 棋盘将在JS中动态生成 -->
+            </div>
+            
+            <div class="controls">
+                <button id="reset-btn">重新开始</button>
+                <button id="return-menu-btn">返回菜单</button>
+            </div>
+            
+            <div class="scoreboard">
+                <h3>战绩</h3>
+                <p>红方赢: <span id="red-score">0</span></p>
+                <p>黄方赢: <span id="yellow-score">0</span></p>
+                <p>平局: <span id="tie-score">0</span></p>
+            </div>
+        </div>
+        
+        <a href="index.html" class="back-link">返回主页</a>
+    </div>
+    
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="winner-text">游戏结束</h2>
+            <button id="play-again-btn">再玩一次</button>
+            <button id="menu-btn">返回菜单</button>
+        </div>
+    </div>
+    
+    <script src="fourinarow.js"></script>
+</body>
+</html> 
