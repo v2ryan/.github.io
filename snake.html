@@ -62,6 +62,39 @@
         .home-link:hover {
             text-decoration: underline;
         }
+        .mobile-controls {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .horizontal-controls {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .direction-btn {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .direction-btn:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex;
+            }
+        }
     </style>
 </head>
 <body>
@@ -75,6 +108,16 @@
         <button class="btn" id="start-btn">开始游戏</button>
         <button class="btn" id="restart-btn">重新开始</button>
         <button class="btn" onclick="window.location.href='index.html'">返回主页</button>
+    </div>
+
+    <!-- 添加移动设备的方向控制按钮 -->
+    <div class="mobile-controls">
+        <button class="direction-btn" id="up-btn">↑</button>
+        <div class="horizontal-controls">
+            <button class="direction-btn" id="left-btn">←</button>
+            <button class="direction-btn" id="right-btn">→</button>
+        </div>
+        <button class="direction-btn" id="down-btn">↓</button>
     </div>
 
     <script>
@@ -281,25 +324,71 @@
                 startBtn.disabled = false;
             }
             
-            // 键盘控制
-            document.addEventListener('keydown', (e) => {
+            // 添加移动设备方向控制按钮事件
+            const upBtn = document.getElementById('up-btn');
+            const downBtn = document.getElementById('down-btn');
+            const leftBtn = document.getElementById('left-btn');
+            const rightBtn = document.getElementById('right-btn');
+            
+            upBtn.addEventListener('click', () => {
+                if (direction !== 'down' && gameRunning) nextDirection = 'up';
+            });
+            
+            downBtn.addEventListener('click', () => {
+                if (direction !== 'up' && gameRunning) nextDirection = 'down';
+            });
+            
+            leftBtn.addEventListener('click', () => {
+                if (direction !== 'right' && gameRunning) nextDirection = 'left';
+            });
+            
+            rightBtn.addEventListener('click', () => {
+                if (direction !== 'left' && gameRunning) nextDirection = 'right';
+            });
+            
+            // 添加触摸滑动控制
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            canvas.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            }, false);
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (!gameRunning) return;
+                e.preventDefault();
+            }, false);
+            
+            canvas.addEventListener('touchend', (e) => {
                 if (!gameRunning) return;
                 
-                switch(e.key) {
-                    case 'ArrowUp':
-                        if (direction !== 'down') nextDirection = 'up';
-                        break;
-                    case 'ArrowDown':
-                        if (direction !== 'up') nextDirection = 'down';
-                        break;
-                    case 'ArrowLeft':
-                        if (direction !== 'right') nextDirection = 'left';
-                        break;
-                    case 'ArrowRight':
-                        if (direction !== 'left') nextDirection = 'right';
-                        break;
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+                
+                // 确定主要的滑动方向
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    // 水平滑动
+                    if (deltaX > 0 && direction !== 'left') {
+                        nextDirection = 'right';
+                    } else if (deltaX < 0 && direction !== 'right') {
+                        nextDirection = 'left';
+                    }
+                } else {
+                    // 垂直滑动
+                    if (deltaY > 0 && direction !== 'up') {
+                        nextDirection = 'down';
+                    } else if (deltaY < 0 && direction !== 'down') {
+                        nextDirection = 'up';
+                    }
                 }
-            });
+                
+                e.preventDefault();
+            }, false);
             
             // 按钮事件
             startBtn.addEventListener('click', startGame);
