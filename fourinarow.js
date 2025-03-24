@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let tieScore = 0;
     let hoveredColumn = -1;
     let isAnimating = false;
+    let winningCells = [];
     
     // 获取DOM元素
     const modeSelectionElement = document.getElementById('mode-selection');
@@ -50,23 +51,33 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化游戏
     function initGame() {
+        console.log('初始化游戏...');
+        
+        // 隐藏模式选择
         modeSelectionElement.style.display = 'none';
         gameBoardContainer.style.display = 'block';
         
-        // 初始化棋盘
+        // 重置游戏状态
         board = Array(ROWS).fill().map(() => Array(COLS).fill(EMPTY));
         currentPlayer = RED;
         gameActive = true;
+        isAnimating = false;
+        winningCells = [];
+        hoveredColumn = -1;
         
-        // 更新显示
+        // 更新玩家显示
         updatePlayerDisplay();
-        gameMessageElement.textContent = '请选择一列放置棋子';
         
         // 创建游戏棋盘
         createGameBoard();
         
         // 创建预览棋子
         createPreviewDisc();
+        
+        // 清除消息
+        gameMessageElement.textContent = '游戏开始！';
+        
+        console.log('游戏初始化完成');
         
         // 如果是人机模式且电脑先手（黄方），则执行电脑回合
         if (gameMode === 'pve' && currentPlayer === YELLOW) {
@@ -76,52 +87,61 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 创建游戏棋盘
     function createGameBoard() {
+        console.log('创建游戏棋盘...');
+        
+        // 清空棋盘
         gameBoardElement.innerHTML = '';
         
-        // 添加列点击事件监听
-        for (let col = 0; col < COLS; col++) {
-            const columnDiv = document.createElement('div');
-            columnDiv.className = 'column';
-            columnDiv.dataset.col = col;
+        // 创建表格
+        const table = document.createElement('table');
+        table.className = 'game-table';
+        
+        // 从上到下创建行（从0开始，这是最顶行）
+        for (let row = 0; row < ROWS; row++) {
+            const tr = document.createElement('tr');
             
-            // 添加鼠标悬停事件
-            columnDiv.addEventListener('mouseenter', () => {
-                if (!isAnimating && gameActive) {
-                    hoveredColumn = col;
+            for (let col = 0; col < COLS; col++) {
+                const td = document.createElement('td');
+                td.className = 'cell';
+                td.dataset.row = row;
+                td.dataset.col = col;
+                
+                // 单独为每个单元格添加点击事件，按列处理
+                td.addEventListener('click', function() {
+                    if (!gameActive || isAnimating) {
+                        console.log('游戏不活跃或正在动画中，忽略点击');
+                        return;
+                    }
+                    
+                    // 获取列号，触发该列的落子
+                    const clickedCol = parseInt(this.dataset.col);
+                    console.log(`点击列: ${clickedCol}`);
+                    makeMove(clickedCol);
+                });
+                
+                // 悬停事件
+                td.addEventListener('mouseenter', function() {
+                    if (!gameActive) return;
+                    const hoverCol = parseInt(this.dataset.col);
+                    if (hoveredColumn !== hoverCol) {
+                        hoveredColumn = hoverCol;
+                        updatePreviewDisc();
+                    }
+                });
+                
+                td.addEventListener('mouseleave', function() {
+                    hoveredColumn = -1;
                     updatePreviewDisc();
-                }
-            });
-            
-            columnDiv.addEventListener('mouseleave', () => {
-                hoveredColumn = -1;
-                updatePreviewDisc();
-            });
-            
-            columnDiv.addEventListener('click', () => {
-                if (!isAnimating && gameActive) {
-                    makeMove(col);
-                }
-            });
-            
-            // 为每列创建单元格
-            for (let row = ROWS - 1; row >= 0; row--) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.dataset.row = row;
-                cell.dataset.col = col;
+                });
                 
-                // 如果格子已有棋子，显示棋子
-                if (board[row][col] !== EMPTY) {
-                    const disc = document.createElement('div');
-                    disc.className = 'disc ' + (board[row][col] === RED ? 'red-disc' : 'yellow-disc');
-                    cell.appendChild(disc);
-                }
-                
-                columnDiv.appendChild(cell);
+                tr.appendChild(td);
             }
             
-            gameBoardElement.appendChild(columnDiv);
+            table.appendChild(tr);
         }
+        
+        gameBoardElement.appendChild(table);
+        console.log('游戏棋盘创建完成');
     }
     
     // 创建预览棋子
@@ -136,9 +156,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 更新预览棋子位置
     function updatePreviewDisc() {
         const previewDisc = columnPreviewElement.querySelector('.preview-disc');
+        if (!previewDisc) return;
+        
+        // 更新颜色
+        previewDisc.className = 'preview-disc ' + (currentPlayer === RED ? 'red-disc' : 'yellow-disc');
+        
         if (hoveredColumn >= 0 && isValidMove(hoveredColumn)) {
             previewDisc.style.display = 'block';
-            previewDisc.className = 'preview-disc ' + (currentPlayer === RED ? 'red-disc' : 'yellow-disc');
             // 计算预览棋子的位置
             const cellWidth = gameBoardElement.offsetWidth / COLS;
             previewDisc.style.left = (hoveredColumn * cellWidth + (cellWidth - previewDisc.offsetWidth) / 2) + 'px';
@@ -149,64 +173,133 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 检查是否可以在该列放置棋子
     function isValidMove(col) {
-        // 检查最顶行是否为空
-        return board[0][col] === EMPTY;
+        if (col < 0 || col >= COLS) return false;
+        return board[0][col] === EMPTY; // 检查最顶行是否为空
     }
     
-    // 执行移动
+    // 修改makeMove函数，使用更简单的方法找到目标单元格
     function makeMove(col) {
-        // 如果该列已满，则不处理
+        console.log(`尝试在第${col}列落子...`);
+        
+        // 检查是否可以在该列落子
         if (!isValidMove(col)) {
-            return;
+            console.log(`列${col}已满，无法落子`);
+            return false;
         }
         
-        // 如果不是玩家回合，则不处理
-        if (gameMode === 'pve' && currentPlayer === YELLOW) {
-            return;
+        // 防止动画期间重复点击
+        if (isAnimating) {
+            console.log('正在动画中，忽略点击');
+            return false;
         }
         
-        // 找到棋子应该落在的行
+        isAnimating = true;
+        console.log('设置动画状态: true');
+        
+        // 找到该列最底部的空位置
         let row = ROWS - 1;
-        while (row >= 0 && board[row][col] !== EMPTY) {
+        while (row >= 0) {
+            if (board[row][col] === EMPTY) {
+                break;
+            }
             row--;
         }
         
-        if (row < 0) return; // 该列已满
+        console.log(`找到空位置: 行=${row}, 列=${col}`);
         
-        // 更新棋盘
+        // 更新游戏状态
         board[row][col] = currentPlayer;
+        console.log(`更新游戏状态: board[${row}][${col}] = ${currentPlayer}`);
         
-        // 添加动画效果
-        isAnimating = true;
-        animateDiscFall(row, col, () => {
-            // 检查游戏状态
-            checkGameState(row, col);
+        // 显示动画
+        // 直接在表格中找到单元格并添加棋子
+        const cell = document.querySelector(`td.cell[data-row="${row}"][data-col="${col}"]`);
+        if (!cell) {
+            console.error(`找不到单元格: row=${row}, col=${col}`);
+            isAnimating = false;
+            return false;
+        }
+        
+        // 创建棋子元素
+        const disc = document.createElement('div');
+        disc.className = 'disc fall-animation';
+        disc.classList.add(currentPlayer === RED ? 'red-disc' : 'yellow-disc');
+        cell.appendChild(disc);
+        
+        console.log('添加棋子到单元格');
+        
+        // 检查是否获胜
+        let gameOver = false;
+        
+        // 动画结束后检查游戏状态
+        setTimeout(function() {
+            console.log('动画结束');
             
-            // 如果游戏仍在进行，切换玩家
-            if (gameActive) {
+            // 检查是否获胜
+            if (checkWin(row, col)) {
+                gameOver = true;
+                console.log('检测到获胜');
+                
+                // 更新分数
+                if (currentPlayer === RED) {
+                    redScore++;
+                    redScoreElement.textContent = redScore;
+                } else {
+                    yellowScore++;
+                    yellowScoreElement.textContent = yellowScore;
+                }
+                
+                // 高亮获胜棋子
+                highlightWinningDiscs();
+                
+                // 显示获胜消息
+                const winner = currentPlayer === RED ? '红方' : '黄方';
+                gameMessageElement.textContent = `${winner}获胜！`;
+                
+                setTimeout(() => {
+                    gameActive = false;
+                    winnerTextElement.textContent = `${winner}获胜！`;
+                    gameOverModal.style.display = 'block';
+                }, 1000);
+            } else if (isBoardFull()) {
+                gameOver = true;
+                console.log('棋盘已满，平局');
+                
+                // 更新平局次数
+                tieScore++;
+                tieScoreElement.textContent = tieScore;
+                gameMessageElement.textContent = '平局！';
+                
+                setTimeout(() => {
+                    gameActive = false;
+                    winnerTextElement.textContent = '平局！';
+                    gameOverModal.style.display = 'block';
+                }, 1000);
+            }
+            
+            // 关键修复：确保在游戏结束检查后再切换玩家
+            if (!gameOver) {
+                // 切换玩家
                 currentPlayer = currentPlayer === RED ? YELLOW : RED;
                 updatePlayerDisplay();
+                console.log(`切换玩家: ${currentPlayer === RED ? '红方' : '黄方'}`);
                 
-                // 如果是人机模式且轮到电脑，执行电脑回合
-                if (gameMode === 'pve' && currentPlayer === YELLOW) {
+                // 更新预览棋子颜色
+                updatePreviewDisc();
+                
+                // 如果是人机模式且当前是电脑回合，执行电脑移动
+                if (gameMode === 'pve' && currentPlayer === YELLOW && gameActive) {
+                    console.log('电脑回合，准备移动');
                     setTimeout(computerMove, 700);
                 }
             }
-        });
-    }
-    
-    // 棋子下落动画
-    function animateDiscFall(row, col, callback) {
-        const cell = gameBoardElement.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-        const disc = document.createElement('div');
-        disc.className = 'disc ' + (currentPlayer === RED ? 'red-disc' : 'yellow-disc') + ' fall-animation';
-        cell.appendChild(disc);
-        
-        // 动画完成后执行回调
-        setTimeout(() => {
+            
+            // 重置动画状态 - 确保这一行总是执行
             isAnimating = false;
-            callback();
-        }, 500); // 动画持续时间
+            console.log('重置动画状态: false');
+        }, 500);
+        
+        return true;
     }
     
     // 更新当前玩家显示
@@ -215,12 +308,16 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPlayerElement.style.color = currentPlayer === RED ? '#e53935' : '#f57f17';
     }
     
-    // 电脑移动
+    // 更新电脑移动函数，使用makeMove
     function computerMove() {
         if (!gameActive) return;
+        console.log('电脑开始思考...');
         
-        // 获取最佳移动
+        // 获取最佳移动列
         const col = getBestMove();
+        console.log(`电脑选择第${col}列`);
+        
+        // 执行落子
         makeMove(col);
     }
     
@@ -282,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return 0;
     }
     
-    // 获取某列最低的空位置
+    // 辅助函数：获取最低空行
     function getLowestEmptyRow(col) {
         for (let row = ROWS - 1; row >= 0; row--) {
             if (board[row][col] === EMPTY) {
@@ -346,51 +443,51 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 检查是否获胜
-    function checkWin(row, col, player) {
-        // 获取所有需要检查的方向
+    function checkWin(row, col, player = null) {
+        // 如果没有指定玩家，使用当前玩家
+        const currentDisc = player || board[row][col];
+        console.log(`检查获胜: 行=${row}, 列=${col}, 玩家=${currentDisc}`);
+        
+        // 检查获胜方向：水平，垂直，两个斜向
         const directions = [
-            [0, 1],  // 水平
-            [1, 0],  // 垂直
-            [1, 1],  // 对角线 /
-            [1, -1]  // 对角线 \
+            [{dr: 0, dc: -1}, {dr: 0, dc: 1}],  // 水平
+            [{dr: -1, dc: 0}, {dr: 1, dc: 0}],  // 垂直
+            [{dr: -1, dc: -1}, {dr: 1, dc: 1}], // 对角线 /
+            [{dr: -1, dc: 1}, {dr: 1, dc: -1}]  // 对角线 \
         ];
         
-        for (const [dr, dc] of directions) {
-            // 检查正方向
+        for (const dirPair of directions) {
+            // 重置连接计数和获胜单元格
             let count = 1;
-            let winningCells = [[row, col]]; // 存储获胜的棋子位置
+            winningCells = [{row, col}];
             
-            // 正向检查
-            for (let i = 1; i < 4; i++) {
-                const r = row + dr * i;
-                const c = col + dc * i;
-                
-                if (r < 0 || r >= ROWS || c < 0 || c >= COLS || board[r][c] !== player) {
-                    break;
+            // 在两个方向上检查
+            for (const dir of dirPair) {
+                for (let i = 1; i < 4; i++) {
+                    const r = row + dir.dr * i;
+                    const c = col + dir.dc * i;
+                    
+                    // 检查边界
+                    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) {
+                        break;
+                    }
+                    
+                    // 检查是否与当前棋子相同
+                    if (board[r][c] === currentDisc) {
+                        count++;
+                        winningCells.push({row: r, col: c});
+                    } else {
+                        break;
+                    }
                 }
-                
-                count++;
-                winningCells.push([r, c]);
             }
             
-            // 反向检查
-            for (let i = 1; i < 4; i++) {
-                const r = row - dr * i;
-                const c = col - dc * i;
-                
-                if (r < 0 || r >= ROWS || c < 0 || c >= COLS || board[r][c] !== player) {
-                    break;
-                }
-                
-                count++;
-                winningCells.push([r, c]);
-            }
-            
-            // 如果有四个或更多相连的棋子
+            // 检查是否有4个相连
             if (count >= 4) {
-                // 存储获胜棋子的位置，用于高亮显示
-                window.winningCells = winningCells;
+                console.log(`找到获胜组合: ${JSON.stringify(winningCells)}`);
                 return true;
+            } else {
+                winningCells = []; // 重置获胜单元格
             }
         }
         
@@ -399,13 +496,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 高亮显示获胜棋子
     function highlightWinningDiscs() {
-        if (!window.winningCells) return;
+        if (!winningCells || winningCells.length === 0) return;
         
-        window.winningCells.forEach(([row, col]) => {
-            const cell = gameBoardElement.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-            const disc = cell.querySelector('.disc');
-            if (disc) {
-                disc.classList.add('winning-disc');
+        console.log('高亮获胜棋子:', winningCells);
+        winningCells.forEach(({row, col}) => {
+            const cell = document.querySelector(`td.cell[data-row="${row}"][data-col="${col}"]`);
+            if (cell) {
+                const disc = cell.querySelector('.disc');
+                if (disc) {
+                    disc.classList.add('winning-disc');
+                }
             }
         });
     }
@@ -416,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPlayer = RED;
         gameActive = true;
         hoveredColumn = -1;
-        window.winningCells = null;
+        winningCells = [];
         
         // 更新界面
         updatePlayerDisplay();
@@ -450,4 +550,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 窗口大小变化时更新预览棋子位置
     window.addEventListener('resize', updatePreviewDisc);
+
+    // 添加辅助函数检查棋盘是否已满
+    function isBoardFull() {
+        for (let col = 0; col < COLS; col++) {
+            if (board[0][col] === EMPTY) {
+                return false;
+            }
+        }
+        return true;
+    }
 }); 

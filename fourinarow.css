@@ -85,9 +85,6 @@ h1 {
 
 /* 游戏棋盘 */
 .game-board {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
     background-color: #2196F3;
     padding: 10px;
     border-radius: 10px;
@@ -95,15 +92,29 @@ h1 {
     max-width: 420px;
 }
 
-.cell {
-    position: relative;
+.game-table {
     width: 100%;
-    padding-bottom: 100%; /* 保持正方形 */
+    border-collapse: separate;
+    border-spacing: 5px;
+}
+
+.cell {
     background-color: #ffffff;
     border-radius: 50%;
+    position: relative;
+    width: 50px;
+    height: 50px;
     cursor: pointer;
 }
 
+/* 确保游戏棋盘单元格保持正方形 */
+.cell::before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+}
+
+/* 棋子样式 */
 .disc {
     position: absolute;
     top: 5%;
@@ -111,7 +122,6 @@ h1 {
     width: 90%;
     height: 90%;
     border-radius: 50%;
-    transition: all 0.3s ease;
 }
 
 .red-disc {
@@ -139,16 +149,25 @@ h1 {
     }
 }
 
+/* 修改落子动画 */
 .fall-animation {
     animation: fall-animation 0.5s ease-in;
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
 }
 
 @keyframes fall-animation {
     0% {
-        transform: translateY(-300px);
+        transform: translateY(-500%);
+        opacity: 0.7;
     }
     100% {
         transform: translateY(0);
+        opacity: 1;
     }
 }
 

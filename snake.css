@@ -96,9 +96,9 @@ h1 {
     border-radius: 50%;
 }
 
-/* 移动设备控制 */
+/* 移动设备控制 - 改为始终显示 */
 .mobile-controls {
-    display: none;
+    display: block; /* 修改为始终显示 */
     margin: 20px auto;
     max-width: 300px;
 }
@@ -114,6 +114,14 @@ h1 {
     height: 70px;
     margin: 5px;
     cursor: pointer;
+    user-select: none; /* 防止长按选中 */
+    -webkit-tap-highlight-color: transparent; /* 移除移动设备上的点击高亮 */
+    transition: background-color 0.2s;
+}
+
+.mobile-controls button:hover,
+.mobile-controls button:active {
+    background-color: #757575;
 }
 
 .horizontal-controls {
@@ -201,10 +209,6 @@ button:hover {
     .game-info {
         flex-direction: column;
         gap: 5px;
-    }
-    
-    .mobile-controls {
-        display: block;
     }
     
     .game-board {
