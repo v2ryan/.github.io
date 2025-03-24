@@ -39,7 +39,7 @@
             <button id="reset-btn">重置游戏</button>
             <button id="random-btn">随机布局</button>
             <button id="rotate-btn">旋转舰船</button>
-            <button id="cancel-btn">取消选择</button>
+            <button id="cancel-btn" onclick="document.dispatchEvent(new CustomEvent('cancelShipSelection'));">取消选择</button>
         </div>
         
         <div class="ships-container">

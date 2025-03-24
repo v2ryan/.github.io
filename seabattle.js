@@ -119,36 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     shipPreviewElement.style.display = 'none';
     document.body.appendChild(shipPreviewElement);
     
-    // 取消舰船选择
-    function cancelShipSelection() {
-        placingShipIndex = -1;
-        selectedShipType = -1;
-        shipPreviewElement.style.display = 'none';
-        clearShipSelectionHighlight();
-        gameMessage.textContent = '请选择要放置的舰船';
-    }
-    
-    // 移动舰船预览
-    function moveShipPreview(e) {
-        if (selectedShipType === -1 || !shipPlacementMode) return;
-        
-        shipPreviewElement.style.display = 'flex';
-        shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
-        shipPreviewElement.style.left = (e.clientX + 10) + 'px';
-        shipPreviewElement.style.top = (e.clientY + 10) + 'px';
-    }
-    
-    // 移除舰船预览
-    function removeShipPreview() {
-        shipPreviewElement.style.display = 'none';
-    }
-    
-    // 清除舰船选择高亮
-    function clearShipSelectionHighlight() {
-        const items = shipSelectionElement.querySelectorAll('.ship-selection-item');
-        items.forEach(item => item.classList.remove('selected'));
-    }
-    
     // 初始化游戏
     function initGame() {
         // 创建玩家和敌人网格
@@ -216,6 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 添加点击事件
             shipElement.addEventListener('click', function() {
+                console.log('选择舰船: ', i);
+                
                 // 如果已经选择了这艘舰船，则取消选择
                 if (selectedShipType === i) {
                     cancelShipSelection();
@@ -226,7 +198,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedShipType = i;
                 clearShipSelectionHighlight();
                 this.classList.add('selected');
+                
+                // 明确启用取消按钮
                 cancelBtn.disabled = false;
+                console.log('取消按钮已启用');
                 
                 // 创建舰船预览
                 updateShipPreview();
@@ -840,5 +815,36 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 如果没有有效位置（不太可能发生），返回[0,0]
         return [0, 0];
+    }
+    
+    // 取消舰船选择
+    function cancelShipSelection(event) {
+        console.log('通过自定义事件取消舰船选择');
+        selectedShipType = -1;
+        shipPreviewElement.style.display = 'none';
+        clearShipSelectionHighlight();
+        cancelBtn.disabled = true;
+        gameMessage.textContent = '请选择要放置的舰船';
+    }
+    
+    // 清除舰船选择高亮
+    function clearShipSelectionHighlight() {
+        const items = shipSelectionElement.querySelectorAll('.ship-selection-item');
+        items.forEach(item => item.classList.remove('selected'));
+    }
+    
+    // 移动舰船预览
+    function moveShipPreview(e) {
+        if (selectedShipType === -1 || !shipPlacementMode) return;
+        
+        shipPreviewElement.style.display = 'flex';
+        shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
+        shipPreviewElement.style.left = (e.clientX + 10) + 'px';
+        shipPreviewElement.style.top = (e.clientY + 10) + 'px';
+    }
+    
+    // 移除舰船预览
+    function removeShipPreview() {
+        shipPreviewElement.style.display = 'none';
     }
 }); 
