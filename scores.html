@@ -153,17 +153,16 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             // 检查是否已登录
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             if (!isLoggedIn) {
                 // 如果未登录，重定向到登录页面
                 window.location.href = 'index.html';
                 return;
             }
             
-            const API_URL = 'http://localhost:3000/api';
-            const username = sessionStorage.getItem('username');
+            const username = localStorage.getItem('username');
             const personalScoresBody = document.getElementById('personal-scores-body');
             const globalScoresBody = document.getElementById('global-scores-body');
             const noPersonalRecords = document.getElementById('no-personal-records');
@@ -173,163 +172,125 @@
             const tabContents = document.querySelectorAll('.tab-content');
             
             // 加载个人分数记录
-            async function loadPersonalScores() {
-                try {
-                    const response = await fetch(`${API_URL}/scores/user/${username}`);
-                    const result = await response.json();
+            function loadPersonalScores() {
+                // 获取所有分数记录
+                const allScores = JSON.parse(localStorage.getItem('allSnakeScores') || '[]');
+                
+                // 过滤出当前用户的分数
+                const userScores = allScores.filter(score => score.username === username);
+                
+                // 清空表格
+                personalScoresBody.innerHTML = '';
+                
+                if (userScores.length === 0) {
+                    // 如果没有记录，显示提示
+                    noPersonalRecords.style.display = 'block';
+                } else {
+                    // 隐藏提示
+                    noPersonalRecords.style.display = 'none';
                     
-                    if (result.success) {
-                        const userScores = result.scores;
+                    // 按分数降序排序
+                    userScores.sort((a, b) => b.score - a.score);
+                    
+                    // 填充表格
+                    userScores.forEach((score) => {
+                        const row = document.createElement('tr');
                         
-                        // 清空表格
-                        personalScoresBody.innerHTML = '';
+                        // 格式化日期
+                        const date = new Date(score.date);
+                        const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
                         
-                        if (userScores.length === 0) {
-                            // 如果没有记录，显示提示
-                            noPersonalRecords.style.display = 'block';
-                        } else {
-                            // 隐藏提示
-                            noPersonalRecords.style.display = 'none';
-                            
-                            // 按分数降序排序
-                            userScores.sort((a, b) => b.score - a.score);
-                            
-                            // 填充表格
-                            userScores.forEach((score) => {
-                                const row = document.createElement('tr');
-                                
-                                // 格式化日期
-                                const date = new Date(score.date);
-                                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-                                
-                                row.innerHTML = `
-                                    <td>${formattedDate}</td>
-                                    <td>${score.score}</td>
-                                    <td>
-                                        <button class="btn delete-btn" data-id="${score.id}">删除</button>
-                                    </td>
-                                `;
-                                
-                                personalScoresBody.appendChild(row);
-                            });
-                            
-                            // 添加删除事件
-                            document.querySelectorAll('#personal-scores-body .delete-btn').forEach(btn => {
-                                btn.addEventListener('click', () => {
-                                    const scoreId = btn.getAttribute('data-id');
-                                    deleteScore(scoreId);
-                                });
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('加载个人分数失败:', error);
+                        row.innerHTML = `
+                            <td>${formattedDate}</td>
+                            <td>${score.score}</td>
+                            <td>
+                                <button class="btn delete-btn" data-id="${score.id}">删除</button>
+                            </td>
+                        `;
+                        
+                        personalScoresBody.appendChild(row);
+                    });
+                    
+                    // 添加删除事件
+                    document.querySelectorAll('#personal-scores-body .delete-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const scoreId = btn.getAttribute('data-id');
+                            deleteScore(scoreId);
+                        });
+                    });
                 }
             }
             
             // 加载全球排行榜
-            async function loadGlobalScores() {
-                try {
-                    const response = await fetch(`${API_URL}/scores`);
-                    const result = await response.json();
+            function loadGlobalScores() {
+                // 获取所有分数记录
+                const allScores = JSON.parse(localStorage.getItem('allSnakeScores') || '[]');
+                
+                // 清空表格
+                globalScoresBody.innerHTML = '';
+                
+                if (allScores.length === 0) {
+                    // 表示没有记录，显示提示
+                    noGlobalRecords.style.display = 'block';
+                } else {
+                    // 隐藏提示
+                    noGlobalRecords.style.display = 'none';
                     
-                    if (result.success) {
-                        const allScores = result.scores;
+                    // 填充表格
+                    allScores.forEach((score, index) => {
+                        const row = document.createElement('tr');
                         
-                        // 清空表格
-                        globalScoresBody.innerHTML = '';
+                        // 格式化日期
+                        const date = new Date(score.date);
+                        const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
                         
-                        if (allScores.length === 0) {
-                            // 表示没有记录，显示提示
-                            noGlobalRecords.style.display = 'block';
-                        } else {
-                            // 隐藏提示
-                            noGlobalRecords.style.display = 'none';
-                            
-                            // 填充表格
-                            allScores.forEach((score, index) => {
-                                const row = document.createElement('tr');
-                                
-                                // 格式化日期
-                                const date = new Date(score.date);
-                                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-                                
-                                // 高亮显示当前用户
-                                const isCurrentUser = score.username === username;
-                                
-                                row.innerHTML = `
-                                    <td>${index + 1}</td>
-                                    <td>${score.username}${isCurrentUser ? ' (我)' : ''}</td>
-                                    <td>${score.score}</td>
-                                    <td>${formattedDate}</td>
-                                `;
-                                
-                                if (isCurrentUser) {
-                                    row.style.fontWeight = 'bold';
-                                    row.style.backgroundColor = '#e8f5e9';
-                                }
-                                
-                                globalScoresBody.appendChild(row);
-                            });
+                        // 高亮显示当前用户
+                        const isCurrentUser = score.username === username;
+                        
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${score.username}${isCurrentUser ? ' (我)' : ''}</td>
+                            <td>${score.score}</td>
+                            <td>${formattedDate}</td>
+                        `;
+                        
+                        if (isCurrentUser) {
+                            row.style.fontWeight = 'bold';
+                            row.style.backgroundColor = '#e8f5e9';
                         }
-                    }
-                } catch (error) {
-                    console.error('加载全球排行榜失败:', error);
+                        
+                        globalScoresBody.appendChild(row);
+                    });
                 }
             }
             
             // 删除分数记录
-            async function deleteScore(scoreId) {
+            function deleteScore(scoreId) {
                 if (confirm('确定要删除这条记录吗？')) {
-                    try {
-                        const response = await fetch(`${API_URL}/scores/${scoreId}?username=${username}`, {
-                            method: 'DELETE'
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            // 重新加载个人记录
-                            loadPersonalScores();
-                            
-                            // 重新加载全球排行榜
-                            loadGlobalScores();
-                        } else {
-                            alert('删除失败: ' + result.message);
-                        }
-                    } catch (error) {
-                        console.error('删除分数失败:', error);
-                        alert('删除失败，请稍后再试');
-                    }
+                    // 获取所有分数记录
+                    const allScores = JSON.parse(localStorage.getItem('allSnakeScores') || '[]');
+                    
+                    // 过滤出要删除的分数记录
+                    const filteredScores = allScores.filter(score => score.id !== scoreId);
+                    
+                    // 保存更新后的分数记录
+                    localStorage.setItem('allSnakeScores', JSON.stringify(filteredScores));
+                    
+                    // 重新加载个人记录
+                    loadPersonalScores();
+                    loadGlobalScores();
                 }
             }
             
             // 清除所有个人记录
-            clearBtn.addEventListener('click', async () => {
+            clearBtn.addEventListener('click', () => {
                 if (confirm('确定要清除您的所有游戏记录吗？此操作无法撤销！')) {
-                    try {
-                        // 获取用户所有分数
-                        const response = await fetch(`${API_URL}/scores/user/${username}`);
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            const userScores = result.scores;
-                            
-                            // 逐个删除每条记录
-                            for (const score of userScores) {
-                                await fetch(`${API_URL}/scores/${score.id}?username=${username}`, {
-                                    method: 'DELETE'
-                                });
-                            }
-                            
-                            // 重新加载记录
-                            loadPersonalScores();
-                            loadGlobalScores();
-                        }
-                    } catch (error) {
-                        console.error('清除记录失败:', error);
-                        alert('清除记录失败，请稍后再试');
-                    }
+                    // 清除所有分数记录
+                    localStorage.removeItem('allSnakeScores');
+                    
+                    // 重新加载记录
+                    loadPersonalScores();
+                    loadGlobalScores();
                 }
             });
             

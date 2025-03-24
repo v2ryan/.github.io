@@ -441,35 +441,45 @@
             }
             
             // 修改保存分数的函数
-            async function saveScore(newScore) {
+            function saveScore(newScore) {
                 // 获取当前登录的用户名
-                const username = sessionStorage.getItem('username');
+                const username = localStorage.getItem('username');
                 if (!username) return; // 如果未登录，不保存分数
                 
-                try {
-                    // 发送分数到后端
-                    const response = await fetch('http://localhost:3000/api/scores', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username,
-                            score: newScore
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        // 更新本地排行榜显示
-                        localStorage.setItem('snakeScores', JSON.stringify(result.topScores));
-                    } else {
-                        console.error('保存分数失败:', result.message);
-                    }
-                } catch (error) {
-                    console.error('保存分数出错:', error);
-                }
+                // 获取所有分数记录
+                let allScores = JSON.parse(localStorage.getItem('allSnakeScores') || '[]');
+                
+                // 添加新分数记录
+                const newScoreRecord = {
+                    id: Date.now().toString(), // 使用时间戳作为唯一ID
+                    username: username,
+                    score: newScore,
+                    date: new Date().toISOString()
+                };
+                
+                // 添加到所有分数记录中
+                allScores.push(newScoreRecord);
+                
+                // 保存所有分数记录
+                localStorage.setItem('allSnakeScores', JSON.stringify(allScores));
+                
+                // 更新排行榜（前10名）
+                updateTopScores();
+            }
+            
+            // 添加更新排行榜的函数
+            function updateTopScores() {
+                // 获取所有分数记录
+                const allScores = JSON.parse(localStorage.getItem('allSnakeScores') || '[]');
+                
+                // 按分数降序排序
+                allScores.sort((a, b) => b.score - a.score);
+                
+                // 只保留前10名
+                const topScores = allScores.slice(0, 10);
+                
+                // 保存到snakeScores（供游戏结束时显示）
+                localStorage.setItem('snakeScores', JSON.stringify(topScores));
             }
             
             // 添加移动设备方向控制按钮事件
