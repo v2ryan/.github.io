@@ -63,7 +63,7 @@
             text-decoration: underline;
         }
         .mobile-controls {
-            display: none;
+            display: flex;
             flex-direction: column;
             align-items: center;
             margin-top: 20px;
@@ -89,11 +89,6 @@
         }
         .direction-btn:hover {
             background-color: #45a049;
-        }
-        @media (max-width: 768px) {
-            .mobile-controls {
-                display: flex;
-            }
         }
     </style>
 </head>
@@ -389,6 +384,26 @@
                 
                 e.preventDefault();
             }, false);
+            
+            // 添加键盘控制
+            document.addEventListener('keydown', (e) => {
+                if (!gameRunning) return;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        if (direction !== 'down') nextDirection = 'up';
+                        break;
+                    case 'ArrowDown':
+                        if (direction !== 'up') nextDirection = 'down';
+                        break;
+                    case 'ArrowLeft':
+                        if (direction !== 'right') nextDirection = 'left';
+                        break;
+                    case 'ArrowRight':
+                        if (direction !== 'left') nextDirection = 'right';
+                        break;
+                }
+            });
             
             // 按钮事件
             startBtn.addEventListener('click', startGame);
