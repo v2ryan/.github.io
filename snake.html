@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>贪食蛇游戏</title>
     <style>
         body {
@@ -97,7 +97,17 @@
         #up-btn, #down-btn {
             margin: 0 auto;
         }
+        /* 防止双击缩放 */
+        * {
+            touch-action: manipulation;
+        }
     </style>
+    <script>
+        // 添加防止双击缩放的脚本
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        });
+    </script>
 </head>
 <body>
     <!-- JSDOS: 这是一个贪食蛇游戏页面 -->
