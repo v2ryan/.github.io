@@ -338,6 +338,11 @@ app.post('/api/import', (req, res) => {
     }
 });
 
+// 添加一个简单的ping接口测试连接
+app.get('/api/ping', (req, res) => {
+    res.json({ success: true, message: 'Server is running' });
+});
+
 // 启动服务器
 app.listen(PORT, () => {
     console.log(`服务器运行在 http://localhost:${PORT}`);
