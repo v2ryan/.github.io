@@ -18,17 +18,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let playerTurn = true;
     let playerGrid = createEmptyGrid();
     let enemyGrid = createEmptyGrid();
+    let player2Grid = null; // 用于双人模式
     let playerShips = [];
     let enemyShips = [];
-    let placingShipIndex = 0;
+    let player2Ships = []; // 用于双人模式
+    let placingShipIndex = -1; // 修改为-1，表示没有选择舰船
+    let selectedShipType = -1; // 新增：当前选择的舰船类型
     let isHorizontal = true;
     let playerScore = 0;
     let computerScore = 0;
     let shipPlacementMode = true;
     let hoveredCells = [];
-    let playerHasBonus = false;
+    let gameMode = ''; // 'pve' 或 'pvp'
+    let currentPlacingPlayer = 1; // 1表示玩家1，2表示玩家2
     
     // DOM 元素
+    const modeSelectionElement = document.getElementById('mode-selection');
+    const pvpBtn = document.getElementById('pvp-btn');
+    const pveBtn = document.getElementById('pve-btn');
     const playerGridElement = document.getElementById('player-grid');
     const enemyGridElement = document.getElementById('enemy-grid');
     const shipSelectionElement = document.getElementById('ship-selection');
@@ -36,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetBtn = document.getElementById('reset-btn');
     const randomBtn = document.getElementById('random-btn');
     const rotateBtn = document.getElementById('rotate-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
     const gameStatusText = document.getElementById('game-status-text');
     const currentPlayerText = document.getElementById('current-player');
     const gameMessage = document.getElementById('game-message');
@@ -47,16 +55,99 @@ document.addEventListener('DOMContentLoaded', function() {
     const playAgainBtn = document.getElementById('play-again-btn');
     const returnMenuBtn = document.getElementById('return-menu-btn');
     
-    // 初始化游戏
-    initGame();
+    // 初始显示模式选择，隐藏游戏界面
+    document.querySelector('.game-status').style.display = 'none';
+    document.querySelector('.boards-container').style.display = 'none';
+    document.querySelector('.controls').style.display = 'none';
+    document.querySelector('.ships-container').style.display = 'none';
+    document.querySelector('.game-info').style.display = 'none';
+    document.querySelector('.scoreboard').style.display = 'none';
+    
+    // 游戏模式选择
+    pvpBtn.addEventListener('click', () => {
+        gameMode = 'pvp';
+        initGameMode();
+        computerScoreElement.previousElementSibling.textContent = '玩家2击沉: ';
+    });
+    
+    pveBtn.addEventListener('click', () => {
+        gameMode = 'pve';
+        initGameMode();
+        computerScoreElement.previousElementSibling.textContent = '电脑击沉: ';
+    });
+    
+    // 初始化游戏模式
+    function initGameMode() {
+        modeSelectionElement.style.display = 'none';
+        document.querySelector('.game-status').style.display = 'block';
+        document.querySelector('.boards-container').style.display = 'flex';
+        document.querySelector('.controls').style.display = 'block';
+        document.querySelector('.ships-container').style.display = 'block';
+        document.querySelector('.game-info').style.display = 'block';
+        document.querySelector('.scoreboard').style.display = 'block';
+        
+        if (gameMode === 'pvp') {
+            player2Grid = createEmptyGrid();
+            gameMessage.textContent = '玩家1请选择舰船放置';
+        }
+        
+        initGame();
+    }
     
     // 事件监听器
     startBtn.addEventListener('click', startGame);
     resetBtn.addEventListener('click', resetGame);
     randomBtn.addEventListener('click', randomPlacement);
     rotateBtn.addEventListener('click', rotateShip);
+    cancelBtn.addEventListener('click', cancelShipSelection);
     playAgainBtn.addEventListener('click', resetGame);
     returnMenuBtn.addEventListener('click', () => window.location.href = 'index.html');
+    
+    // 持有舰船跟随鼠标/触摸移动
+    document.addEventListener('mousemove', moveShipPreview);
+    document.addEventListener('touchmove', function(e) {
+        moveShipPreview(e.touches[0]);
+    }, { passive: false });
+    
+    // 移除舰船预览
+    document.addEventListener('mouseout', removeShipPreview);
+    document.addEventListener('touchend', removeShipPreview);
+    
+    // 创建舰船预览元素
+    const shipPreviewElement = document.createElement('div');
+    shipPreviewElement.className = 'ship-preview';
+    shipPreviewElement.style.display = 'none';
+    document.body.appendChild(shipPreviewElement);
+    
+    // 取消舰船选择
+    function cancelShipSelection() {
+        placingShipIndex = -1;
+        selectedShipType = -1;
+        shipPreviewElement.style.display = 'none';
+        clearShipSelectionHighlight();
+        gameMessage.textContent = '请选择要放置的舰船';
+    }
+    
+    // 移动舰船预览
+    function moveShipPreview(e) {
+        if (selectedShipType === -1 || !shipPlacementMode) return;
+        
+        shipPreviewElement.style.display = 'flex';
+        shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
+        shipPreviewElement.style.left = (e.clientX + 10) + 'px';
+        shipPreviewElement.style.top = (e.clientY + 10) + 'px';
+    }
+    
+    // 移除舰船预览
+    function removeShipPreview() {
+        shipPreviewElement.style.display = 'none';
+    }
+    
+    // 清除舰船选择高亮
+    function clearShipSelectionHighlight() {
+        const items = shipSelectionElement.querySelectorAll('.ship-selection-item');
+        items.forEach(item => item.classList.remove('selected'));
+    }
     
     // 初始化游戏
     function initGame() {
@@ -69,11 +160,174 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 设置按钮状态
         startBtn.disabled = true;
+        cancelBtn.disabled = true;
         
         // 设置游戏状态
         gameStatusText.textContent = '放置舰船';
-        currentPlayerText.textContent = '玩家';
-        gameMessage.textContent = '请放置所有舰船后开始游戏';
+        currentPlayerText.textContent = '玩家1';
+        gameMessage.textContent = '请选择舰船放置';
+    }
+    
+    // 初始化舰船选择
+    function initShipSelection() {
+        shipSelectionElement.innerHTML = '';
+        shipPreviewElement.innerHTML = '';
+        
+        // 确定要显示哪个玩家的舰船选择
+        const ships = gameMode === 'pvp' && currentPlacingPlayer === 2 ? player2Ships : playerShips;
+        
+        // 创建未放置的舰船选择项
+        for (let i = 0; i < SHIPS.length; i++) {
+            if (ships.some(ship => ship.type === i)) continue; // 跳过已放置的舰船
+            
+            const ship = SHIPS[i];
+            const shipElement = document.createElement('div');
+            shipElement.className = 'ship-selection-item';
+            shipElement.dataset.shipType = i;
+            
+            // 显示舰船名称
+            const nameElement = document.createElement('div');
+            nameElement.textContent = ship.name;
+            nameElement.style.marginBottom = '5px';
+            shipElement.appendChild(nameElement);
+            
+            // 显示舰船图形
+            const shipDisplay = document.createElement('div');
+            shipDisplay.style.display = 'flex';
+            shipDisplay.style.flexDirection = isHorizontal ? 'row' : 'column';
+            
+            for (let j = 0; j < ship.size; j++) {
+                const segment = document.createElement('div');
+                segment.className = 'ship';
+                segment.style.width = '25px';
+                segment.style.height = '25px';
+                shipDisplay.appendChild(segment);
+                
+                // 也为预览创建一个片段
+                const previewSegment = document.createElement('div');
+                previewSegment.className = 'ship';
+                previewSegment.style.width = '25px';
+                previewSegment.style.height = '25px';
+                shipPreviewElement.appendChild(previewSegment);
+            }
+            
+            shipElement.appendChild(shipDisplay);
+            shipSelectionElement.appendChild(shipElement);
+            
+            // 添加点击事件
+            shipElement.addEventListener('click', function() {
+                // 如果已经选择了这艘舰船，则取消选择
+                if (selectedShipType === i) {
+                    cancelShipSelection();
+                    return;
+                }
+                
+                // 选择此舰船
+                selectedShipType = i;
+                clearShipSelectionHighlight();
+                this.classList.add('selected');
+                cancelBtn.disabled = false;
+                
+                // 创建舰船预览
+                updateShipPreview();
+                
+                gameMessage.textContent = `已选择${ship.name}，请点击网格放置`;
+            });
+        }
+        
+        // 如果所有舰船已放置，显示提示
+        if (shipSelectionElement.children.length === 0) {
+            const message = document.createElement('div');
+            message.textContent = '所有舰船已放置完毕';
+            message.style.padding = '10px';
+            shipSelectionElement.appendChild(message);
+            
+            if (gameMode === 'pvp' && currentPlacingPlayer === 1) {
+                startBtn.disabled = true;
+                currentPlacingPlayer = 2;
+                playerShips = [...playerShips]; // 复制玩家1的舰船
+                
+                // 切换到玩家2的放置阶段
+                setTimeout(() => {
+                    alert('玩家1舰船放置完成，轮到玩家2放置舰船');
+                    playerGrid = createEmptyGrid();
+                    createGrid(playerGridElement, playerGrid, true);
+                    currentPlayerText.textContent = '玩家2';
+                    gameMessage.textContent = '玩家2请选择舰船放置';
+                    initShipSelection();
+                }, 500);
+            } else {
+                startBtn.disabled = false;
+                gameMessage.textContent = '所有舰船已放置完毕，点击"开始游戏"开始';
+            }
+        }
+    }
+    
+    // 更新舰船预览
+    function updateShipPreview() {
+        if (selectedShipType === -1) return;
+        
+        shipPreviewElement.innerHTML = '';
+        shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
+        
+        const ship = SHIPS[selectedShipType];
+        for (let i = 0; i < ship.size; i++) {
+            const segment = document.createElement('div');
+            segment.className = 'ship';
+            segment.style.width = '25px';
+            segment.style.height = '25px';
+            shipPreviewElement.appendChild(segment);
+        }
+    }
+    
+    // 处理玩家网格点击（放置舰船）
+    function handlePlayerGridClick(row, col) {
+        // 如果游戏已经开始或不在舰船放置模式，则不处理
+        if (gameStarted || !shipPlacementMode) return;
+        
+        // 如果没有选择舰船，则不处理
+        if (selectedShipType === -1) {
+            gameMessage.textContent = '请先选择一艘舰船';
+            return;
+        }
+        
+        // 获取当前要放置的舰船
+        const ship = SHIPS[selectedShipType];
+        
+        // 确定要使用的网格和舰船数组
+        let grid = gameMode === 'pvp' && currentPlacingPlayer === 2 ? player2Grid : playerGrid;
+        let ships = gameMode === 'pvp' && currentPlacingPlayer === 2 ? player2Ships : playerShips;
+        
+        // 检查是否可以放置
+        if (canPlaceShip(grid, row, col, ship.size, isHorizontal)) {
+            // 放置舰船
+            placeShip(grid, row, col, ship.size, isHorizontal, selectedShipType);
+            
+            // 记录舰船信息
+            ships.push({
+                type: selectedShipType,
+                size: ship.size,
+                hits: 0,
+                coordinates: getShipCoordinates(row, col, ship.size, isHorizontal)
+            });
+            
+            // 更新网格显示
+            createGrid(playerGridElement, grid, true);
+            
+            // 重置选择
+            const oldSelectedShipType = selectedShipType;
+            selectedShipType = -1;
+            shipPreviewElement.style.display = 'none';
+            clearShipSelectionHighlight();
+            cancelBtn.disabled = true;
+            
+            // 更新舰船选择显示
+            initShipSelection();
+            
+            gameMessage.textContent = `${SHIPS[oldSelectedShipType].name}已放置，请选择下一艘舰船`;
+        } else {
+            gameMessage.textContent = `无法在此位置放置舰船，请选择其他位置`;
+        }
     }
     
     // 创建空网格
@@ -121,98 +375,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 gridElement.appendChild(cell);
             }
-        }
-    }
-    
-    // 初始化舰船选择
-    function initShipSelection() {
-        shipSelectionElement.innerHTML = '';
-        
-        // 只显示未放置的舰船
-        for (let i = placingShipIndex; i < SHIPS.length; i++) {
-            const ship = SHIPS[i];
-            const shipElement = document.createElement('div');
-            shipElement.className = 'ship-selection-item';
-            shipElement.style.margin = '10px';
-            shipElement.style.display = 'inline-block';
-            
-            // 显示舰船名称
-            const nameElement = document.createElement('div');
-            nameElement.textContent = ship.name;
-            nameElement.style.marginBottom = '5px';
-            shipElement.appendChild(nameElement);
-            
-            // 显示舰船图形
-            const shipDisplay = document.createElement('div');
-            shipDisplay.style.display = 'flex';
-            shipDisplay.style.flexDirection = isHorizontal ? 'row' : 'column';
-            
-            for (let j = 0; j < ship.size; j++) {
-                const segment = document.createElement('div');
-                segment.className = 'ship';
-                segment.style.width = '25px';
-                segment.style.height = '25px';
-                shipDisplay.appendChild(segment);
-            }
-            
-            shipElement.appendChild(shipDisplay);
-            shipSelectionElement.appendChild(shipElement);
-        }
-        
-        // 如果所有舰船已放置，显示提示
-        if (placingShipIndex >= SHIPS.length) {
-            const message = document.createElement('div');
-            message.textContent = '所有舰船已放置完毕';
-            message.style.padding = '10px';
-            shipSelectionElement.appendChild(message);
-        }
-    }
-    
-    // 处理玩家网格点击（放置舰船）
-    function handlePlayerGridClick(row, col) {
-        // 如果游戏已经开始或不在舰船放置模式，则不处理
-        if (gameStarted || !shipPlacementMode) return;
-        
-        // 如果已经放置了所有舰船，则不处理
-        if (placingShipIndex >= SHIPS.length) {
-            gameMessage.textContent = '所有舰船已放置完毕，点击"开始游戏"开始';
-            return;
-        }
-        
-        // 获取当前要放置的舰船
-        const ship = SHIPS[placingShipIndex];
-        
-        // 检查是否可以放置
-        if (canPlaceShip(playerGrid, row, col, ship.size, isHorizontal)) {
-            // 放置舰船
-            placeShip(playerGrid, row, col, ship.size, isHorizontal, placingShipIndex);
-            
-            // 记录舰船信息
-            playerShips.push({
-                type: placingShipIndex,
-                size: ship.size,
-                hits: 0,
-                coordinates: getShipCoordinates(row, col, ship.size, isHorizontal)
-            });
-            
-            // 更新网格显示
-            createGrid(playerGridElement, playerGrid, true);
-            
-            // 移动到下一艘舰船
-            placingShipIndex++;
-            
-            // 更新舰船选择显示
-            initShipSelection();
-            
-            // 更新游戏信息
-            if (placingShipIndex < SHIPS.length) {
-                gameMessage.textContent = `请放置${SHIPS[placingShipIndex].name}（${SHIPS[placingShipIndex].size}格）`;
-            } else {
-                gameMessage.textContent = '所有舰船已放置完毕，点击"开始游戏"开始';
-                startBtn.disabled = false;
-            }
-        } else {
-            gameMessage.textContent = `无法在此位置放置舰船，请选择其他位置`;
         }
     }
     
@@ -411,7 +573,8 @@ document.addEventListener('DOMContentLoaded', function() {
         enemyGrid = createEmptyGrid();
         playerShips = [];
         enemyShips = [];
-        placingShipIndex = 0;
+        placingShipIndex = -1;
+        selectedShipType = -1;
         isHorizontal = true;
         playerScore = 0;
         computerScore = 0;
@@ -427,8 +590,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 重置游戏状态
         gameStatusText.textContent = '放置舰船';
-        currentPlayerText.textContent = '玩家';
-        gameMessage.textContent = '请放置所有舰船后开始游戏';
+        currentPlayerText.textContent = '玩家1';
+        gameMessage.textContent = '请选择舰船放置';
         
         // 重新初始化
         createGrid(playerGridElement, playerGrid, true);
@@ -439,6 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
         startBtn.disabled = true;
         randomBtn.disabled = false;
         rotateBtn.disabled = false;
+        cancelBtn.disabled = true;
     }
     
     // 检查是否可以放置舰船 - 简化版本
@@ -558,39 +722,60 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 开始游戏
     function startGame() {
-        if (playerShips.length !== SHIPS.length) {
+        if (gameMode === 'pve' && playerShips.length !== SHIPS.length) {
             gameMessage.textContent = '请先放置所有舰船';
+            return;
+        }
+        
+        if (gameMode === 'pvp' && (playerShips.length !== SHIPS.length || player2Ships.length !== SHIPS.length)) {
+            gameMessage.textContent = '请确保两位玩家都放置了所有舰船';
             return;
         }
         
         gameStarted = true;
         playerTurn = true;
+        shipPlacementMode = false;
         
-        // 随机生成敌方舰船
-        enemyGrid = createEmptyGrid();
-        enemyShips = [];
-        
-        for (let i = 0; i < SHIPS.length; i++) {
-            let placed = false;
+        if (gameMode === 'pve') {
+            // 随机生成敌方舰船
+            enemyGrid = createEmptyGrid();
+            enemyShips = [];
             
-            while (!placed) {
-                const row = Math.floor(Math.random() * GRID_SIZE);
-                const col = Math.floor(Math.random() * GRID_SIZE);
-                const horizontal = Math.random() > 0.5;
+            for (let i = 0; i < SHIPS.length; i++) {
+                let placed = false;
                 
-                if (canPlaceShip(enemyGrid, row, col, SHIPS[i].size, horizontal)) {
-                    placeShip(enemyGrid, row, col, SHIPS[i].size, horizontal, i);
+                while (!placed) {
+                    const row = Math.floor(Math.random() * GRID_SIZE);
+                    const col = Math.floor(Math.random() * GRID_SIZE);
+                    const horizontal = Math.random() > 0.5;
                     
-                    enemyShips.push({
-                        type: i,
-                        size: SHIPS[i].size,
-                        hits: 0,
-                        coordinates: getShipCoordinates(row, col, SHIPS[i].size, horizontal)
-                    });
-                    
-                    placed = true;
+                    if (canPlaceShip(enemyGrid, row, col, SHIPS[i].size, horizontal)) {
+                        placeShip(enemyGrid, row, col, SHIPS[i].size, horizontal, i);
+                        
+                        enemyShips.push({
+                            type: i,
+                            size: SHIPS[i].size,
+                            hits: 0,
+                            coordinates: getShipCoordinates(row, col, SHIPS[i].size, horizontal)
+                        });
+                        
+                        placed = true;
+                    }
                 }
             }
+            
+            // 玩家对战电脑
+            currentPlayerText.textContent = '玩家';
+            gameMessage.textContent = '游戏开始！请选择敌方海域位置进行攻击';
+        } else {
+            // 玩家对战玩家
+            // 在PVP模式下，我们使用player2Grid作为敌方网格
+            enemyGrid = player2Grid;
+            enemyShips = player2Ships;
+            
+            alert('游戏开始！玩家1先攻击');
+            currentPlayerText.textContent = '玩家1';
+            gameMessage.textContent = '请选择敌方海域位置进行攻击';
         }
         
         // 更新网格显示 (隐藏敌方舰船)
@@ -598,11 +783,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 更新UI和状态
         gameStatusText.textContent = '游戏中';
-        currentPlayerText.textContent = '玩家';
-        gameMessage.textContent = '游戏开始！请选择敌方海域位置进行攻击';
         startBtn.disabled = true;
         randomBtn.disabled = true;
         rotateBtn.disabled = true;
+        cancelBtn.disabled = true;
+        
+        // 重置分数
+        playerScore = 0;
+        computerScore = 0;
+        playerScoreElement.textContent = '0';
+        computerScoreElement.textContent = '0';
     }
     
     // 电脑选择攻击位置的函数

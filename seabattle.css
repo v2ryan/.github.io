@@ -220,4 +220,71 @@ button:disabled {
         flex-direction: column;
         align-items: center;
     }
+}
+
+/* 游戏模式选择 */
+.mode-selection {
+    text-align: center;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    max-width: 400px;
+}
+
+.mode-btn {
+    background-color: #0077be;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 10px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.mode-btn:hover {
+    background-color: #005a8e;
+}
+
+/* 拖动舰船样式 */
+.ship-selection-item {
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin: 10px;
+    display: inline-block;
+}
+
+.ship-selection-item:hover {
+    transform: scale(1.05);
+}
+
+.ship-selection-item.selected {
+    background-color: #a3d0e8;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* 取消按钮样式 */
+#cancel-btn {
+    background-color: #f44336;
+}
+
+#cancel-btn:hover {
+    background-color: #d32f2f;
+}
+
+/* 移动舰船预览 */
+.ship-preview {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.7;
+}
+
+.ship-preview .ship {
+    background-color: #555;
+    border-radius: 3px;
+    margin: 2px;
 } 
