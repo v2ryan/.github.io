@@ -153,11 +153,23 @@
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
+                // 特殊处理游客登录
+                if (username === 'guest' || username === '') {
+                    // 本地存储登录状态
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('username', 'guest_' + Math.floor(Math.random() * 9000 + 1000));
+                    sessionStorage.setItem('userRole', 'guest');
+                    sessionStorage.setItem('userId', 'guest_' + Date.now());
+                    sessionStorage.setItem('isGuestUser', 'true');
+                    showGameContainer();
+                    return;
+                }
+                
                 try {
                     errorMessage.style.display = 'block';
                     errorMessage.textContent = '登录中...';
                     
-                    const response = await fetch(`${API_URL}/login`, {
+                    const response = await fetch(`${API_URL}login`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -182,7 +194,7 @@
                     }
                 } catch (error) {
                     console.error('登录出错:', error);
-                    errorMessage.textContent = '服务器连接失败，请稍后再试';
+                    errorMessage.textContent = '服务器连接失败，请稍后再试，或选择游客登录';
                 }
             });
             

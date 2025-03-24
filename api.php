@@ -61,7 +61,7 @@ switch ($endpoint) {
 
 // 处理登录请求
 function handleLogin($db, $params) {
-    if (empty($params['username']) || empty($params['password'])) {
+    if (empty($params['username']) || !isset($params['password'])) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => '用户名和密码不能为空']);
         return;
@@ -70,14 +70,14 @@ function handleLogin($db, $params) {
     $username = $params['username'];
     $password = $params['password'];
     
-    // 允许游客登录
-    if (($username === 'guest' || $username === '') && $password === '') {
+    // 允许游客登录 - 修复游客登录条件
+    if ($username === 'guest' || (strpos($username, 'guest_') === 0 && $password === '')) {
         $guestId = 'guest_' . rand(1000, 9999);
         echo json_encode([
             'success' => true, 
             'user' => [
                 'id' => $guestId,
-                'username' => $guestId,
+                'username' => $username === 'guest' ? $guestId : $username,
                 'role' => 'guest'
             ],
             'isGuest' => true
@@ -90,7 +90,7 @@ function handleLogin($db, $params) {
     $stmt->execute([$username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($user && $password === $user['password']) { // 生产环境应使用password_verify
+    if ($user && ($password === $user['password'] || password_verify($password, $user['password']))) { // 支持明文密码和哈希密码
         // 不返回密码
         unset($user['password']);
         echo json_encode(['success' => true, 'user' => $user]);
