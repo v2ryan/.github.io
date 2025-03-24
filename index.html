@@ -137,6 +137,9 @@
             const passwordInput = document.getElementById('password');
             const errorMessage = document.getElementById('error-message');
             
+            // 预设用户名为"guest"，方便用户直接点击登录
+            usernameInput.value = 'guest';
+            
             // 检查是否已登录
             if (localStorage.getItem('isLoggedIn') === 'true') {
                 showGameContainer();
@@ -153,8 +156,8 @@
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
-                // 如果用户名和密码都为空，创建游客账户
-                if (username === '' && password === '') {
+                // 如果用户名是"guest"或为空，且密码为空，则以游客身份登录
+                if ((username === 'guest' || username === '') && password === '') {
                     // 生成随机游客ID
                     const guestId = 'guest_' + Math.floor(Math.random() * 10000);
                     
