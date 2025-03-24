@@ -99,10 +99,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (gameMode === 'pvp') {
             player2Grid = createEmptyGrid();
-            gameMessage.textContent = '玩家1请选择舰船放置';
+            gameMessage.textContent = '玩家1請選擇艦艇放置';
         }
         
         initGame();
+        
+        // 在初始化遊戲後顯示放置彈窗
+        setTimeout(() => {
+            initPlacementPopup();
+        }, 500);
     }
     
     // 事件监听器
@@ -664,13 +669,71 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 放置舰船
-    function placeShip(grid, row, col, size, horizontal, shipIndex) {
+    function placeShip(grid, row, col, size, horizontal, shipType) {
+        console.log(`放置船艦 - 類型: ${shipType}, 尺寸: ${size}, 方向: ${horizontal ? '水平' : '垂直'}, 坐標: [${row},${col}]`);
+        
+        // 如果已放置過此類型船艦，先清除
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                if (grid[r][c].shipIndex === shipType) {
+                    grid[r][c].hasShip = false;
+                    grid[r][c].shipIndex = -1;
+                }
+            }
+        }
+        
+        // 放置新船
         for (let i = 0; i < size; i++) {
             const r = horizontal ? row : row + i;
             const c = horizontal ? col + i : col;
             grid[r][c].hasShip = true;
-            grid[r][c].shipIndex = shipIndex;
+            grid[r][c].shipIndex = shipType;
         }
+        
+        // 確定當前玩家的船艦數組
+        const shipArray = currentPlacingPlayer === 1 ? playerShips : player2Ships;
+        
+        // 刪除已存在的同類型船艦
+        const existingIndex = shipArray.findIndex(ship => ship.type === shipType);
+        if (existingIndex !== -1) {
+            shipArray.splice(existingIndex, 1);
+        }
+        
+        // 添加新船艦
+        shipArray.push({
+            type: shipType,
+            size: size,
+            hits: 0,
+            coordinates: getShipCoordinates(row, col, size, horizontal)
+        });
+        
+        // 記錄船艦數量
+        const playerShipCount = playerShips.length;
+        const player2ShipCount = player2Ships.length;
+        
+        console.log(`當前船艦數量 - 玩家1: ${playerShipCount}, 玩家2: ${player2ShipCount}, 需要數量: ${SHIPS.length}`);
+        
+        // 檢查是否所有船艦都已放置
+        if (gameMode === 'pve' && playerShipCount === SHIPS.length) {
+            // 單人模式，所有船艦已放置
+            startBtn.disabled = false;
+            gameMessage.textContent = '所有船艦已放置，點擊"開始遊戲"按鈕開始遊戲';
+        } else if (gameMode === 'pvp') {
+            if (currentPlacingPlayer === 1 && playerShipCount === SHIPS.length) {
+                // 玩家1已完成，切換到玩家2
+                gameMessage.textContent = '玩家1已放置所有船艦。現在輪到玩家2放置船艦。';
+                setTimeout(() => {
+                    switchToPlayer2();
+                }, 1000);
+            } else if (currentPlacingPlayer === 2 && player2ShipCount === SHIPS.length) {
+                // 玩家2已完成，可以開始遊戲
+                startBtn.disabled = false;
+                gameMessage.textContent = '所有船艦已放置，點擊"開始遊戲"按鈕開始遊戲';
+            }
+        }
+        
+        // 更新網格顯示
+        updateGridDisplay();
     }
     
     // 获取舰船坐标
@@ -695,11 +758,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 旋转舰船
     function rotateShip() {
-        if (gameStarted) return;
-        
         isHorizontal = !isHorizontal;
-        initShipSelection();
-        gameMessage.textContent = `舰船方向已切换为${isHorizontal ? '水平' : '垂直'}`;
+        updateDirectionIndicator();
+        
+        // 如果正在預覽船，更新預覽
+        if (hoveredCells.length > 0) {
+            const [row, col] = hoveredCells[0];
+            clearShipPreview();
+            showShipPreview(row, col);
+        }
+        
+        // 更新遊戲消息
+        gameMessage.textContent = `船艦方向已改為${isHorizontal ? '水平' : '垂直'}`;
     }
     
     // 随机放置舰船
@@ -893,5 +963,221 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearShipSelectionHighlight() {
         const items = shipSelectionElement.querySelectorAll('.ship-selection-item');
         items.forEach(item => item.classList.remove('selected'));
+    }
+    
+    // 顯示船的方向指示器
+    function updateDirectionIndicator() {
+        // 創建方向指示器（如果不存在）
+        let directionIndicator = document.getElementById('direction-indicator');
+        if (!directionIndicator) {
+            directionIndicator = document.createElement('div');
+            directionIndicator.id = 'direction-indicator';
+            document.querySelector('.controls').appendChild(directionIndicator);
+        }
+        
+        // 更新方向指示文本
+        directionIndicator.textContent = `當前方向: ${isHorizontal ? '水平 →' : '垂直 ↓'}`;
+        directionIndicator.style.margin = '10px 0';
+        directionIndicator.style.fontWeight = 'bold';
+        directionIndicator.style.color = '#0066cc';
+    }
+    
+    // 為PC添加彈出式放置界面
+    function initPlacementPopup() {
+        console.log("初始化放置彈窗");
+        
+        // 強制創建新彈窗（刪除舊的）
+        let oldPopup = document.getElementById('placement-popup');
+        if (oldPopup) {
+            oldPopup.remove();
+        }
+        
+        // 創建彈出窗口
+        const placementPopup = document.createElement('div');
+        placementPopup.id = 'placement-popup';
+        placementPopup.classList.add('placement-popup');
+        placementPopup.style.position = 'fixed';
+        placementPopup.style.top = '0';
+        placementPopup.style.left = '0';
+        placementPopup.style.width = '100%';
+        placementPopup.style.height = '100%';
+        placementPopup.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        placementPopup.style.display = 'flex';
+        placementPopup.style.justifyContent = 'center';
+        placementPopup.style.alignItems = 'center';
+        placementPopup.style.zIndex = '1000';
+        
+        // 創建彈窗內容
+        placementPopup.innerHTML = `
+            <div class="popup-content" style="background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-width: 90%; width: 500px;">
+                <h3 style="color: #0066cc; margin-bottom: 15px;">放置艦艇</h3>
+                <p id="popup-message" style="margin-bottom: 15px;">${currentPlacingPlayer === 1 ? '玩家1' : '玩家2'}請選擇艦艇並點擊網格放置</p>
+                <div id="popup-ships" style="display: flex; flex-wrap: wrap; justify-content: center; margin: 15px 0; gap: 10px;"></div>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                    <button id="popup-rotate-btn" style="padding: 8px 12px; border: none; border-radius: 5px; background-color: #0066cc; color: white; cursor: pointer;">旋轉艦艇 (R)</button>
+                    <button id="popup-auto-btn" style="padding: 8px 12px; border: none; border-radius: 5px; background-color: #0066cc; color: white; cursor: pointer;">自動放置</button>
+                    <button id="popup-confirm-btn" style="padding: 8px 12px; border: none; border-radius: 5px; background-color: #0066cc; color: white; cursor: pointer;">確認</button>
+                </div>
+            </div>
+        `;
+        
+        // 添加到文檔中
+        document.body.appendChild(placementPopup);
+        
+        // 添加事件監聽器
+        document.getElementById('popup-rotate-btn').addEventListener('click', rotateShip);
+        document.getElementById('popup-auto-btn').addEventListener('click', randomPlacement);
+        document.getElementById('popup-confirm-btn').addEventListener('click', () => {
+            placementPopup.style.display = 'none';
+            if (gameMode === 'pvp' && currentPlacingPlayer === 1 && playerShips.length === SHIPS.length) {
+                setTimeout(() => {
+                    switchToPlayer2();
+                }, 500);
+            } else if ((gameMode === 'pve' && playerShips.length === SHIPS.length) || 
+                      (gameMode === 'pvp' && currentPlacingPlayer === 2 && player2Ships.length === SHIPS.length)) {
+                startBtn.disabled = false;
+            }
+        });
+        
+        // 更新船艦選擇
+        updatePopupShips();
+        
+        console.log("彈窗已初始化並顯示");
+    }
+    
+    // 更新船艦選擇函數
+    function updatePopupShips() {
+        const popupShipsElement = document.getElementById('popup-ships');
+        if (!popupShipsElement) {
+            console.error("找不到彈窗中的船艦容器元素");
+            return;
+        }
+        
+        // 清空現有選擇
+        popupShipsElement.innerHTML = '';
+        
+        // 獲取當前玩家的船艦陣列
+        const shipArray = currentPlacingPlayer === 1 ? playerShips : player2Ships;
+        
+        // 創建船艦選擇項
+        SHIPS.forEach((ship, index) => {
+            // 檢查此船艦是否已放置
+            const alreadyPlaced = shipArray.some(s => s.type === index);
+            
+            const shipItem = document.createElement('div');
+            shipItem.style.backgroundColor = alreadyPlaced ? '#d1d1d1' : '#f0f8ff';
+            shipItem.style.padding = '10px';
+            shipItem.style.borderRadius = '5px';
+            shipItem.style.cursor = 'pointer';
+            shipItem.style.transition = 'all 0.2s';
+            shipItem.style.border = selectedShipType === index ? '2px solid #0066cc' : '1px solid #ddd';
+            shipItem.dataset.index = index;
+            
+            // 船艦名稱和大小
+            shipItem.textContent = `${ship.name} (${ship.size})`;
+            
+            // 如果已放置，添加標記
+            if (alreadyPlaced) {
+                shipItem.textContent += ' ✓';
+                shipItem.style.color = '#666';
+            }
+            
+            // 點擊事件 - 選擇船艦
+            shipItem.addEventListener('click', function() {
+                if (alreadyPlaced || gameStarted) return;
+                
+                // 更新選中的船艦
+                selectedShipType = index;
+                
+                // 更新選中狀態
+                document.querySelectorAll('#popup-ships > div').forEach(item => {
+                    item.style.border = '1px solid #ddd';
+                });
+                this.style.border = '2px solid #0066cc';
+                
+                // 更新遊戲消息
+                gameMessage.textContent = `請在網格上放置${ship.name} (${ship.size}格)`;
+                document.getElementById('popup-message').textContent = 
+                    `請放置${ship.name} (${ship.size}格) - ${isHorizontal ? '水平' : '垂直'}方向`;
+            });
+            
+            popupShipsElement.appendChild(shipItem);
+        });
+    }
+    
+    // 修復切換到玩家2的函數
+    function switchToPlayer2() {
+        console.log("切換到玩家2");
+        currentPlacingPlayer = 2;
+        
+        // 清空第二個玩家的網格
+        player2Grid = createEmptyGrid();
+        createGrid(playerGridElement, player2Grid, true);
+        
+        // 重置船艦選擇
+        selectedShipType = -1;
+        
+        // 顯示適當的提示
+        currentPlayerText.textContent = '玩家2';
+        gameMessage.textContent = '玩家2請選擇艦艇放置';
+        gameStatusText.textContent = '玩家2放置艦艇';
+        
+        // 清除已選擇的船艦高亮
+        clearShipSelectionHighlight();
+        clearShipPreview();
+        
+        // 重新初始化船艦選擇
+        initShipSelection();
+        
+        // 顯示方向指示器
+        updateDirectionIndicator();
+        
+        // 更新UI按鈕狀態
+        startBtn.disabled = true;
+        randomBtn.disabled = false;
+        rotateBtn.disabled = false;
+        
+        // 添加日誌以便調試
+        console.log("玩家1船艦:", playerShips);
+        console.log("玩家2船艦:", player2Ships);
+        
+        // 顯示玩家2的放置彈窗
+        setTimeout(() => {
+            initPlacementPopup();
+        }, 500);
+    }
+    
+    // 更新網格顯示 - 確保船艦正確顯示
+    function updateGridDisplay() {
+        // 清除現有網格
+        const grid = currentPlacingPlayer === 1 ? playerGrid : player2Grid;
+        const gridElement = playerGridElement;
+        
+        // 更新網格單元格的顯示
+        for (let row = 0; row < GRID_SIZE; row++) {
+            for (let col = 0; col < GRID_SIZE; col++) {
+                const cell = gridElement.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell) {
+                    // 更新船艦顯示
+                    if (grid[row][col].hasShip) {
+                        cell.classList.add('ship');
+                    } else {
+                        cell.classList.remove('ship');
+                    }
+                    
+                    // 更新命中和未命中顯示
+                    if (grid[row][col].isHit) {
+                        if (grid[row][col].hasShip) {
+                            cell.classList.add('hit');
+                        } else {
+                            cell.classList.add('miss');
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 重新初始化船艦選擇
+        initShipSelection();
     }
 }); 
