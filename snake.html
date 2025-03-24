@@ -159,6 +159,9 @@
             
             // 初始化游戏
             function initGame() {
+                // 清空蛇
+                snake = [];
+                
                 // 随机生成蛇的初始位置（保持在画面中央区域）
                 const centerX = Math.floor(gridWidth / 2);
                 const centerY = Math.floor(gridHeight / 2);
@@ -172,7 +175,7 @@
                 const startX = Math.max(2, Math.min(gridWidth - 3, randomX));
                 const startY = Math.max(2, Math.min(gridHeight - 3, randomY));
                 
-                // 蛇的初始位置
+                // 蛇的初始位置 - 确保是全新的位置
                 snake = [
                     {x: startX, y: startY}
                 ];
@@ -335,32 +338,30 @@
             
             // 重新开始游戏
             function restartGame() {
-                // 移除可能存在的事件监听器
-                canvas.removeEventListener('click', restartAfterGameOver);
-                
-                // 清除当前游戏循环
+                // 完全清除游戏状态
                 clearInterval(gameInterval);
                 gameRunning = false;
                 
-                // 重置游戏速度
-                gameSpeed = 150;
-                
-                // 确保方向键和触摸事件不会立即触发旧的方向
-                nextDirection = '';
-                direction = '';
-                
-                // 确保蛇被清空
+                // 重置蛇和方向
                 snake = [];
+                direction = '';
+                nextDirection = '';
                 
                 // 重置分数
                 score = 0;
                 scoreElement.textContent = '0';
                 
-                // 重置游戏结束标记
+                // 重置游戏速度
+                gameSpeed = 150;
+                
+                // 清除游戏结束标记
                 window.gameHasEnded = false;
                 
-                // 初始化游戏（会重新设置蛇的位置和随机方向）
+                // 初始化新游戏
                 initGame();
+                
+                // 重绘游戏画面，确保显示新的初始状态
+                draw();
                 
                 // 允许开始按钮可用
                 startBtn.disabled = false;
@@ -370,6 +371,9 @@
             function gameOver() {
                 clearInterval(gameInterval);
                 gameRunning = false;
+                
+                // 设置游戏结束标记
+                window.gameHasEnded = true;
                 
                 // 保存分数
                 saveScore(score);
@@ -431,22 +435,9 @@
                     ctx.fillText('暂无记录', canvas.width / 2, 290);
                 }
                 
-                // 添加重新开始按钮提示
-                ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
+                // 添加点击屏幕重新开始的提示
                 ctx.font = '18px Arial';
-                ctx.fillText('点击下方按钮开始新游戏', canvas.width / 2, 380);
-                
-                // 确保按钮状态正确
-                startBtn.disabled = false;
-                
-                // 添加点击画布也可以重新开始游戏
-                canvas.addEventListener('click', restartAfterGameOver, { once: true });
-            }
-            
-            // 添加一个函数用于游戏结束后的重新开始
-            function restartAfterGameOver() {
-                restartGame();
+                ctx.fillText('点击下方按钮开始新游戏', canvas.width / 2, canvas.height - 30);
             }
             
             // 修改保存分数的函数
@@ -498,23 +489,16 @@
             const rightBtn = document.getElementById('right-btn');
             
             upBtn.addEventListener('click', () => {
-                // 如果游戏已结束，需要完全重启
                 if (window.gameHasEnded) {
-                    // 强制完全重置游戏状态
-                    snake = [];
-                    score = 0;
-                    scoreElement.textContent = '0';
-                    
-                    // 重新启动游戏
+                    // 完全重置游戏
                     restartGame();
                     
-                    // 在重启完成后设置新方向并开始游戏
+                    // 设置方向并启动
                     setTimeout(() => {
                         direction = 'up';
                         nextDirection = 'up';
-                        window.gameHasEnded = false;
                         startGame();
-                    }, 100);
+                    }, 50);
                 }
                 else if (!gameRunning) {
                     direction = 'up';
