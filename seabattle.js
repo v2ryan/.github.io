@@ -106,6 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 持有舰船跟随鼠标/触摸移动
     document.addEventListener('mousemove', moveShipPreview);
     document.addEventListener('touchmove', function(e) {
+        if (selectedShipType !== -1) {
+            e.preventDefault(); // 阻止默认滚动行为
+        }
         moveShipPreview(e.touches[0]);
     }, { passive: false });
     
@@ -198,6 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedShipType = i;
                 clearShipSelectionHighlight();
                 this.classList.add('selected');
+                
+                // 添加类防止页面滚动
+                document.body.classList.add('ship-selected');
                 
                 // 明确启用取消按钮
                 cancelBtn.disabled = false;
@@ -300,6 +306,9 @@ document.addEventListener('DOMContentLoaded', function() {
             initShipSelection();
             
             gameMessage.textContent = `${SHIPS[oldSelectedShipType].name}已放置，请选择下一艘舰船`;
+            
+            // 移除防止滚动的类
+            document.body.classList.remove('ship-selected');
         } else {
             gameMessage.textContent = `无法在此位置放置舰船，请选择其他位置`;
         }
@@ -824,6 +833,8 @@ document.addEventListener('DOMContentLoaded', function() {
         shipPreviewElement.style.display = 'none';
         clearShipSelectionHighlight();
         cancelBtn.disabled = true;
+        // 移除防止滚动的类
+        document.body.classList.remove('ship-selected');
         gameMessage.textContent = '请选择要放置的舰船';
     }
     
@@ -839,8 +850,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         shipPreviewElement.style.display = 'flex';
         shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
-        shipPreviewElement.style.left = (e.clientX + 10) + 'px';
-        shipPreviewElement.style.top = (e.clientY + 10) + 'px';
+        
+        // 计算位置，确保舰船预览不会超出屏幕
+        const x = Math.min(e.clientX + 10, window.innerWidth - (isHorizontal ? SHIPS[selectedShipType].size * 30 : 30));
+        const y = Math.min(e.clientY + 10, window.innerHeight - (isHorizontal ? 30 : SHIPS[selectedShipType].size * 30));
+        
+        shipPreviewElement.style.left = x + 'px';
+        shipPreviewElement.style.top = y + 'px';
     }
     
     // 移除舰船预览

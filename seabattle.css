@@ -287,4 +287,18 @@ button:disabled {
     background-color: #555;
     border-radius: 3px;
     margin: 2px;
+}
+
+/* 防止触摸时页面滚动 */
+body.ship-selected {
+    overflow: hidden;
+    touch-action: none;
+}
+
+/* 使网格单元格更大，方便在移动设备上点击 */
+@media (max-width: 768px) {
+    .grid-cell {
+        min-width: 28px;
+        min-height: 28px;
+    }
 } 
