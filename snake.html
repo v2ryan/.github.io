@@ -440,30 +440,36 @@
                 restartGame();
             }
             
-            // 添加保存分数的函数
-            function saveScore(newScore) {
+            // 修改保存分数的函数
+            async function saveScore(newScore) {
                 // 获取当前登录的用户名
-                const username = localStorage.getItem('username');
+                const username = sessionStorage.getItem('username');
                 if (!username) return; // 如果未登录，不保存分数
                 
-                // 获取现有的分数记录
-                let scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
-                
-                // 添加新分数
-                scores.push({
-                    username: username,
-                    score: newScore,
-                    date: new Date().toISOString()
-                });
-                
-                // 按分数降序排序
-                scores.sort((a, b) => b.score - a.score);
-                
-                // 只保留前10名
-                scores = scores.slice(0, 10);
-                
-                // 保存回本地存储
-                localStorage.setItem('snakeScores', JSON.stringify(scores));
+                try {
+                    // 发送分数到后端
+                    const response = await fetch('http://localhost:3000/api/scores', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username,
+                            score: newScore
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // 更新本地排行榜显示
+                        localStorage.setItem('snakeScores', JSON.stringify(result.topScores));
+                    } else {
+                        console.error('保存分数失败:', result.message);
+                    }
+                } catch (error) {
+                    console.error('保存分数出错:', error);
+                }
             }
             
             // 添加移动设备方向控制按钮事件

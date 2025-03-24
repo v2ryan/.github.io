@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>分数管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .tab-container {
+            display: flex;
+            margin: 20px 0;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .no-records {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .back-btn {
+            background-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <!-- JSDOS: 这是分数管理页面 -->
+    <div class="container">
+        <h1>分数管理系统</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="personal">个人记录</div>
+            <div class="tab" data-tab="global">全球排行榜</div>
+        </div>
+        
+        <div id="personal-scores" class="tab-content active">
+            <h2>我的游戏记录</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>得分</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="personal-scores-body">
+                    <!-- 个人分数记录将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+            <div id="no-personal-records" class="no-records" style="display: none;">
+                您还没有游戏记录，开始游戏获取您的第一个分数吧！
+            </div>
+        </div>
+        
+        <div id="global-scores" class="tab-content">
+            <h2>全球排行榜 TOP 10</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>玩家</th>
+                        <th>分数</th>
+                        <th>日期</th>
+                    </tr>
+                </thead>
+                <tbody id="global-scores-body">
+                    <!-- 全球分数记录将通过JavaScript动态填充 -->
+                </tbody>
+            </table>
+            <div id="no-global-records" class="no-records" style="display: none;">
+                暂无全球排行记录。
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn delete-btn" id="clear-btn">清除我的所有记录</button>
+            <button class="btn back-btn" onclick="window.location.href='game-menu.html'">返回游戏菜单</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 检查是否已登录
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                // 如果未登录，重定向到登录页面
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const API_URL = 'http://localhost:3000/api';
+            const username = sessionStorage.getItem('username');
+            const personalScoresBody = document.getElementById('personal-scores-body');
+            const globalScoresBody = document.getElementById('global-scores-body');
+            const noPersonalRecords = document.getElementById('no-personal-records');
+            const noGlobalRecords = document.getElementById('no-global-records');
+            const clearBtn = document.getElementById('clear-btn');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // 加载个人分数记录
+            async function loadPersonalScores() {
+                try {
+                    const response = await fetch(`${API_URL}/scores/user/${username}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const userScores = result.scores;
+                        
+                        // 清空表格
+                        personalScoresBody.innerHTML = '';
+                        
+                        if (userScores.length === 0) {
+                            // 如果没有记录，显示提示
+                            noPersonalRecords.style.display = 'block';
+                        } else {
+                            // 隐藏提示
+                            noPersonalRecords.style.display = 'none';
+                            
+                            // 按分数降序排序
+                            userScores.sort((a, b) => b.score - a.score);
+                            
+                            // 填充表格
+                            userScores.forEach((score) => {
+                                const row = document.createElement('tr');
+                                
+                                // 格式化日期
+                                const date = new Date(score.date);
+                                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                                
+                                row.innerHTML = `
+                                    <td>${formattedDate}</td>
+                                    <td>${score.score}</td>
+                                    <td>
+                                        <button class="btn delete-btn" data-id="${score.id}">删除</button>
+                                    </td>
+                                `;
+                                
+                                personalScoresBody.appendChild(row);
+                            });
+                            
+                            // 添加删除事件
+                            document.querySelectorAll('#personal-scores-body .delete-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const scoreId = btn.getAttribute('data-id');
+                                    deleteScore(scoreId);
+                                });
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('加载个人分数失败:', error);
+                }
+            }
+            
+            // 加载全球排行榜
+            async function loadGlobalScores() {
+                try {
+                    const response = await fetch(`${API_URL}/scores`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const allScores = result.scores;
+                        
+                        // 清空表格
+                        globalScoresBody.innerHTML = '';
+                        
+                        if (allScores.length === 0) {
+                            // 表示没有记录，显示提示
+                            noGlobalRecords.style.display = 'block';
+                        } else {
+                            // 隐藏提示
+                            noGlobalRecords.style.display = 'none';
+                            
+                            // 填充表格
+                            allScores.forEach((score, index) => {
+                                const row = document.createElement('tr');
+                                
+                                // 格式化日期
+                                const date = new Date(score.date);
+                                const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                                
+                                // 高亮显示当前用户
+                                const isCurrentUser = score.username === username;
+                                
+                                row.innerHTML = `
+                                    <td>${index + 1}</td>
+                                    <td>${score.username}${isCurrentUser ? ' (我)' : ''}</td>
+                                    <td>${score.score}</td>
+                                    <td>${formattedDate}</td>
+                                `;
+                                
+                                if (isCurrentUser) {
+                                    row.style.fontWeight = 'bold';
+                                    row.style.backgroundColor = '#e8f5e9';
+                                }
+                                
+                                globalScoresBody.appendChild(row);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('加载全球排行榜失败:', error);
+                }
+            }
+            
+            // 删除分数记录
+            async function deleteScore(scoreId) {
+                if (confirm('确定要删除这条记录吗？')) {
+                    try {
+                        const response = await fetch(`${API_URL}/scores/${scoreId}?username=${username}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // 重新加载个人记录
+                            loadPersonalScores();
+                            
+                            // 重新加载全球排行榜
+                            loadGlobalScores();
+                        } else {
+                            alert('删除失败: ' + result.message);
+                        }
+                    } catch (error) {
+                        console.error('删除分数失败:', error);
+                        alert('删除失败，请稍后再试');
+                    }
+                }
+            }
+            
+            // 清除所有个人记录
+            clearBtn.addEventListener('click', async () => {
+                if (confirm('确定要清除您的所有游戏记录吗？此操作无法撤销！')) {
+                    try {
+                        // 获取用户所有分数
+                        const response = await fetch(`${API_URL}/scores/user/${username}`);
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            const userScores = result.scores;
+                            
+                            // 逐个删除每条记录
+                            for (const score of userScores) {
+                                await fetch(`${API_URL}/scores/${score.id}?username=${username}`, {
+                                    method: 'DELETE'
+                                });
+                            }
+                            
+                            // 重新加载记录
+                            loadPersonalScores();
+                            loadGlobalScores();
+                        }
+                    } catch (error) {
+                        console.error('清除记录失败:', error);
+                        alert('清除记录失败，请稍后再试');
+                    }
+                }
+            });
+            
+            // 标签切换
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // 移除所有标签的active类
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // 给当前标签添加active类
+                    tab.classList.add('active');
+                    
+                    // 获取标签对应的内容ID
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // 隐藏所有内容
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // 显示当前标签对应的内容
+                    if (tabId === 'personal') {
+                        document.getElementById('personal-scores').classList.add('active');
+                    } else if (tabId === 'global') {
+                        document.getElementById('global-scores').classList.add('active');
+                    }
+                });
+            });
+            
+            // 初始化页面
+            loadPersonalScores();
+            loadGlobalScores();
+        });
+    </script>
+</body>
+</html> 

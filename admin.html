@@ -119,6 +119,7 @@
             <a class="nav-item active" data-section="members">会员管理</a>
             <a class="nav-item" data-section="scores">分数排行</a>
             <a class="nav-item" data-section="settings">系统设置</a>
+            <a class="nav-item" data-section="data-export">数据导出/导入</a>
         </div>
         
         <!-- 会员管理部分 -->
@@ -197,6 +198,25 @@
                 <input type="number" id="max-scores" value="10" min="5" max="50">
             </div>
             <button class="btn" id="save-settings-btn">保存设置</button>
+        </div>
+        
+        <!-- 添加新的数据导出/导入部分 -->
+        <div class="section" id="data-export-section">
+            <h2>数据导出/导入</h2>
+            <p>您可以将系统数据导出为文件，在其他设备上导入，实现数据迁移。</p>
+            
+            <div class="form-group">
+                <h3>导出数据</h3>
+                <p>点击下方按钮导出所有系统数据：</p>
+                <button class="btn" id="export-btn">导出所有数据</button>
+            </div>
+            
+            <div class="form-group">
+                <h3>导入数据</h3>
+                <p>请选择之前导出的数据文件：</p>
+                <input type="file" id="import-file" accept=".json">
+                <button class="btn" id="import-btn">导入数据</button>
+            </div>
         </div>
         
         <a href="index.html" class="back-link">返回游戏中心</a>
@@ -476,6 +496,76 @@
             loadMembers();
             loadScores();
             loadSettings();
+            
+            // 导出功能
+            const exportBtn = document.getElementById('export-btn');
+            exportBtn.addEventListener('click', () => {
+                // 收集所有数据
+                const exportData = {
+                    members: JSON.parse(localStorage.getItem('members') || '[]'),
+                    allSnakeScores: JSON.parse(localStorage.getItem('allSnakeScores') || '[]'),
+                    snakeScores: JSON.parse(localStorage.getItem('snakeScores') || '[]'),
+                    gameSettings: JSON.parse(localStorage.getItem('gameSettings') || '{"difficulty":"medium","maxScores":10}'),
+                    exportDate: new Date().toISOString()
+                };
+                
+                // 转换为JSON字符串
+                const jsonData = JSON.stringify(exportData, null, 2);
+                
+                // 创建Blob
+                const blob = new Blob([jsonData], {type: 'application/json'});
+                
+                // 创建下载链接
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = `snake_game_data_${new Date().toISOString().slice(0,10)}.json`;
+                
+                // 触发下载
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
+            
+            // 导入功能
+            const importBtn = document.getElementById('import-btn');
+            const importFile = document.getElementById('import-file');
+            
+            importBtn.addEventListener('click', () => {
+                const file = importFile.files[0];
+                if (!file) {
+                    alert('请先选择文件');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importData = JSON.parse(e.target.result);
+                        
+                        // 验证数据格式
+                        if (!importData.members || !importData.allSnakeScores) {
+                            throw new Error('无效的数据文件');
+                        }
+                        
+                        // 确认导入
+                        if (confirm(`此操作将导入以下数据：\n- ${importData.members.length} 个会员数据\n- ${importData.allSnakeScores.length} 条游戏记录\n\n导入后将覆盖当前数据，是否继续？`)) {
+                            // 保存数据到本地存储
+                            localStorage.setItem('members', JSON.stringify(importData.members));
+                            localStorage.setItem('allSnakeScores', JSON.stringify(importData.allSnakeScores));
+                            localStorage.setItem('snakeScores', JSON.stringify(importData.snakeScores));
+                            if (importData.gameSettings) {
+                                localStorage.setItem('gameSettings', JSON.stringify(importData.gameSettings));
+                            }
+                            
+                            alert('数据导入成功！将重新加载页面。');
+                            window.location.reload();
+                        }
+                    } catch (error) {
+                        alert('导入失败：' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            });
         });
     </script>
 </body>

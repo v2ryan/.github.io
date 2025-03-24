@@ -127,7 +127,7 @@
     </div>
 
     <script>
-        // JSDOS: 登录系统的JavaScript代码
+        // 替换登录逻辑，使用API
         document.addEventListener('DOMContentLoaded', () => {
             const loginContainer = document.getElementById('login-container');
             const gameContainer = document.getElementById('game-container');
@@ -137,52 +137,62 @@
             const passwordInput = document.getElementById('password');
             const errorMessage = document.getElementById('error-message');
             
-            // 检查是否已登录
-            if (localStorage.getItem('isLoggedIn') === 'true') {
+            // 后端API地址 - 替换为您部署的服务器地址
+            const API_URL = 'http://localhost:3000/api';
+            
+            // 检查是否已登录（从sessionStorage读取）
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 showGameContainer();
             }
             
             // 登录按钮点击事件
-            loginBtn.addEventListener('click', () => {
+            loginBtn.addEventListener('click', async () => {
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
-                // 获取会员列表
-                const members = JSON.parse(localStorage.getItem('members') || '[]');
-                
-                // 如果会员列表为空，添加默认管理员账户
-                if (members.length === 0) {
-                    members.push({
-                        id: 'admin',
-                        username: 'admin',
-                        password: 'password',
-                        role: 'admin',
-                        registerDate: new Date().toISOString()
-                    });
-                    localStorage.setItem('members', JSON.stringify(members));
+                if (!username || !password) {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = '用户名和密码不能为空';
+                    return;
                 }
                 
-                // 查找匹配的会员
-                const member = members.find(m => m.username === username && m.password === password);
-                
-                if (member) {
-                    // 登录成功
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('userRole', member.role);
-                    showGameContainer();
-                } else {
-                    // 登录失败
+                try {
+                    // 发送登录请求
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // 登录成功
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('username', username);
+                        sessionStorage.setItem('userRole', result.user.role);
+                        sessionStorage.setItem('userId', result.user.id);
+                        showGameContainer();
+                    } else {
+                        // 登录失败
+                        errorMessage.style.display = 'block';
+                        passwordInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('登录失败:', error);
+                    errorMessage.textContent = '登录失败，请稍后再试';
                     errorMessage.style.display = 'block';
-                    passwordInput.value = '';
                 }
             });
             
             // 退出登录按钮点击事件
             logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('username');
-                localStorage.removeItem('userRole');
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('username');
+                sessionStorage.removeItem('userRole');
+                sessionStorage.removeItem('userId');
                 showLoginContainer();
             });
             
@@ -192,7 +202,7 @@
                 gameContainer.style.display = 'block';
                 
                 // 检查是否是管理员，显示或隐藏管理中心入口
-                const userRole = localStorage.getItem('userRole');
+                const userRole = sessionStorage.getItem('userRole');
                 const adminLink = document.getElementById('admin-link');
                 
                 if (userRole === 'admin') {
