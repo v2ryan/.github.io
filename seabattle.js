@@ -137,26 +137,26 @@ document.addEventListener('DOMContentLoaded', function() {
         cells.forEach(cell => {
             cell.addEventListener('mouseenter', function() {
                 if (selectedShipType === -1 || !shipPlacementMode) return;
-                showShipPlacementPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                showShipPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
             });
             
             cell.addEventListener('mouseleave', function() {
-                clearShipPlacementPreview();
+                clearShipPreview();
             });
             
             // 触摸设备适配
             cell.addEventListener('touchstart', function(e) {
                 if (selectedShipType === -1 || !shipPlacementMode) return;
                 e.preventDefault(); // 阻止默认行为
-                showShipPlacementPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+                showShipPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
             });
         });
     }
     
     // 显示舰船放置预览
-    function showShipPlacementPreview(row, col) {
+    function showShipPreview(row, col) {
         // 清除之前的预览
-        clearShipPlacementPreview();
+        clearShipPreview();
         
         if (selectedShipType === -1) return;
         
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 清除舰船放置预览
-    function clearShipPlacementPreview() {
+    function clearShipPreview() {
         const cells = playerGridElement.querySelectorAll('.grid-cell');
         cells.forEach(cell => {
             cell.classList.remove('preview-valid', 'preview-invalid');

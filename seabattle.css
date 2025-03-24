@@ -144,7 +144,7 @@ button:disabled {
 }
 
 .ship {
-    background-color: #555;
+    background-color: #555 !important;
     border-radius: 3px;
     margin: 2px;
     display: inline-block;
@@ -281,6 +281,7 @@ button:disabled {
     pointer-events: none;
     z-index: 100;
     opacity: 0.7;
+    background-color: #777;
 }
 
 .ship-preview .ship {
@@ -334,4 +335,30 @@ body.ship-selected {
         padding: 12px 15px;
         margin: 5px;
     }
+}
+
+/* 艦艇樣式修復 */
+.ship {
+    background-color: #555 !important;
+    border-radius: 3px;
+}
+
+.ship-preview {
+    background-color: #777;
+    opacity: 0.7;
+}
+
+.invalid-placement {
+    background-color: #e53935;
+    opacity: 0.7;
+}
+
+.hit {
+    background-color: #e53935 !important;
+    position: relative;
+}
+
+.miss {
+    background-color: #78909c !important;
+    position: relative;
 } 
