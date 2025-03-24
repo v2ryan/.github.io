@@ -301,4 +301,37 @@ body.ship-selected {
         min-width: 28px;
         min-height: 28px;
     }
+}
+
+/* 放置预览样式 */
+.grid-cell.preview-valid {
+    background-color: rgba(0, 255, 0, 0.3);
+}
+
+.grid-cell.preview-invalid {
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+/* 触摸优化 */
+.grid-cell {
+    touch-action: none;
+}
+
+/* 禁用后的取消按钮应该有不同的样式 */
+#cancel-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* 一些触摸优化 */
+@media (max-width: 768px) {
+    .grid-cell {
+        min-width: 30px;
+        min-height: 30px;
+    }
+    
+    .controls button {
+        padding: 12px 15px;
+        margin: 5px;
+    }
 } 

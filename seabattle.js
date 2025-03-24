@@ -63,6 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.game-info').style.display = 'none';
     document.querySelector('.scoreboard').style.display = 'none';
     
+    // 在有选中舰船时阻止所有可能导致滚动的事件
+    const preventScrollEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+    
+    preventScrollEvents.forEach(eventType => {
+        document.addEventListener(eventType, function(e) {
+            if (selectedShipType !== -1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    });
+    
     // 游戏模式选择
     pvpBtn.addEventListener('click', () => {
         gameMode = 'pvp';
@@ -103,25 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
     playAgainBtn.addEventListener('click', resetGame);
     returnMenuBtn.addEventListener('click', () => window.location.href = 'index.html');
     
-    // 持有舰船跟随鼠标/触摸移动
-    document.addEventListener('mousemove', moveShipPreview);
-    document.addEventListener('touchmove', function(e) {
-        if (selectedShipType !== -1) {
-            e.preventDefault(); // 阻止默认滚动行为
-        }
-        moveShipPreview(e.touches[0]);
-    }, { passive: false });
-    
-    // 移除舰船预览
-    document.addEventListener('mouseout', removeShipPreview);
-    document.addEventListener('touchend', removeShipPreview);
-    
-    // 创建舰船预览元素
-    const shipPreviewElement = document.createElement('div');
-    shipPreviewElement.className = 'ship-preview';
-    shipPreviewElement.style.display = 'none';
-    document.body.appendChild(shipPreviewElement);
-    
     // 初始化游戏
     function initGame() {
         // 创建玩家和敌人网格
@@ -139,6 +131,65 @@ document.addEventListener('DOMContentLoaded', function() {
         gameStatusText.textContent = '放置舰船';
         currentPlayerText.textContent = '玩家1';
         gameMessage.textContent = '请选择舰船放置';
+        
+        // 添加网格悬停事件来显示舰船预览
+        const cells = playerGridElement.querySelectorAll('.grid-cell');
+        cells.forEach(cell => {
+            cell.addEventListener('mouseenter', function() {
+                if (selectedShipType === -1 || !shipPlacementMode) return;
+                showShipPlacementPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+            });
+            
+            cell.addEventListener('mouseleave', function() {
+                clearShipPlacementPreview();
+            });
+            
+            // 触摸设备适配
+            cell.addEventListener('touchstart', function(e) {
+                if (selectedShipType === -1 || !shipPlacementMode) return;
+                e.preventDefault(); // 阻止默认行为
+                showShipPlacementPreview(parseInt(cell.dataset.row), parseInt(cell.dataset.col));
+            });
+        });
+    }
+    
+    // 显示舰船放置预览
+    function showShipPlacementPreview(row, col) {
+        // 清除之前的预览
+        clearShipPlacementPreview();
+        
+        if (selectedShipType === -1) return;
+        
+        // 获取预览位置的单元格
+        let previewCells = [];
+        const ship = SHIPS[selectedShipType];
+        
+        for (let i = 0; i < ship.size; i++) {
+            const r = isHorizontal ? row : row + i;
+            const c = isHorizontal ? col + i : col;
+            
+            // 检查是否超出边界
+            if (r >= GRID_SIZE || c >= GRID_SIZE) continue;
+            
+            const cell = playerGridElement.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+            if (cell) {
+                previewCells.push(cell);
+            }
+        }
+        
+        // 显示预览 - 用不同颜色表示可放置和不可放置
+        const canPlace = canPlaceShip(playerGrid, row, col, ship.size, isHorizontal);
+        previewCells.forEach(cell => {
+            cell.classList.add(canPlace ? 'preview-valid' : 'preview-invalid');
+        });
+    }
+    
+    // 清除舰船放置预览
+    function clearShipPlacementPreview() {
+        const cells = playerGridElement.querySelectorAll('.grid-cell');
+        cells.forEach(cell => {
+            cell.classList.remove('preview-valid', 'preview-invalid');
+        });
     }
     
     // 初始化舰船选择
@@ -842,25 +893,5 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearShipSelectionHighlight() {
         const items = shipSelectionElement.querySelectorAll('.ship-selection-item');
         items.forEach(item => item.classList.remove('selected'));
-    }
-    
-    // 移动舰船预览
-    function moveShipPreview(e) {
-        if (selectedShipType === -1 || !shipPlacementMode) return;
-        
-        shipPreviewElement.style.display = 'flex';
-        shipPreviewElement.style.flexDirection = isHorizontal ? 'row' : 'column';
-        
-        // 计算位置，确保舰船预览不会超出屏幕
-        const x = Math.min(e.clientX + 10, window.innerWidth - (isHorizontal ? SHIPS[selectedShipType].size * 30 : 30));
-        const y = Math.min(e.clientY + 10, window.innerHeight - (isHorizontal ? 30 : SHIPS[selectedShipType].size * 30));
-        
-        shipPreviewElement.style.left = x + 'px';
-        shipPreviewElement.style.top = y + 'px';
-    }
-    
-    // 移除舰船预览
-    function removeShipPreview() {
-        shipPreviewElement.style.display = 'none';
     }
 }); 
