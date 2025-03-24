@@ -67,18 +67,20 @@
             flex-direction: column;
             align-items: center;
             margin: 20px auto;
-            max-width: 200px;
+            max-width: 240px;
+            gap: 10px;
         }
         .horizontal-controls {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             width: 100%;
+            gap: 20px;
         }
         .direction-btn {
-            width: 60px;
-            height: 60px;
-            margin: 5px;
-            font-size: 24px;
+            width: 70px;
+            height: 70px;
+            margin: 0;
+            font-size: 28px;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -87,9 +89,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .direction-btn:hover {
             background-color: #45a049;
+        }
+        #up-btn, #down-btn {
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -101,7 +107,7 @@
     </div>
     <div class="score">分数: <span id="score">0</span></div>
 
-    <!-- 将方向控制按钮移到游戏控制按钮之间 -->
+    <!-- 修改方向控制按钮布局 -->
     <div class="mobile-controls">
         <button class="direction-btn" id="up-btn">↑</button>
         <div class="horizontal-controls">
