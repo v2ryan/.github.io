@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>海戰棋遊戲</title>
+    <link rel="stylesheet" href="battleship.css">
+</head>
+<body>
+    <!-- JSDOS: 這是一個經典的海戰棋遊戲 -->
+    <div class="game-container">
+        <h1>海戰棋</h1>
+        
+        <!-- 遊戲模式選擇界面 -->
+        <div class="mode-selection" id="mode-selection">
+            <h2>選擇遊戲模式</h2>
+            <button class="mode-btn" id="pve-btn">對戰電腦</button>
+            <button class="mode-btn" id="pvp-btn">雙人對戰</button>
+        </div>
+        
+        <!-- 遊戲界面 -->
+        <div id="game-board-container" style="display: none;">
+            <div class="game-info">
+                <p id="game-message">準備開始...</p>
+                <p>輪到: <span id="current-player">玩家1</span></p>
+            </div>
+            
+            <div class="boards-container">
+                <div class="board-wrapper">
+                    <h3>我的艦隊</h3>
+                    <div id="player-board" class="board"></div>
+                </div>
+                <div class="board-wrapper">
+                    <h3>敵方海域</h3>
+                    <div id="opponent-board" class="board"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="reset-btn">重新開始</button>
+                <button id="return-menu-btn">返回選單</button>
+            </div>
+        </div>
+        
+        <div class="scoreboard">
+            <h3>戰績</h3>
+            <p>玩家1勝: <span id="player1-score">0</span></p>
+            <p>玩家2勝: <span id="player2-score">0</span></p>
+            <p>平局: <span id="tie-score">0</span></p>
+        </div>
+        
+        <a href="index.html" class="back-link">返回主頁</a>
+    </div>
+    
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2>遊戲結束</h2>
+            <p id="winner-text">玩家1獲勝！</p>
+            <button id="play-again-btn">再玩一次</button>
+            <button id="menu-btn">返回選單</button>
+        </div>
+    </div>
+    
+    <div id="ship-placement-modal" class="modal">
+        <div class="modal-content">
+            <h2>放置艦艇</h2>
+            <p>點擊格子放置艦艇，按R可旋轉</p>
+            <div id="placement-board" class="board"></div>
+            <p id="placement-message">放置戰艦 (5格)</p>
+            <button id="rotate-btn">旋轉 (R)</button>
+            <button id="confirm-placement-btn" disabled>確認</button>
+        </div>
+    </div>
+    
+    <script src="battleship.js"></script>
+</body>
+</html> 
