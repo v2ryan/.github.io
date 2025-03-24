@@ -336,18 +336,30 @@
             const rightBtn = document.getElementById('right-btn');
             
             upBtn.addEventListener('click', () => {
+                if (!gameRunning) {
+                    startGame();  // 如果游戏未运行，先开始游戏
+                }
                 if (direction !== 'down' && gameRunning) nextDirection = 'up';
             });
             
             downBtn.addEventListener('click', () => {
+                if (!gameRunning) {
+                    startGame();  // 如果游戏未运行，先开始游戏
+                }
                 if (direction !== 'up' && gameRunning) nextDirection = 'down';
             });
             
             leftBtn.addEventListener('click', () => {
+                if (!gameRunning) {
+                    startGame();  // 如果游戏未运行，先开始游戏
+                }
                 if (direction !== 'right' && gameRunning) nextDirection = 'left';
             });
             
             rightBtn.addEventListener('click', () => {
+                if (!gameRunning) {
+                    startGame();  // 如果游戏未运行，先开始游戏
+                }
                 if (direction !== 'left' && gameRunning) nextDirection = 'right';
             });
             
