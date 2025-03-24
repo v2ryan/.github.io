@@ -3,60 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>贪吃蛇游戏</title>
+    <title>貪吃蛇遊戲</title>
     <link rel="stylesheet" href="snake.css">
 </head>
 <body>
-    <!-- JSDOS: 这是一个经典的贪吃蛇游戏 -->
+    <!-- JSDOS: 這是一個經典的貪吃蛇遊戲 -->
     <div class="game-container">
-        <h1>贪吃蛇</h1>
+        <h1>貪吃蛇</h1>
         
-        <!-- 游戏模式选择界面 -->
+        <!-- 遊戲模式選擇界面 -->
         <div class="mode-selection" id="mode-selection">
-            <h2>选择游戏模式</h2>
-            <button class="mode-btn" id="easy-btn">简单模式</button>
+            <h2>選擇遊戲模式</h2>
+            <button class="mode-btn" id="easy-btn">簡單模式</button>
             <button class="mode-btn" id="normal-btn">普通模式</button>
-            <button class="mode-btn" id="hard-btn">困难模式</button>
+            <button class="mode-btn" id="hard-btn">困難模式</button>
         </div>
         
-        <!-- 游戏主界面 -->
-        <div class="game-board-container" id="game-board-container" style="display: none;">
+        <!-- 遊戲界面 -->
+        <div id="game-board-container" style="display: none;">
             <div class="game-info">
-                <p>分数: <span id="score">0</span></p>
+                <p>分數: <span id="score">0</span></p>
                 <p>最高分: <span id="high-score">0</span></p>
-                <p>难度: <span id="difficulty">简单</span></p>
+                <p>難度: <span id="difficulty">簡單</span></p>
             </div>
             
-            <div class="game-board" id="game-board">
-                <!-- 游戏区域将在JS中动态生成 -->
-            </div>
-            
-            <!-- 移动设备控制按钮 -->
-            <div class="mobile-controls" id="mobile-controls">
-                <button id="up-btn">↑</button>
-                <div class="horizontal-controls">
-                    <button id="left-btn">←</button>
-                    <button id="right-btn">→</button>
-                </div>
-                <button id="down-btn">↓</button>
-            </div>
+            <div id="game-board" class="game-board"></div>
             
             <div class="controls">
-                <button id="pause-btn">暂停</button>
-                <button id="reset-btn">重新开始</button>
-                <button id="return-menu-btn">返回菜单</button>
+                <button id="pause-btn">暫停</button>
+                <button id="reset-btn">重新開始</button>
+                <button id="return-menu-btn">返回選單</button>
+            </div>
+            
+            <!-- 移動設備控制按鈕 -->
+            <div class="mobile-controls" id="mobile-controls">
+                <button id="up-btn">上</button>
+                <div class="horizontal-controls">
+                    <button id="left-btn">左</button>
+                    <button id="right-btn">右</button>
+                </div>
+                <button id="down-btn">下</button>
             </div>
         </div>
         
-        <a href="index.html" class="back-link">返回主页</a>
+        <a href="index.html" class="back-link">返回主頁</a>
     </div>
     
     <div id="game-over-modal" class="modal">
         <div class="modal-content">
-            <h2>游戏结束</h2>
-            <p>最终得分: <span id="final-score">0</span></p>
+            <h2>遊戲結束</h2>
+            <p>最終得分: <span id="final-score">0</span></p>
             <button id="play-again-btn">再玩一次</button>
-            <button id="menu-btn">返回菜单</button>
+            <button id="menu-btn">返回選單</button>
         </div>
     </div>
     
