@@ -121,6 +121,7 @@
         <h1>欢迎来到游戏中心</h1>
         <p>请选择您想玩的游戏：</p>
         <a href="game-menu.html" class="game-link">贪食蛇游戏</a>
+        <a href="seabattle.html" class="game-link" style="background-color: #0077be;">海战棋游戏</a>
         <!-- 添加管理中心入口，仅对管理员显示 -->
         <a href="admin.html" class="game-link" id="admin-link" style="display: none; background-color: #2196F3;">管理中心</a>
         <button class="btn logout-btn" id="logout-btn">退出登录</button>
@@ -128,7 +129,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 移除API_URL和服务器测试按钮
+            // API地址 - 替换为您的Hostinger地址
+            const API_URL = 'https://your-domain.com/api.php';
+            
             const loginContainer = document.getElementById('login-container');
             const gameContainer = document.getElementById('game-container');
             const loginBtn = document.getElementById('login-btn');
@@ -141,79 +144,55 @@
             usernameInput.value = 'guest';
             
             // 检查是否已登录
-            if (localStorage.getItem('isLoggedIn') === 'true') {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 showGameContainer();
             }
             
-            // 移除测试服务器按钮
-            const testServerBtn = document.querySelector('.login-form button:last-child');
-            if (testServerBtn && testServerBtn.textContent === '测试服务器连接') {
-                testServerBtn.remove();
-            }
-            
-            // 修改登录逻辑，使用localStorage
-            loginBtn.addEventListener('click', () => {
+            // 修改登录逻辑，使用API
+            loginBtn.addEventListener('click', async () => {
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
-                // 如果用户名是"guest"或为空，且密码为空，则以游客身份登录
-                if ((username === 'guest' || username === '') && password === '') {
-                    // 生成随机游客ID
-                    const guestId = 'guest_' + Math.floor(Math.random() * 10000);
-                    
-                    // 登录为游客
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('username', guestId);
-                    localStorage.setItem('userRole', 'guest');
-                    localStorage.setItem('userId', guestId);
-                    localStorage.setItem('isGuestUser', 'true');
-                    
-                    showGameContainer();
-                    return;
-                }
-                
-                // 普通登录逻辑继续处理
-                // 获取会员列表
-                let members = JSON.parse(localStorage.getItem('members') || '[]');
-                
-                // 如果会员列表为空，添加默认管理员账户
-                if (members.length === 0) {
-                    members.push({
-                        id: 'admin',
-                        username: 'admin',
-                        password: 'password',
-                        role: 'admin',
-                        registerDate: new Date().toISOString()
-                    });
-                    localStorage.setItem('members', JSON.stringify(members));
-                }
-                
-                // 查找匹配的会员
-                const member = members.find(m => m.username === username && m.password === password);
-                
-                if (member) {
-                    // 登录成功
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('userRole', member.role);
-                    localStorage.setItem('userId', member.id);
-                    localStorage.setItem('isGuestUser', 'false');
-                    showGameContainer();
-                } else {
-                    // 登录失败
+                try {
                     errorMessage.style.display = 'block';
-                    errorMessage.textContent = '用户名或密码错误';
-                    passwordInput.value = '';
+                    errorMessage.textContent = '登录中...';
+                    
+                    const response = await fetch(`${API_URL}/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // 登录成功，使用sessionStorage存储会话信息
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        sessionStorage.setItem('username', result.user.username);
+                        sessionStorage.setItem('userRole', result.user.role);
+                        sessionStorage.setItem('userId', result.user.id);
+                        sessionStorage.setItem('isGuestUser', result.isGuest ? 'true' : 'false');
+                        showGameContainer();
+                    } else {
+                        // 登录失败
+                        errorMessage.textContent = result.message || '用户名或密码错误';
+                        passwordInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('登录出错:', error);
+                    errorMessage.textContent = '服务器连接失败，请稍后再试';
                 }
             });
             
             // 修改退出登录按钮
             logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('username');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('userId');
-                localStorage.removeItem('isGuestUser');
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('username');
+                sessionStorage.removeItem('userRole');
+                sessionStorage.removeItem('userId');
+                sessionStorage.removeItem('isGuestUser');
                 showLoginContainer();
             });
             
@@ -223,7 +202,7 @@
                 gameContainer.style.display = 'block';
                 
                 // 检查是否是管理员，显示或隐藏管理中心入口
-                const userRole = localStorage.getItem('userRole');
+                const userRole = sessionStorage.getItem('userRole');
                 const adminLink = document.getElementById('admin-link');
                 
                 if (userRole === 'admin') {
@@ -233,7 +212,7 @@
                 }
                 
                 // 显示游客标记（如果是游客）
-                const isGuest = localStorage.getItem('isGuestUser') === 'true';
+                const isGuest = sessionStorage.getItem('isGuestUser') === 'true';
                 if (isGuest) {
                     // 创建一个游客提示元素
                     let guestBadge = document.getElementById('guest-badge');

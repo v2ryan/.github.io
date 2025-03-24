@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>海战棋 - 极简版</title>
+    <link rel="stylesheet" href="seabattle.css">
+</head>
+<body>
+    <!-- JSDOS: 这是一个极简风格的海战棋游戏 -->
+    <div class="game-container">
+        <h1>海战棋 - 极简版</h1>
+        
+        <div class="game-status">
+            <p>游戏状态: <span id="game-status-text">准备中</span></p>
+            <p>当前玩家: <span id="current-player">玩家1</span></p>
+        </div>
+        
+        <div class="boards-container">
+            <div class="board-wrapper">
+                <h2>我的舰队</h2>
+                <div class="grid" id="player-grid"></div>
+            </div>
+            <div class="board-wrapper">
+                <h2>敌方海域</h2>
+                <div class="grid" id="enemy-grid"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">开始游戏</button>
+            <button id="reset-btn">重置游戏</button>
+            <button id="random-btn">随机布局</button>
+            <button id="rotate-btn">旋转舰船</button>
+        </div>
+        
+        <div class="ships-container">
+            <h3>未放置的舰船</h3>
+            <div class="ship-selection" id="ship-selection"></div>
+        </div>
+        
+        <div class="game-info">
+            <h3>游戏信息</h3>
+            <p id="game-message">请先放置您的舰船，然后开始游戏。</p>
+        </div>
+        
+        <div class="scoreboard">
+            <h3>战绩</h3>
+            <p>玩家击沉: <span id="player-score">0</span></p>
+            <p>电脑击沉: <span id="computer-score">0</span></p>
+        </div>
+        
+        <a href="index.html" class="back-link">返回主页</a>
+    </div>
+    
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="winner-text">游戏结束</h2>
+            <p id="final-score">得分: 0</p>
+            <button id="play-again-btn">再玩一次</button>
+            <button id="return-menu-btn">返回菜单</button>
+        </div>
+    </div>
+    
+    <script src="seabattle.js"></script>
+</body>
+</html> 
