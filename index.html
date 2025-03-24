@@ -153,6 +153,23 @@
                 const username = usernameInput.value.trim();
                 const password = passwordInput.value.trim();
                 
+                // 如果用户名和密码都为空，创建游客账户
+                if (username === '' && password === '') {
+                    // 生成随机游客ID
+                    const guestId = 'guest_' + Math.floor(Math.random() * 10000);
+                    
+                    // 登录为游客
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', guestId);
+                    localStorage.setItem('userRole', 'guest');
+                    localStorage.setItem('userId', guestId);
+                    localStorage.setItem('isGuestUser', 'true');
+                    
+                    showGameContainer();
+                    return;
+                }
+                
+                // 普通登录逻辑继续处理
                 // 获取会员列表
                 let members = JSON.parse(localStorage.getItem('members') || '[]');
                 
@@ -177,6 +194,7 @@
                     localStorage.setItem('username', username);
                     localStorage.setItem('userRole', member.role);
                     localStorage.setItem('userId', member.id);
+                    localStorage.setItem('isGuestUser', 'false');
                     showGameContainer();
                 } else {
                     // 登录失败
@@ -186,11 +204,13 @@
                 }
             });
             
-            // 退出登录按钮
+            // 修改退出登录按钮
             logoutBtn.addEventListener('click', () => {
                 localStorage.removeItem('isLoggedIn');
                 localStorage.removeItem('username');
                 localStorage.removeItem('userRole');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('isGuestUser');
                 showLoginContainer();
             });
             
@@ -199,7 +219,7 @@
                 loginContainer.style.display = 'none';
                 gameContainer.style.display = 'block';
                 
-                // 检查是否是管理员
+                // 检查是否是管理员，显示或隐藏管理中心入口
                 const userRole = localStorage.getItem('userRole');
                 const adminLink = document.getElementById('admin-link');
                 
@@ -207,6 +227,26 @@
                     adminLink.style.display = 'block';
                 } else {
                     adminLink.style.display = 'none';
+                }
+                
+                // 显示游客标记（如果是游客）
+                const isGuest = localStorage.getItem('isGuestUser') === 'true';
+                if (isGuest) {
+                    // 创建一个游客提示元素
+                    let guestBadge = document.getElementById('guest-badge');
+                    if (!guestBadge) {
+                        guestBadge = document.createElement('div');
+                        guestBadge.id = 'guest-badge';
+                        guestBadge.style.background = '#FF9800';
+                        guestBadge.style.color = 'white';
+                        guestBadge.style.padding = '5px 10px';
+                        guestBadge.style.borderRadius = '5px';
+                        guestBadge.style.marginTop = '10px';
+                        guestBadge.style.textAlign = 'center';
+                        guestBadge.textContent = '您正在使用游客账户，游戏数据仅保存在当前设备';
+                        
+                        document.querySelector('.game-container').appendChild(guestBadge);
+                    }
                 }
             }
             
