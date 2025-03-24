@@ -66,7 +66,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 20px;
+            margin: 20px auto;
+            max-width: 200px;
         }
         .horizontal-controls {
             display: flex;
@@ -99,13 +100,8 @@
         <canvas id="game-canvas" width="400" height="400"></canvas>
     </div>
     <div class="score">分数: <span id="score">0</span></div>
-    <div class="controls">
-        <button class="btn" id="start-btn">开始游戏</button>
-        <button class="btn" id="restart-btn">重新开始</button>
-        <button class="btn" onclick="window.location.href='index.html'">返回主页</button>
-    </div>
 
-    <!-- 添加移动设备的方向控制按钮 -->
+    <!-- 将方向控制按钮移到游戏控制按钮之间 -->
     <div class="mobile-controls">
         <button class="direction-btn" id="up-btn">↑</button>
         <div class="horizontal-controls">
@@ -115,6 +111,13 @@
         <button class="direction-btn" id="down-btn">↓</button>
     </div>
 
+    <div class="controls">
+        <button class="btn" id="start-btn">开始游戏</button>
+        <button class="btn" id="restart-btn">重新开始</button>
+        <button class="btn" id="stop-btn">停止游戏</button>
+        <button class="btn" onclick="window.location.href='index.html'">返回主页</button>
+    </div>
+
     <script>
         // JSDOS: 贪食蛇游戏的JavaScript代码
         document.addEventListener('DOMContentLoaded', () => {
@@ -122,6 +125,7 @@
             const ctx = canvas.getContext('2d');
             const startBtn = document.getElementById('start-btn');
             const restartBtn = document.getElementById('restart-btn');
+            const stopBtn = document.getElementById('stop-btn');
             const scoreElement = document.getElementById('score');
             
             // 游戏变量
@@ -405,9 +409,28 @@
                 }
             });
             
+            // 停止游戏函数
+            function stopGame() {
+                if (gameRunning) {
+                    clearInterval(gameInterval);
+                    gameRunning = false;
+                    startBtn.disabled = false;
+                    
+                    // 显示暂停提示
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    ctx.font = '30px Arial';
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('游戏暂停', canvas.width / 2, canvas.height / 2);
+                }
+            }
+            
             // 按钮事件
             startBtn.addEventListener('click', startGame);
             restartBtn.addEventListener('click', restartGame);
+            stopBtn.addEventListener('click', stopGame);
             
             // 初始化游戏
             initGame();
