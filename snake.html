@@ -349,6 +349,16 @@
                 nextDirection = '';
                 direction = '';
                 
+                // 确保蛇被清空
+                snake = [];
+                
+                // 重置分数
+                score = 0;
+                scoreElement.textContent = '0';
+                
+                // 重置游戏结束标记
+                window.gameHasEnded = false;
+                
                 // 初始化游戏（会重新设置蛇的位置和随机方向）
                 initGame();
                 
@@ -364,40 +374,39 @@
                 // 保存分数
                 saveScore(score);
                 
-                // 获取排行榜数据
+                // 获取排行榜
                 const scores = JSON.parse(localStorage.getItem('snakeScores') || '[]');
                 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                // 显示游戏结束和排行榜信息
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                ctx.font = '30px Arial';
                 ctx.fillStyle = 'white';
-                ctx.textAlign = 'center';
-                ctx.fillText('游戏结束!', canvas.width / 2, 60);
-                
                 ctx.font = '24px Arial';
-                ctx.fillText(`您的得分: ${score}`, canvas.width / 2, 100);
+                ctx.textAlign = 'center';
+                ctx.fillText('游戏结束!', canvas.width / 2, 100);
+                ctx.fillText('您的得分: ' + score, canvas.width / 2, 150);
                 
                 // 显示排行榜
                 ctx.font = '20px Arial';
-                ctx.fillText('排行榜 TOP 10', canvas.width / 2, 140);
+                ctx.fillText('排行榜 TOP 10', canvas.width / 2, 180);
                 
                 // 绘制排行榜表头
                 ctx.font = '16px Arial';
                 ctx.textAlign = 'left';
-                ctx.fillText('排名', 50, 170);
-                ctx.fillText('玩家', 150, 170);
-                ctx.fillText('分数', 300, 170);
+                ctx.fillText('排名', 50, 210);
+                ctx.fillText('玩家', 150, 210);
+                ctx.fillText('分数', 300, 210);
                 
                 // 绘制分割线
                 ctx.beginPath();
-                ctx.moveTo(40, 180);
-                ctx.lineTo(360, 180);
+                ctx.moveTo(40, 220);
+                ctx.lineTo(360, 220);
                 ctx.strokeStyle = 'white';
                 ctx.stroke();
                 
                 // 绘制排行榜数据
-                let y = 200;
+                let y = 240;
                 scores.slice(0, 10).forEach((scoreData, index) => {
                     // 高亮显示当前玩家的最新成绩
                     if (scoreData.username === localStorage.getItem('username') && 
@@ -419,7 +428,7 @@
                 if (scores.length === 0) {
                     ctx.fillStyle = '#ccc';
                     ctx.textAlign = 'center';
-                    ctx.fillText('暂无记录', canvas.width / 2, 250);
+                    ctx.fillText('暂无记录', canvas.width / 2, 290);
                 }
                 
                 // 添加重新开始按钮提示
@@ -489,79 +498,94 @@
             const rightBtn = document.getElementById('right-btn');
             
             upBtn.addEventListener('click', () => {
-                if (!gameRunning) {
-                    // 如果有分数，说明是游戏结束状态，需要完全重启
-                    if (score > 0) {
-                        restartGame();
-                        // 在重启完成后设置新方向并开始游戏
-                        setTimeout(() => {
-                            direction = 'up';
-                            nextDirection = 'up';
-                            startGame();
-                        }, 100);
-                    } else {
-                        // 首次游戏，直接设置方向并开始
+                // 如果游戏已结束，需要完全重启
+                if (window.gameHasEnded) {
+                    // 强制完全重置游戏状态
+                    snake = [];
+                    score = 0;
+                    scoreElement.textContent = '0';
+                    
+                    // 重新启动游戏
+                    restartGame();
+                    
+                    // 在重启完成后设置新方向并开始游戏
+                    setTimeout(() => {
                         direction = 'up';
                         nextDirection = 'up';
+                        window.gameHasEnded = false;
                         startGame();
-                    }
+                    }, 100);
+                }
+                else if (!gameRunning) {
+                    direction = 'up';
+                    nextDirection = 'up';
+                    startGame();
                 } else if (direction !== 'down') {
                     nextDirection = 'up';
                 }
             });
             
             downBtn.addEventListener('click', () => {
-                if (!gameRunning) {
-                    if (score > 0) {
-                        restartGame();
-                        setTimeout(() => {
-                            direction = 'down';
-                            nextDirection = 'down';
-                            startGame();
-                        }, 100);
-                    } else {
+                if (window.gameHasEnded) {
+                    snake = [];
+                    score = 0;
+                    scoreElement.textContent = '0';
+                    restartGame();
+                    setTimeout(() => {
                         direction = 'down';
                         nextDirection = 'down';
+                        window.gameHasEnded = false;
                         startGame();
-                    }
+                    }, 100);
+                }
+                else if (!gameRunning) {
+                    direction = 'down';
+                    nextDirection = 'down';
+                    startGame();
                 } else if (direction !== 'up') {
                     nextDirection = 'down';
                 }
             });
             
             leftBtn.addEventListener('click', () => {
-                if (!gameRunning) {
-                    if (score > 0) {
-                        restartGame();
-                        setTimeout(() => {
-                            direction = 'left';
-                            nextDirection = 'left';
-                            startGame();
-                        }, 100);
-                    } else {
+                if (window.gameHasEnded) {
+                    snake = [];
+                    score = 0;
+                    scoreElement.textContent = '0';
+                    restartGame();
+                    setTimeout(() => {
                         direction = 'left';
                         nextDirection = 'left';
+                        window.gameHasEnded = false;
                         startGame();
-                    }
+                    }, 100);
+                }
+                else if (!gameRunning) {
+                    direction = 'left';
+                    nextDirection = 'left';
+                    startGame();
                 } else if (direction !== 'right') {
                     nextDirection = 'left';
                 }
             });
             
             rightBtn.addEventListener('click', () => {
-                if (!gameRunning) {
-                    if (score > 0) {
-                        restartGame();
-                        setTimeout(() => {
-                            direction = 'right';
-                            nextDirection = 'right';
-                            startGame();
-                        }, 100);
-                    } else {
+                if (window.gameHasEnded) {
+                    snake = [];
+                    score = 0;
+                    scoreElement.textContent = '0';
+                    restartGame();
+                    setTimeout(() => {
                         direction = 'right';
                         nextDirection = 'right';
+                        window.gameHasEnded = false;
                         startGame();
-                    }
+                    }, 100);
+                }
+                else if (!gameRunning) {
+                    direction = 'right';
+                    nextDirection = 'right';
+                    startGame();
                 } else if (direction !== 'left') {
                     nextDirection = 'right';
                 }
