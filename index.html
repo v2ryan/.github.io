@@ -3,15 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>資料索引與預覽（Google Drive / Sheets / PDF / Word）</title>
+  <title>資料索引與預覽（由 Google Sheet 自動讀取）</title>
   <style>
     :root{
       --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
-      --border:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed; --hover:#eef2ff;
-      --shadow:0 12px 30px rgba(79,70,229,.18);
+      --border:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed; --hover:#eef2ff; --shadow:0 12px 30px rgba(79,70,229,.18);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
       margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
       color:var(--text);
@@ -22,125 +20,68 @@
       display:flex; min-height:100vh; overflow-x:hidden;
     }
 
-    /* ===== Layout ===== */
-    .sidebar{
-      width:320px; min-width:260px; max-width:420px;
-      border-right:1px solid var(--border);
-      background:linear-gradient(180deg,#fff 0%,#fafaff 100%);
-      display:flex; flex-direction:column;
-    }
-    .main{ flex:1; display:flex; flex-direction:column; min-width:0; }
-
-    /* Sidebar header & search */
+    /* Sidebar */
+    .sidebar{ width:320px; min-width:260px; max-width:420px; border-right:1px solid var(--border); background:linear-gradient(180deg,#fff 0%,#fafaff 100%); display:flex; flex-direction:column }
     .side-header{ padding:18px 16px 10px; border-bottom:1px solid var(--border) }
-    .title{ margin:0; font-size:18px }
-    .sub{ margin:6px 0 0; color:var(--muted); font-size:12px }
-    .search{
-      display:flex; gap:8px; align-items:center;
-      padding:10px 12px; margin:12px 16px;
-      border:1px solid var(--border); border-radius:10px; background:#fff;
-    }
+    .title{ margin:0; font-size:18px } .sub{ margin:6px 0 0; color:var(--muted); font-size:12px }
+    .search{ display:flex; gap:8px; align-items:center; padding:10px 12px; margin:12px 16px; border:1px solid var(--border); border-radius:10px; background:#fff }
     .search input{ border:none; outline:none; width:100%; font-size:14px; color:var(--text) }
-
-    /* Resource list */
     .list{ padding:8px 8px 16px; overflow:auto }
-    .item{
-      display:flex; gap:10px; align-items:center;
-      padding:10px 10px; margin:8px;
-      border:1px solid var(--border); border-radius:12px; background:#fff;
-      cursor:pointer; transition:background .15s ease,border-color .15s ease;
-    }
+    .item{ display:flex; gap:10px; align-items:center; padding:10px 10px; margin:8px; border:1px solid var(--border); border-radius:12px; background:#fff; cursor:pointer; transition:background .15s,border-color .15s }
     .item:hover{ background:var(--hover); border-color:#dbe2ff }
     .item.active{ outline:2px solid #c7d2fe; background:#eef2ff }
-    .badge{
-      font-size:11px; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2));
-      padding:4px 8px; border-radius:999px; white-space:nowrap;
-    }
+    .badge{ font-size:11px; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2)); padding:4px 8px; border-radius:999px; white-space:nowrap }
     .meta{ display:flex; flex-direction:column; min-width:0 }
-    .name{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .desc{ font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .name{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+    .desc{ font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
 
-    /* Toolbar */
-    .toolbar{
-      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-      padding:12px 16px; border-bottom:1px solid var(--border); background:#fbfbff;
-    }
-    .menuBtn{
-      display:none; align-items:center; gap:8px;
-      border:1px solid var(--border); background:#fff; color:var(--brand);
-      padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700;
-    }
-    .menuBtn svg{ flex:0 0 auto }
-    .linkbox{
-      display:flex; gap:8px; align-items:center; background:#fff;
-      border:1px solid var(--border); padding:8px 10px; border-radius:10px; flex:1 1 420px; min-width:220px;
-    }
+    /* Main / toolbar */
+    .main{ flex:1; display:flex; flex-direction:column; min-width:0 }
+    .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--border); background:#fbfbff }
+    .menuBtn{ display:none; align-items:center; gap:8px; border:1px solid var(--border); background:#fff; color:var(--brand); padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700 }
+    .linkbox{ display:flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--border); padding:8px 10px; border-radius:10px; flex:1 1 420px; min-width:220px }
     .linkbox input{ border:none; outline:none; width:100%; min-width:160px; color:var(--text) }
-    .btn{
-      appearance:none; border:1px solid var(--border); background:#fff; color:var(--brand);
-      font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer;
-    }
+    .btn{ appearance:none; border:1px solid var(--border); background:#fff; color:var(--brand); font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer }
     .btn.primary{ border:none; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 6px 18px rgba(79,70,229,.25) }
     .field{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border); padding:8px 10px; border-radius:10px }
     .field input{ border:none; outline:none; width:80px }
 
-    /* Viewer */
     .viewer{ position:relative; height:72vh; background:#fff }
     iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
-    .status{
-      padding:10px 16px; font-size:12px; color:var(--muted);
-      border-top:1px solid var(--border); background:#fff; display:flex; gap:10px; flex-wrap:wrap;
-    }
+    .status{ padding:10px 16px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); background:#fff; display:flex; gap:10px; flex-wrap:wrap }
     .pill{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#fafaff }
 
-    /* ===== Mobile drawer behavior ===== */
+    /* Mobile drawer */
     @media (max-width: 720px){
       .menuBtn{ display:inline-flex }
-      .sidebar{
-        position:fixed; z-index:60; top:0; bottom:0; left:0;
-        transform:translateX(-100%); transition:transform .25s ease;
-        box-shadow:var(--shadow);
-      }
+      .sidebar{ position:fixed; z-index:60; top:0; bottom:0; left:0; transform:translateX(-100%); transition:transform .25s ease; box-shadow:var(--shadow) }
       .sidebar.open{ transform:translateX(0) }
-      .backdrop{
-        position:fixed; inset:0; background:rgba(15,23,42,.35);
-        backdrop-filter:saturate(140%) blur(2px);
-        z-index:50; opacity:0; pointer-events:none; transition:opacity .2s ease;
-      }
+      .backdrop{ position:fixed; inset:0; background:rgba(15,23,42,.35); backdrop-filter:saturate(140%) blur(2px); z-index:50; opacity:0; pointer-events:none; transition:opacity .2s ease }
       .backdrop.show{ opacity:1; pointer-events:auto }
       .viewer{ height:70vh }
     }
-    @media (min-width: 721px){
-      .backdrop{ display:none }
-    }
+    @media (min-width: 721px){ .backdrop{ display:none } }
   </style>
 </head>
 <body>
-  <!-- Mobile overlay -->
   <div id="backdrop" class="backdrop" aria-hidden="true"></div>
 
-  <!-- Sidebar -->
   <aside id="sidebar" class="sidebar" aria-label="資源清單">
     <div class="side-header">
       <h1 class="title">資料索引</h1>
-      <p class="sub">集中瀏覽多個 Sheet／PDF／Word（Drive）</p>
+      <p class="sub">資料由 Google Sheet 供應（即改即生效）</p>
     </div>
-
     <div class="search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"
-          stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <input id="searchInput" type="search" placeholder="搜尋標題或描述…" />
     </div>
-
     <div id="list" class="list"></div>
   </aside>
 
-  <!-- Main -->
   <main class="main">
     <div class="toolbar">
-      <!-- Mobile: open drawer -->
       <button id="openMenu" class="menuBtn" type="button" aria-controls="sidebar" aria-expanded="false" title="打開資源清單">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M4 6h16M4 12h16M4 18h16" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
@@ -178,28 +119,20 @@
   </main>
 
   <script>
-    // ========= 你的資源 =========
-    // 如需更多條目，可自行新增；支援 type: 'sheet' | 'pdf' | 'word' | 'doc' | 'url'
-    const RESOURCES = [
-      { id:"sheet-1", type:"sheet", name:"表格 A（Sheet）",
-        desc:"以 pubhtml 方式發佈的 Google Sheet",
-        url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTduf3fUmTnlJkiPzt7mxgU6hn1ypC8loXnYKcZA-SBy49jwqnMEPlW_6brv3Q3BFObMoPkjWtZwU_a/pubhtml" },
-      { id:"sheet-2", type:"sheet", name:"表格 B（Sheet）",
-        desc:"另一張以 pubhtml 發佈的 Google Sheet",
-        url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQgWWN2o8z0uY8Rj0rzzs9cGruqXnRBMERbMr_jZTc2rnovh8-6E7sR5ZQ_K_i_BK_oIzbkK6pyXeVl/pubhtml" },
+    // ❶ 把呢條改做你 Apps Script Web App 的 URL（v1 部署出嚟嗰條）
+    const SCRIPT_JSON_URL = "https://script.google.com/macros/s/XXXXXXXXXXXX/exec";
 
-      // 你可以加入 PDF / Word（把檔案權限設「擁有連結者可檢視」）
-       { id:"pdf-1", type:"pdf", name:"公司手冊（PDF）", desc:"PDF 預覽", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-       { id:"word-1", type:"word", name:"合約草稿（Word）", desc:"Word 預覽", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-       { id:"doc-1",  type:"doc",  name:"會議記錄（Google Docs）", desc:"Docs 預覽", url:"https://docs.google.com/document/d/DOCUMENT_ID/preview" },
-    ];
-    // ===========================
-
-    // ========= 元件 =========
+    // ====== Mobile drawer ======
     const sidebar   = document.getElementById("sidebar");
     const backdrop  = document.getElementById("backdrop");
     const openMenu  = document.getElementById("openMenu");
+    function openSidebar(){ sidebar.classList.add("open"); backdrop.classList.add("show"); openMenu.setAttribute("aria-expanded","true"); document.documentElement.style.overflow="hidden"; document.body.style.overflow="hidden"; }
+    function closeSidebar(){ sidebar.classList.remove("open"); backdrop.classList.remove("show"); openMenu.setAttribute("aria-expanded","false"); document.documentElement.style.overflow=""; document.body.style.overflow=""; }
+    openMenu.addEventListener("click", ()=> sidebar.classList.contains("open") ? closeSidebar() : openSidebar());
+    backdrop.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeSidebar(); });
 
+    // ====== UI refs ======
     const listEl = document.getElementById("list");
     const frame  = document.getElementById("frame");
     const urlInput = document.getElementById("urlInput");
@@ -214,74 +147,38 @@
     const vhInput = document.getElementById("vhInput");
     const resizeBtn = document.getElementById("resizeBtn");
 
+    let ALL_ITEMS = [];
     let activeId = null;
 
-    // ===== Mobile drawer helpers =====
-    function openSidebar(){
-      sidebar.classList.add("open");
-      backdrop.classList.add("show");
-      openMenu.setAttribute("aria-expanded","true");
-      // 防止背景滾動（iOS 安全做法）
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-      // 將焦點移到搜尋方便用戶
-      setTimeout(()=> searchInput?.focus(), 80);
-    }
-    function closeSidebar(){
-      sidebar.classList.remove("open");
-      backdrop.classList.remove("show");
-      openMenu.setAttribute("aria-expanded","false");
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    }
-    openMenu.addEventListener("click", ()=> {
-      const isOpen = sidebar.classList.contains("open");
-      isOpen ? closeSidebar() : openSidebar();
-    });
-    backdrop.addEventListener("click", closeSidebar);
-    document.addEventListener("keydown", (e)=>{
-      if(e.key === "Escape") closeSidebar();
-    });
-
-    // ===== App functions =====
     const setStatus = (msg)=> statusEl.textContent = "狀態：" + msg;
     const setActiveCard = (id)=>{
-      document.querySelectorAll(".item").forEach(el=>{
-        el.classList.toggle("active", el.dataset.id === id);
-      });
+      document.querySelectorAll(".item").forEach(el=> el.classList.toggle("active", el.dataset.id === id));
     };
 
-    // 自動將 /view 或 /view?usp=sharing → /preview（Drive 直接內嵌）
+    // 自動將 /view 或 /view?usp=sharing → /preview（方便直接內嵌 Drive）
     function fixUrl(url){
-      return url.replace(/\/view(\?usp=sharing)?/, "/preview");
+      return (url || "").replace(/\/view(\?usp=sharing)?/, "/preview");
     }
 
-    function openResource(res){
-      if(!res) return;
-      activeId = res.id;
-      const fixed = fixUrl(res.url);
-      frame.src = fixed;
-      urlInput.value = fixed;
-      currentNameEl.textContent = `${res.name}（${res.type.toUpperCase()}）`;
-      localStorage.setItem("last_resource_id", res.id);
-      setStatus("載入中…");
-      setActiveCard(res.id);
-
-      // 如果係細屏，點選後自動收起側欄
-      if (window.matchMedia("(max-width: 720px)").matches) {
-        closeSidebar();
-      }
+    // ❷ 從 Apps Script 讀 JSON
+    async function loadItems(){
+      setStatus("載入清單中…");
+      const res = await fetch(SCRIPT_JSON_URL, { method: "GET", headers: { "Cache-Control": "no-cache" }});
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || "讀取失敗");
+      ALL_ITEMS = data.items || [];
+      renderList();
+      // 自動開第一個
+      if (ALL_ITEMS.length) openResource(ALL_ITEMS[0]);
+      setStatus("完成（更新時間：" + (data.updated || "") + "）");
     }
 
     function renderList(filter=""){
       listEl.innerHTML = "";
-      const q = filter.trim().toLowerCase();
-      const items = RESOURCES.filter(r=>{
-        if(!q) return true;
-        return (r.name.toLowerCase().includes(q) || (r.desc||"").toLowerCase().includes(q));
-      });
+      const q = (filter || "").toLowerCase().trim();
+      const items = ALL_ITEMS.filter(r => !q || r.name.toLowerCase().includes(q) || (r.desc||"").toLowerCase().includes(q) || (r.type||"").toLowerCase().includes(q));
 
-      if(items.length === 0){
+      if(!items.length){
         const empty = document.createElement("div");
         empty.style.cssText = "color:#9ca3af;padding:12px 16px;";
         empty.textContent = "找不到符合的項目。";
@@ -296,78 +193,59 @@
 
         const badge = document.createElement("span");
         badge.className = "badge";
-        badge.textContent = r.type.toUpperCase();
+        badge.textContent = (r.type || "URL").toUpperCase();
 
         const meta = document.createElement("div");
         meta.className = "meta";
         const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = r.name;
+        name.className = "name"; name.textContent = r.name || r.id;
         const desc = document.createElement("div");
-        desc.className = "desc";
-        desc.textContent = r.desc || r.url;
+        desc.className = "desc"; desc.textContent = r.desc || r.url;
 
-        meta.appendChild(name);
-        meta.appendChild(desc);
-        row.appendChild(badge);
-        row.appendChild(meta);
+        meta.appendChild(name); meta.appendChild(desc);
+        row.appendChild(badge); row.appendChild(meta);
         row.addEventListener("click", ()=> openResource(r));
         listEl.appendChild(row);
       }
       setActiveCard(activeId);
     }
 
-    // 初始化
-    renderList();
-    (function restore(){
-      const last = localStorage.getItem("last_resource_id");
-      const def = RESOURCES[0];
-      const target = RESOURCES.find(r=>r.id === last) || def;
-      if(target) openResource(target);
-    })();
+    function openResource(res){
+      if(!res) return;
+      activeId = res.id;
+      const fixed = fixUrl(res.url);
+      frame.src = fixed;
+      urlInput.value = fixed;
+      currentNameEl.textContent = `${res.name || res.id}（${(res.type||"URL").toUpperCase()}）`;
+      setStatus("載入中…");
+      setActiveCard(res.id);
+      if (window.matchMedia("(max-width: 720px)").matches) closeSidebar();
+    }
 
-    frame.addEventListener("load", ()=> setStatus("載入完成"));
+    // 事件
     searchInput.addEventListener("input", (e)=> renderList(e.target.value));
-
     applyBtn.addEventListener("click", ()=>{
       let url = (urlInput.value || "").trim();
       if(!url){ alert("請貼上可嵌入的連結"); return; }
       url = fixUrl(url);
-      frame.src = url;
-      setStatus("載入中…");
-      currentNameEl.textContent = "自訂連結預覽";
-      setActiveCard(""); // 取消清單高亮
+      frame.src = url; setStatus("載入中…"); currentNameEl.textContent = "自訂連結預覽"; setActiveCard("");
     });
-
     copyBtn.addEventListener("click", async ()=>{
       try{ await navigator.clipboard.writeText(frame.src); setStatus("已複製連結 ✔"); setTimeout(()=>setStatus("就緒"),1200); }
       catch(_){ setStatus("複製失敗，請手動複製"); }
     });
-
-    openBtn.addEventListener("click", ()=> {
-      const url = frame.src;
-      if(url) window.open(url, "_blank");
-    });
-
+    openBtn.addEventListener("click", ()=> { const url = frame.src; if(url) window.open(url, "_blank"); });
     fsBtn.addEventListener("click", ()=>{
       const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-      if(!isFs){
-        if(viewer.requestFullscreen) viewer.requestFullscreen();
-        else if(viewer.webkitRequestFullscreen) viewer.webkitRequestFullscreen();
-      }else{
-        if(document.exitFullscreen) document.exitFullscreen();
-        else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-      }
+      if(!isFs){ if(viewer.requestFullscreen) viewer.requestFullscreen(); else if(viewer.webkitRequestFullscreen) viewer.webkitRequestFullscreen(); }
+      else{ if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); }
     });
     document.addEventListener("fullscreenchange", ()=>{ fsBtn.textContent = document.fullscreenElement ? "退出全螢幕" : "全螢幕"; });
     document.addEventListener("webkitfullscreenchange", ()=>{ fsBtn.textContent = document.webkitFullscreenElement ? "退出全螢幕" : "全螢幕"; });
+    resizeBtn.addEventListener("click", ()=>{ const v = parseInt(vhInput.value, 10); if(isNaN(v)||v<40||v>95){ alert("請輸入 40–95 之間的數值"); return; } document.querySelector(".viewer").style.height = v + "vh"; });
 
-    resizeBtn.addEventListener("click", ()=>{
-      const v = parseInt(vhInput.value, 10);
-      if(isNaN(v) || v<40 || v>95){ alert("請輸入 40–95 之間的數值"); return; }
-      document.querySelector(".viewer").style.height = v + "vh";
-    });
+    // 啟動
+    loadItems().catch(err => { console.error(err); setStatus("讀取失敗：" + err.message); });
   </script>
 </body>
 </html>
-
