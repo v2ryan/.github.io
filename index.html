@@ -1,392 +1,291 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>增強版 Yamaha TF3 互動調音手冊</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Warm Neutrals & Muted Blue -->
-    <!-- Application Structure Plan: The application is now structured into three main, non-linear sections: "EQ 調校模擬器" (EQ Tuning Simulator), "1-Knob EQ 指南" (1-Knob EQ Guide), and "實用資源庫" (Resource Library). This structure provides dedicated, in-depth modules for both complex manual EQ and the simplified 1-Knob EQ, followed by a general reference library. The new 1-Knob EQ section features an interactive simulator with mode selection (Vocal/Instrument) and a real-time graph, mirroring the design philosophy of the other sections to prioritize hands-on learning. -->
-    <!-- Visualization & Content Choices: 
-        - New 1-Knob EQ Guide: Report info (1-Knob EQ function) -> Goal (Detailed teaching of a specific feature) -> Viz (Simulated UI with a large rotary knob, mode buttons, and a real-time Chart.js graph) -> Interaction (User selects mode and turns knob; graph and descriptive text update instantly) -> Justification (Provides a dedicated, safe environment to explore and understand this powerful 'black-box' feature, making its abstract function concrete and visual) -> Library (Chart.js).
-        - Enhanced EQ Simulator: Report info (EQ controls) -> Goal (In-depth teaching) -> Viz (Simulated UI with sliders for Gain, Freq, Q and a real-time Chart.js graph with explanatory text for each band) -> Interaction (User adjusts all parameters, graph updates instantly reflecting a true parametric EQ curve) -> Justification (Provides a comprehensive, hands-on simulation that is far superior for learning than a simplified version) -> Library (Chart.js).
-        - Expanded Instrument EQ Library: Report info (EQ presets) -> Goal (Provide detailed, actionable reference) -> Viz (Dropdown driving a Chart.js graph and a detailed text block) -> Interaction (Select instrument to see a multi-point visual EQ curve and bulleted tips) -> Justification (Offers more specific and practical advice than generic settings) -> Library (Chart.js).
-     -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-    <style>
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F8F5F2; color: #4A4A4A; }
-        .nav-button { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
-        .nav-button.active, .nav-button:hover { border-bottom-color: #5D7A8C; color: #3B5260; }
-        .mode-button { transition: all 0.3s ease; }
-        .mode-button.active { background-color: #5D7A8C; color: white; border-color: #5D7A8C; }
-        .content-section { display: none; }
-        .content-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
-        .chart-container { 
-            position: relative; 
-            width: 100%; 
-            max-width: 900px; 
-            margin-left: auto; 
-            margin-right: auto; 
-            height: 250px; /* smaller base height for mobile */
-            max-height: 40vh; 
-        }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px; /* larger height for desktop */
-            }
-        }
-        .param-group { background-color: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column;}
-        .param-group p.explanation { margin-top: auto; font-size: 0.8rem; color: #6b7280; padding-top: 0.5rem; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>資料索引與預覽（Google Drive / Sheets / PDF / Word）</title>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
+      --border:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed; --hover:#eef2ff;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 300px at -10% -20%, rgba(124,58,237,.08), transparent 70%),
+        radial-gradient(900px 260px at 110% -30%, rgba(79,70,229,.08), transparent 70%),
+        var(--bg);
+      display:flex; min-height:100vh;
+    }
+    .sidebar{width:320px;min-width:260px;max-width:420px;border-right:1px solid var(--border);background:linear-gradient(180deg,#fff 0%,#fafaff 100%);display:flex;flex-direction:column}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .side-header{padding:18px 16px 10px;border-bottom:1px solid var(--border)}
+    .title{margin:0;font-size:18px}.sub{margin:6px 0 0;color:var(--muted);font-size:12px}
+    .search{display:flex;gap:8px;align-items:center;padding:10px 12px;margin:12px 16px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .search input{border:none;outline:none;width:100%;font-size:14px;color:var(--text)}
+    .list{padding:8px 8px 16px;overflow:auto}
+    .item{display:flex;gap:10px;align-items:center;padding:10px 10px;margin:8px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
+    .item:hover{background:var(--hover);border-color:#dbe2ff}
+    .item.active{outline:2px solid #c7d2fe;background:#eef2ff}
+    .badge{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));padding:4px 8px;border-radius:999px;white-space:nowrap}
+    .meta{display:flex;flex-direction:column;min-width:0}
+    .name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .desc{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border);background:#fbfbff}
+    .linkbox{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:10px;flex:1 1 420px;min-width:260px}
+    .linkbox input{border:none;outline:none;width:100%;min-width:160px;color:var(--text)}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;color:var(--brand);font-weight:600;padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn.primary{border:none;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 6px 18px rgba(79,70,229,.25)}
+    .field{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:10px}
+    .field input{border:none;outline:none;width:80px}
+    .viewer{position:relative;height:72vh;background:#fff}
+    iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+    .status{padding:10px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:#fff;display:flex;gap:10px;flex-wrap:wrap}
+    .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fafaff}
+    @media (max-width:900px){.sidebar{width:280px}}
+    @media (max-width:720px){.sidebar{display:none}.viewer{height:70vh}}
+  </style>
 </head>
-<body class="antialiased">
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="side-header">
+      <h1 class="title">資料索引</h1>
+      <p class="sub">集中瀏覽多個 Sheet／PDF／Word（Drive）</p>
+    </div>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <input id="searchInput" type="search" placeholder="搜尋標題或描述…" />
+    </div>
+    <div id="list" class="list"></div>
+  </aside>
 
-    <div class="container mx-auto px-2 sm:px-4 py-6">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl sm:text-4xl font-bold text-[#3B5260]">Yamaha TF3 互動實踐手冊</h1>
-            <p class="mt-2 text-md sm:text-lg text-gray-600">專為深入學習 EQ 與效果器而設計</p>
-        </header>
-
-        <nav id="main-nav" class="sticky top-0 bg-[#F8F5F2]/90 backdrop-blur-sm z-10 flex flex-wrap justify-center items-center border-b border-gray-300 mb-6">
-            <button data-target="eq-tuning" class="nav-button active text-lg sm:text-xl font-semibold py-3 px-4 sm:px-6">EQ模擬器</button>
-            <button data-target="one-knob-guide" class="nav-button text-lg sm:text-xl font-semibold py-3 px-4 sm:px-6">1-Knob指南</button>
-            <button data-target="resources" class="nav-button text-lg sm:text-xl font-semibold py-3 px-4 sm:px-6">資源庫</button>
-        </nav>
-
-        <main>
-            <section id="eq-tuning" class="content-section active">
-                 <div class="bg-white p-4 sm:p-8 rounded-xl shadow-lg">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-[#3B5260] mb-4 text-center">EQ 調校模擬器</h2>
-                    <p class="mb-6 text-sm sm:text-base text-gray-700 text-center max-w-3xl mx-auto">親手調整參數，並即時觀察頻率曲線的變化，真正做到「邊學邊做」。</p>
-                    <div class="bg-gray-50 p-4 sm:p-6 rounded-xl border">
-                        <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-center text-gray-800">全參數手動 EQ</h3>
-                        <div class="chart-container mb-6 bg-white rounded-lg shadow-inner p-2">
-                            <canvas id="eqChart"></canvas>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                            <div class="param-group p-3 sm:p-4 rounded-lg">
-                                <h4 class="font-bold text-md sm:text-lg text-center mb-2 text-blue-700">高通濾波</h4>
-                                <label for="hpf-freq" class="block text-xs sm:text-sm font-medium mb-1">頻率</label>
-                                <div class="flex items-center space-x-2">
-                                    <input type="range" id="hpf-freq" min="20" max="800" value="20" step="1" class="w-full eq-control">
-                                    <span id="hpf-freq-value" class="w-16 text-right text-xs sm:text-sm">20 Hz</span>
-                                </div>
-                                <p class="explanation pt-2">切除低頻噪音，讓聲音更乾淨。</p>
-                            </div>
-                            <div class="param-group p-3 sm:p-4 rounded-lg">
-                                <h4 class="font-bold text-md sm:text-lg text-center mb-2 text-green-700">低頻</h4>
-                                <label for="low-gain" class="block text-xs sm:text-sm font-medium mb-1">增益</label>
-                                <input type="range" id="low-gain" min="-15" max="15" value="0" step="0.5" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="low-gain-value">0.0 dB</div>
-                                <label for="low-freq" class="block text-xs sm:text-sm font-medium mt-2 mb-1">頻率</label>
-                                <input type="range" id="low-freq" min="32" max="1000" value="100" step="1" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="low-freq-value">100 Hz</div>
-                                <p class="explanation pt-2">調整聲音的「重量感」。</p>
-                            </div>
-                            <div class="param-group p-3 sm:p-4 rounded-lg">
-                                <h4 class="font-bold text-md sm:text-lg text-center mb-2 text-yellow-700">中低頻</h4>
-                                <label for="low-mid-gain" class="block text-xs sm:text-sm font-medium mb-1">增益</label>
-                                <input type="range" id="low-mid-gain" min="-15" max="15" value="0" step="0.5" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="low-mid-gain-value">0.0 dB</div>
-                                <label for="low-mid-freq" class="block text-xs sm:text-sm font-medium mt-2 mb-1">頻率</label>
-                                <input type="range" id="low-mid-freq" min="200" max="4000" value="500" step="10" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="low-mid-freq-value">500 Hz</div>
-                                <label for="low-mid-q" class="block text-xs sm:text-sm font-medium mt-2 mb-1">Q 值</label>
-                                <input type="range" id="low-mid-q" min="0.1" max="10" value="1" step="0.1" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="low-mid-q-value">Q: 1.0</div>
-                                <p class="explanation pt-2">影響「主體感」或「渾濁感」。</p>
-                            </div>
-                            <div class="param-group p-3 sm:p-4 rounded-lg">
-                                <h4 class="font-bold text-md sm:text-lg text-center mb-2 text-orange-700">中高頻</h4>
-                                <label for="high-mid-gain" class="block text-xs sm:text-sm font-medium mb-1">增益</label>
-                                <input type="range" id="high-mid-gain" min="-15" max="15" value="0" step="0.5" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="high-mid-gain-value">0.0 dB</div>
-                                <label for="high-mid-freq" class="block text-xs sm:text-sm font-medium mt-2 mb-1">頻率</label>
-                                <input type="range" id="high-mid-freq" min="1000" max="12000" value="3000" step="50" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="high-mid-freq-value">3.0 kHz</div>
-                                <label for="high-mid-q" class="block text-xs sm:text-sm font-medium mt-2 mb-1">Q 值</label>
-                                <input type="range" id="high-mid-q" min="0.1" max="10" value="1" step="0.1" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="high-mid-q-value">Q: 1.0</div>
-                                <p class="explanation pt-2">控制「存在感」和「清晰度」。</p>
-                            </div>
-                            <div class="param-group p-3 sm:p-4 rounded-lg">
-                                <h4 class="font-bold text-md sm:text-lg text-center mb-2 text-red-700">高頻</h4>
-                                <label for="high-gain" class="block text-xs sm:text-sm font-medium mb-1">增益</label>
-                                <input type="range" id="high-gain" min="-15" max="15" value="0" step="0.5" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="high-gain-value">0.0 dB</div>
-                                <label for="high-freq" class="block text-xs sm:text-sm font-medium mt-2 mb-1">頻率</label>
-                                <input type="range" id="high-freq" min="2000" max="20000" value="8000" step="100" class="w-full eq-control">
-                                <div class="text-center text-xs sm:text-sm" id="high-freq-value">8.0 kHz</div>
-                                <p class="explanation pt-2">增加「空氣感」和「明亮度」。</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <section id="one-knob-guide" class="content-section">
-                <div class="bg-white p-4 sm:p-8 rounded-xl shadow-lg">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-[#3B5260] mb-4 text-center">1-Knob EQ™ 互動指南</h2>
-                    <p class="mb-6 text-sm sm:text-base text-gray-700 text-center max-w-3xl mx-auto">用單一旋鈕快速完成複雜的 EQ 調整。本頁將透過互動模擬，揭開它的神秘面紗。</p>
-                    
-                    <div class="bg-gray-50 p-4 sm:p-6 rounded-xl border">
-                        <div class="text-center mb-6">
-                            <span class="isolate inline-flex rounded-md shadow-sm">
-                                <button type="button" data-mode="vocal" class="mode-button active relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10">人聲模式</button>
-                                <button type="button" data-mode="instrument" class="mode-button relative -ml-px inline-flex items-center rounded-r-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10">樂器模式</button>
-                            </span>
-                        </div>
-                        
-                        <div class="chart-container mb-6 bg-white rounded-lg shadow-inner p-2">
-                            <canvas id="oneKnobChart"></canvas>
-                        </div>
-                        
-                        <div class="flex flex-col items-center justify-center">
-                             <div class="w-32 h-32 sm:w-48 sm:h-48 rounded-full bg-gray-200 border-4 border-gray-300 flex items-center justify-center mb-4 relative shadow-inner">
-                                <div id="one-knob-indicator" class="w-1 sm:w-2 h-14 sm:h-20 bg-gray-700 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full origin-bottom" style="transform: rotate(0deg);"></div>
-                                <div class="w-3 h-3 sm:w-4 sm:h-4 bg-gray-800 rounded-full shadow-md"></div>
-                             </div>
-                             <input type="range" id="one-knob-slider" min="-10" max="10" value="0" step="1" class="w-64">
-                             <p id="one-knob-label" class="mt-4 text-lg sm:text-xl font-semibold text-gray-800 h-8"></p>
-                             <p id="one-knob-description" class="text-center text-sm sm:text-base text-gray-600 max-w-md mx-auto"></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="resources" class="content-section">
-                <div class="bg-white p-4 sm:p-8 rounded-xl shadow-lg">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-[#3B5260] mb-4 text-center">實用資源庫</h2>
-                    <p class="mb-6 text-sm sm:text-base text-gray-700 text-center max-w-3xl mx-auto">快速參考中心，包含樂器 EQ 建議、效果器應用範例及疑難排解。</p>
-                    <div class="mb-10"><h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 text-center">樂器 EQ 建議起始設定</h3><div class="flex flex-col lg:flex-row gap-8 items-start"><div class="w-full lg:w-1/3"><label for="instrument-select" class="block font-medium mb-2">選擇一個樂器範本:</label><select id="instrument-select" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-[#5D7A8C] focus:border-[#5D7A8C]"><option value="vocals">人聲 (Vocals)</option><option value="guitar">木吉他 (Acoustic Guitar)</option><option value="eguitar">電吉他 (Electric Guitar)</option><option value="kick">大鼓 (Kick Drum)</option><option value="snare">軍鼓 (Snare Drum)</option><option value="bass">貝斯 (Bass)</option></select><div id="instrument-tips" class="mt-4 p-4 bg-gray-50 border rounded-lg text-gray-700 text-sm sm:text-base"></div></div><div class="w-full lg:w-2/3"><div class="chart-container bg-white rounded-lg shadow-inner p-2"><canvas id="instrumentEqChart"></canvas></div></div></div></div>
-                    <div class="mb-10"><h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 text-center">常見效果器 (FX) 應用範例</h3><div id="fx-preset-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div></div>
-                    <div><h3 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800 text-center">疑難排解與最佳實踐</h3><div class="space-y-2 max-w-4xl mx-auto"></div></div>
-                </div>
-            </section>
-        </main>
+  <!-- Main -->
+  <main class="main">
+    <div class="toolbar">
+      <div class="linkbox" title="顯示中來源連結（可編輯更換）">
+        <span style="white-space:nowrap">來源連結</span>
+        <input id="urlInput" type="url" placeholder="將在此顯示目前預覽連結…" />
+        <button class="btn" id="applyBtn">套用</button>
+      </div>
+      <div class="field" title="視窗高度（vh）">
+        <span>高度</span>
+        <input id="vhInput" type="number" min="40" max="95" value="72" />
+      </div>
+      <button class="btn" id="resizeBtn">調整高度</button>
+      <button class="btn" id="copyBtn">複製連結</button>
+      <button class="btn" id="openBtn">新分頁開啟</button>
+      <button class="btn primary" id="fsBtn">全螢幕</button>
     </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const mainNavButtons = document.querySelectorAll('#main-nav button');
-    const contentSections = document.querySelectorAll('.content-section');
-    const logFrequencies = Array.from({ length: 200 }, (_, i) => 20 * Math.pow(1000, i / 199));
-    const isMobile = window.innerWidth < 768;
+    <div class="viewer" id="viewer">
+      <iframe id="frame" allowfullscreen src=""></iframe>
+    </div>
 
-    mainNavButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            mainNavButtons.forEach(btn => btn.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            const target = e.currentTarget.getAttribute('data-target');
-            contentSections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === target) {
-                    section.classList.add('active');
-                }
-            });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
+    <div class="status">
+      <div class="pill">狀態：<span id="status">就緒</span></div>
+      <div class="pill" style="min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        目前項目：<span id="currentName">（未選擇）</span>
+      </div>
+    </div>
+  </main>
 
-    function formatFrequency(freq) {
-        return freq >= 1000 ? (freq / 1000).toFixed(1) + 'k' : Math.round(freq);
-    }
+  <script>
+    // ========= 在此加入你的資源（每類 10 個，2 啟用 + 8 註解） =========
+    // type: 'sheet' | 'pdf' | 'word' | 'doc' | 'url'
+    const RESOURCES = [
+      // --- SHEET（已啟用 2 個） ---
+      { id:"sheet-1", type:"sheet", name:"表格 A（Sheet）",
+        desc:"以 pubhtml 方式發佈的 Google Sheet",
+        url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTduf3fUmTnlJkiPzt7mxgU6hn1ypC8loXnYKcZA-SBy49jwqnMEPlW_6brv3Q3BFObMoPkjWtZwU_a/pubhtml" },
+      { id:"sheet-2", type:"sheet", name:"表格 B（Sheet）",
+        desc:"另一張以 pubhtml 發佈的 Google Sheet",
+        url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQgWWN2o8z0uY8Rj0rzzs9cGruqXnRBMERbMr_jZTc2rnovh8-6E7sR5ZQ_K_i_BK_oIzbkK6pyXeVl/pubhtml" },
+      // // { id:"sheet-3", type:"sheet", name:"表格 C（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-4", type:"sheet", name:"表格 D（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-5", type:"sheet", name:"表格 E（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-6", type:"sheet", name:"表格 F（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-7", type:"sheet", name:"表格 G（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-8", type:"sheet", name:"表格 H（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-9", type:"sheet", name:"表格 I（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
+      // // { id:"sheet-10", type:"sheet", name:"表格 J（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
 
-    const mobileFreqTicks = [100, 500, 2000, 10000];
-    const desktopFreqTicks = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      // --- PDF（已啟用 2 個） ---
+      { id:"pdf-1", type:"pdf", name:"公司手冊（PDF）",
+        desc:"PDF 預覽示例（把 FILE_ID 換為你的）",
+        url:"https://drive.google.com/file/d/FILE_ID_PDF/preview" },
+      { id:"pdf-2", type:"pdf", name:"操作指引（PDF）",
+        desc:"第二個 PDF 預留",
+        url:"https://drive.google.com/file/d/FILE_ID_PDF2/preview" },
+      // // { id:"pdf-3", type:"pdf", name:"PDF 文件 3", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-4", type:"pdf", name:"PDF 文件 4", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-5", type:"pdf", name:"PDF 文件 5", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-6", type:"pdf", name:"PDF 文件 6", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-7", type:"pdf", name:"PDF 文件 7", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-8", type:"pdf", name:"PDF 文件 8", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-9", type:"pdf", name:"PDF 文件 9", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"pdf-10", type:"pdf", name:"PDF 文件 10", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
 
-    // --- EQ Simulator Logic ---
-    let eqChart;
-    const eqControls = document.querySelectorAll('.eq-control');
-    
-    function calculateEqResponse() {
-        const hpfFreq = parseFloat(document.getElementById('hpf-freq').value);
-        const bands = {
-            low: { gain: parseFloat(document.getElementById('low-gain').value), freq: parseFloat(document.getElementById('low-freq').value), type: 'lowshelf' },
-            lowMid: { gain: parseFloat(document.getElementById('low-mid-gain').value), freq: parseFloat(document.getElementById('low-mid-freq').value), q: parseFloat(document.getElementById('low-mid-q').value), type: 'peaking' },
-            highMid: { gain: parseFloat(document.getElementById('high-mid-gain').value), freq: parseFloat(document.getElementById('high-mid-freq').value), q: parseFloat(document.getElementById('high-mid-q').value), type: 'peaking' },
-            high: { gain: parseFloat(document.getElementById('high-gain').value), freq: parseFloat(document.getElementById('high-freq').value), type: 'highshelf' }
-        };
-        return logFrequencies.map(f => {
-            let totalGain = 0;
-            totalGain -= 10 * Math.log10(1 + Math.pow(hpfFreq / f, 4));
-            totalGain += bands.low.gain / (1 + Math.pow(f / bands.low.freq, 2));
-            totalGain += bands.high.gain / (1 + Math.pow(bands.high.freq / f, 2));
-            totalGain += bands.lowMid.gain * Math.pow(1 / (1 + Math.pow( (f*f - bands.lowMid.freq*bands.lowMid.freq) / (f * bands.lowMid.freq / bands.lowMid.q) , 2)), 1);
-            totalGain += bands.highMid.gain * Math.pow(1 / (1 + Math.pow( (f*f - bands.highMid.freq*bands.highMid.freq) / (f * bands.highMid.freq / bands.highMid.q) , 2)), 1);
-            return Math.min(15, Math.max(-15, totalGain));
-        });
-    }
+      // --- WORD（上載 .docx 檔；已啟用 2 個） ---
+      { id:"word-1", type:"word", name:"合約草稿（Word）",
+        desc:"Word 檔案（Drive 預覽）",
+        url:"https://drive.google.com/file/d/FILE_ID_WORD/preview" },
+      { id:"word-2", type:"word", name:"申請表（Word）",
+        desc:"第二個 Word 預留",
+        url:"https://drive.google.com/file/d/FILE_ID_WORD2/preview" },
+      // // { id:"word-3", type:"word", name:"Word 文件 3", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-4", type:"word", name:"Word 文件 4", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-5", type:"word", name:"Word 文件 5", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-6", type:"word", name:"Word 文件 6", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-7", type:"word", name:"Word 文件 7", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-8", type:"word", name:"Word 文件 8", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-9", type:"word", name:"Word 文件 9", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // // { id:"word-10", type:"word", name:"Word 文件 10", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
 
-    function updateEqChart() { if (eqChart) { eqChart.data.datasets[0].data = calculateEqResponse(); eqChart.update('none'); } }
+      // （可選）Google Docs（線上 Word）示例，亦可複製多個：
+      // // { id:"doc-1", type:"doc", name:"會議記錄（Google Docs）", desc:"Docs 預覽", url:"https://docs.google.com/document/d/DOCUMENT_ID/preview" },
+    ];
+    // ==================================================================
 
-    const ctxEq = document.getElementById('eqChart').getContext('2d');
-    eqChart = new Chart(ctxEq, {
-        type: 'line', data: { labels: logFrequencies, datasets: [{ label: '總 EQ 曲線', data: [], borderColor: '#5D7A8C', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: false }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'logarithmic', title: { display: true, text: '頻率 (Hz)', font: {size: 12} }, ticks: { callback: (v) => ((isMobile ? mobileFreqTicks : desktopFreqTicks).includes(Math.round(v)) ? formatFrequency(v) : null), autoSkip: false, maxRotation: 0, font: {size: 10} }, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { min: -15, max: 15, title: { display: true, text: '增益 (dB)', font: {size: 12} }, grid: { color: 'rgba(0,0,0,0.08)' } } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-    });
+    // ========= 元件 =========
+    const listEl = document.getElementById("list");
+    const frame  = document.getElementById("frame");
+    const urlInput = document.getElementById("urlInput");
+    const applyBtn = document.getElementById("applyBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const openBtn = document.getElementById("openBtn");
+    const fsBtn   = document.getElementById("fsBtn");
+    const viewer  = document.getElementById("viewer");
+    const statusEl= document.getElementById("status");
+    const currentNameEl = document.getElementById("currentName");
+    const searchInput = document.getElementById("searchInput");
+    const vhInput = document.getElementById("vhInput");
+    const resizeBtn = document.getElementById("resizeBtn");
 
-    eqControls.forEach(control => {
-        control.addEventListener('input', () => {
-            const vD = document.getElementById(control.id + '-value');
-            if (vD) {
-                if (control.id.includes('gain')) vD.textContent = `${parseFloat(control.value).toFixed(1)} dB`;
-                else if (control.id.includes('freq')) vD.textContent = formatFrequency(parseFloat(control.value)) + " Hz";
-                else if (control.id.includes('q')) vD.textContent = `Q: ${parseFloat(control.value).toFixed(1)}`;
-            }
-            updateEqChart();
-        });
-    });
-    updateEqChart();
+    let activeId = null;
 
-    // --- 1-Knob EQ Guide Logic ---
-    let oneKnobChart;
-    let currentOneKnobMode = 'vocal';
-    const oneKnobSlider = document.getElementById('one-knob-slider');
-    const oneKnobIndicator = document.getElementById('one-knob-indicator');
-    const oneKnobLabel = document.getElementById('one-knob-label');
-    const oneKnobDescription = document.getElementById('one-knob-description');
-    const modeButtons = document.querySelectorAll('.mode-button');
-
-    function calculateOneKnobResponse() {
-        const value = oneKnobSlider.value;
-        const intensity = Math.abs(value) / 10;
-        return logFrequencies.map(f => {
-            let gain = 0;
-            if (value < 0) {
-                if (currentOneKnobMode === 'vocal') {
-                    const scoopFreq = 400, q = 1.5, maxCut = -5;
-                    gain = (maxCut * intensity) * Math.pow(1 / (1 + Math.pow( (f*f - scoopFreq*scoopFreq) / (f * scoopFreq / q) , 2)), 1);
-                } else {
-                    const scoopFreq = 300, q = 1.2, maxCut = -4;
-                    gain = (maxCut * intensity) * Math.pow(1 / (1 + Math.pow( (f*f - scoopFreq*scoopFreq) / (f * scoopFreq / q) , 2)), 1);
-                }
-            } else if (value > 0) {
-                const lowBoostFreq = 100, maxLowBoost = 3;
-                const highBoostFreq = 7000, maxHighBoost = 4;
-                gain += (maxLowBoost * intensity) / (1 + Math.pow(f / lowBoostFreq, 2));
-                gain += (maxHighBoost * intensity) / (1 + Math.pow(highBoostFreq / f, 2));
-            }
-            return gain;
-        });
-    }
-
-    function updateOneKnobUI() {
-        if (!oneKnobChart) return;
-        oneKnobChart.data.datasets[0].data = calculateOneKnobResponse();
-        oneKnobChart.update('none');
-        const value = parseInt(oneKnobSlider.value);
-        oneKnobIndicator.style.transform = `rotate(${value * 13.5}deg)`;
-        if (value < 0) {
-            oneKnobLabel.textContent = `消除渾濁感 (${value})`;
-            oneKnobDescription.textContent = currentOneKnobMode === 'vocal' ? '衰減中低頻，讓人聲更清晰，減少與背景音樂的衝突。' : '溫和地減少低頻的轟鳴聲，讓樂器音色更乾淨。';
-        } else if (value > 0) {
-            oneKnobLabel.textContent = `增加衝擊力 (+${value})`;
-            oneKnobDescription.textContent = '同時提升低頻的份量和高頻的清晰度，讓聲音更有力和明亮。';
-        } else {
-            oneKnobLabel.textContent = '中間 (無效果)';
-            oneKnobDescription.textContent = '將旋鈕置於中間以保持原始聲音。向左或向右轉動以開始調整。';
-        }
-    }
-
-    const ctxOneKnob = document.getElementById('oneKnobChart').getContext('2d');
-    oneKnobChart = new Chart(ctxOneKnob, {
-        type: 'line', data: { labels: logFrequencies, datasets: [{ label: '1-Knob EQ 曲線', data: [], borderColor: '#5D7A8C', borderWidth: 2, pointRadius: 0, tension: 0.1, fill: false }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'logarithmic', display: false }, y: { min: -6, max: 6, title: { display: false } } }, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
-    });
-    
-    oneKnobSlider.addEventListener('input', updateOneKnobUI);
-    modeButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            modeButtons.forEach(btn => btn.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            currentOneKnobMode = e.currentTarget.getAttribute('data-mode');
-            updateOneKnobUI();
-        });
-    });
-    updateOneKnobUI();
-
-    // --- Resource Library Logic ---
-    let instrumentEqChart;
-    const instrumentSelect = document.getElementById('instrument-select');
-    const instrumentTips = document.getElementById('instrument-tips');
-    
-    const instrumentEqData = {
-        vocals: { label: '人聲', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>HPF:</strong> 100-120Hz，切除低頻噴麥聲。</li><li><strong>減少渾濁:</strong> 輕微衰減 250-400Hz。</li><li><strong>增加存在感:</strong> 輕微提升 3-5kHz。</li><li><strong>空氣感:</strong> 輕微提升 10kHz+。</li></ul>`, curve: [{f: 110, g: -24, q: 1, type: 'hpf'}, {f:350, g:-2.5, q:1.4}, {f:4000, g:2, q:2}, {f:12000, g:1.5, type: 'highshelf'}] },
-        guitar: { label: '木吉他', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>HPF:</strong> 80Hz 左右，去共鳴。</li><li><strong>減少箱音:</strong> 衰減 150-250Hz。</li><li><strong>增加溫暖感:</strong> 提升 250-500Hz。</li><li><strong>增加清晰度:</strong> 提升 5-8kHz。</li></ul>`, curve: [{f: 80, g: -24, q: 1, type: 'hpf'}, {f:200, g:-3, q:2}, {f:6000, g:2.5, q:3}] },
-        eguitar: { label: '電吉他', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>濾波:</strong> HPF (100Hz) 及 LPF (8-10kHz)。</li><li><strong>減少刺耳感:</strong> 衰減 2.5-4kHz。</li><li><strong>增加厚度:</strong> 提升 200-400Hz。</li></ul>`, curve: [{f: 100, g: -24, q: 1, type: 'hpf'}, {f:9000, g:-24, q:1, type: 'lpf'}, {f:3000, g:-2, q:2}] },
-        kick: { label: '大鼓', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>衝擊力:</strong> 提升 60-80Hz。</li><li><strong>減少紙箱聲:</strong> 大幅衰減 300-500Hz。</li><li><strong>敲擊聲:</strong> 提升 4-6kHz。</li></ul>`, curve: [{f:70, g:4, q:1.4}, {f:400, g:-6, q:2}, {f:5000, g:5, q:3}] },
-        snare: { label: '軍鼓', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>胴體感:</strong> 提升 150-250Hz。</li><li><strong>減少嘶嘶聲:</strong> 衰減 500Hz 左右。</li><li><strong>清脆度:</strong> 提升 5-7kHz。</li></ul>`, curve: [{f:200, g:3, q:2}, {f:500, g:-2, q:3}, {f:6000, g:4, q:2.5}] },
-        bass: { label: '貝斯', tips: `<ul class="list-disc pl-5 space-y-2"><li><strong>鞏固基底:</strong> 提升 80-120Hz。</li><li><strong>與大鼓區分:</strong> 在大鼓增強點對貝斯做衰減。</li><li><strong>指板/撥片聲:</strong> 提升 700-1kHz。</li></ul>`, curve: [{f: 100, g: 3, q: 1.2}, {f:800, g:2.5, q:2}] }
+    const setStatus = (msg)=> statusEl.textContent = "狀態：" + msg;
+    const setActiveCard = (id)=>{
+      document.querySelectorAll(".item").forEach(el=>{
+        el.classList.toggle("active", el.dataset.id === id);
+      });
     };
-    
-    function createInstrumentChart() {
-        const selectedKey = instrumentSelect.value;
-        const preset = instrumentEqData[selectedKey];
-        instrumentTips.innerHTML = preset.tips;
-        const dataPoints = logFrequencies.map(f => {
-            let totalGain = 0;
-            preset.curve.forEach(band => {
-                if (band.type === 'hpf') totalGain -= 10 * Math.log10(1 + Math.pow(band.f / f, 4));
-                else if (band.type === 'lpf') totalGain += 10 * Math.log10(1 / (1 + Math.pow(f / band.f, 4)));
-                else if (band.type === 'lowshelf') totalGain += band.g / (1 + Math.pow(f / band.f, 2));
-                else if (band.type === 'highshelf') totalGain += band.g / (1 + Math.pow(band.f / f, 2));
-                else totalGain += band.g * Math.pow(1 / (1 + Math.pow( (f*f - band.f*band.f) / (f * band.f / band.q) , 2)), 1);
-            });
-            return totalGain;
-        });
-        const ctx = document.getElementById('instrumentEqChart').getContext('2d');
-        if (instrumentEqChart) instrumentEqChart.destroy();
-        instrumentEqChart = new Chart(ctx, {
-            type: 'line', data: { labels: logFrequencies, datasets: [{ label: preset.label, data: dataPoints, borderColor: '#5D7A8C', backgroundColor: 'rgba(93, 122, 140, 0.1)', borderWidth: 2, tension: 0.1, pointRadius: 0, fill: true }] },
-            options: { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'logarithmic', display: true, title: { display: true, text: '頻率 (Hz)', font:{size:12} }, ticks: { callback: (v) => ((isMobile ? mobileFreqTicks.slice(0,4) : desktopFreqTicks).includes(Math.round(v)) ? formatFrequency(v) : null), autoSkip: false, maxRotation: 0, font:{size:10} } }, y: { min: -8, max: 8, title: { display: true, text: '建議增益 (dB)', font:{size:12} } } }, plugins: { legend: { display: false } } }
-        });
-    }
-    instrumentSelect.addEventListener('change', createInstrumentChart);
-    createInstrumentChart();
 
-    const fxPresets = [
-        { title: '人聲殘響', type: 'REV HALL', settings: 'Decay: 2.2s | Pre-Delay: 20ms', usage: '提供自然的空間感，適用於大多數歌曲。' }, { title: '鼓組氛圍', type: 'REV ROOM', settings: 'Decay: 0.8s | Pre-Delay: 10ms', usage: '短促的房間殘響，能讓鼓組更凝聚、有力。' }, { title: '吉他延遲', type: 'STEREO DELAY', settings: 'Time: 1/4 note | Feedback: 25%', usage: '為吉他 Solo 或 Riff 增加空間感和節奏趣味。' }, { title: '貝斯合唱', type: 'CHORUS', settings: 'Rate: 0.5Hz | Depth: 40%', usage: '在慢歌中為貝斯增加寬度和流動感。' }, { title: '軍鼓板式殘響', type: 'REV PLATE', settings: 'Decay: 1.5s | Density: High', usage: '明亮的金屬板式殘響，搖滾和流行樂的經典音色。' }, { title: '整體混音膠水', type: 'COMP BUSS', settings: 'Ratio: 2:1 | Attack: 30ms', usage: '在總輸出上使用輕微的壓縮，讓整體混音更平滑。' }
-    ];
-    const fxContainer = document.getElementById('fx-preset-container');
-    fxPresets.forEach(p => {
-        fxContainer.innerHTML += `<div class="bg-gray-50 p-3 sm:p-4 rounded-lg border hover:shadow-md transition-shadow"><h4 class="font-bold text-md sm:text-lg text-[#3B5260]">${p.title}</h4><p class="text-xs sm:text-sm font-mono bg-gray-200 text-gray-700 rounded px-2 py-1 my-2">${p.type} | ${p.settings}</p><p class="text-gray-600 text-xs sm:text-sm">${p.usage}</p></div>`;
+    // 自動將 /view 或 /view?usp=sharing → /preview（Drive 可內嵌）
+    function fixUrl(url){
+      return url.replace(/\/view(\?usp=sharing)?/, "/preview");
+    }
+
+    function openResource(res){
+      if(!res) return;
+      activeId = res.id;
+      const fixed = fixUrl(res.url);
+      frame.src = fixed;
+      urlInput.value = fixed;
+      currentNameEl.textContent = `${res.name}（${res.type.toUpperCase()}）`;
+      localStorage.setItem("last_resource_id", res.id);
+      setStatus("載入中…");
+      setActiveCard(res.id);
+    }
+
+    function renderList(filter=""){
+      listEl.innerHTML = "";
+      const q = filter.trim().toLowerCase();
+      const items = RESOURCES.filter(r=>{
+        if(!q) return true;
+        return (r.name.toLowerCase().includes(q) || (r.desc||"").toLowerCase().includes(q));
+      });
+
+      if(items.length === 0){
+        const empty = document.createElement("div");
+        empty.style.cssText = "color:#9ca3af;padding:12px 16px;";
+        empty.textContent = "找不到符合的項目。";
+        listEl.appendChild(empty);
+        return;
+      }
+
+      for(const r of items){
+        const row = document.createElement("div");
+        row.className = "item";
+        row.dataset.id = r.id;
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = r.type.toUpperCase();
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = r.name;
+        const desc = document.createElement("div");
+        desc.className = "desc";
+        desc.textContent = r.desc || r.url;
+
+        meta.appendChild(name);
+        meta.appendChild(desc);
+        row.appendChild(badge);
+        row.appendChild(meta);
+        row.addEventListener("click", ()=> openResource(r));
+        listEl.appendChild(row);
+      }
+      setActiveCard(activeId);
+    }
+
+    // 初始化
+    renderList();
+    (function restore(){
+      const last = localStorage.getItem("last_resource_id");
+      const def = RESOURCES[0];
+      const target = RESOURCES.find(r=>r.id === last) || def;
+      if(target) openResource(target);
+    })();
+
+    frame.addEventListener("load", ()=> setStatus("載入完成"));
+    searchInput.addEventListener("input", (e)=> renderList(e.target.value));
+
+    applyBtn.addEventListener("click", ()=>{
+      let url = (urlInput.value || "").trim();
+      if(!url){ alert("請貼上可嵌入的連結"); return; }
+      url = fixUrl(url);
+      frame.src = url;
+      setStatus("載入中…");
+      currentNameEl.textContent = "自訂連結預覽";
+      setActiveCard(""); // 取消清單高亮
     });
-    
-    const faqData = [
-        { q: '聲音太「糊」或太「渾濁」怎麼辦？', a: '首先檢查各聲道是否累積了過多的低頻 (150-400Hz)，嘗試衰減而非增強。其次，檢查殘響效果的返回量 (FX Return) 是否過大，並確保對殘響效果本身也使用了 HPF。最後，大膽地對非低音樂器（如人聲、吉他）使用 HPF。' }, { q: '如何避免回授 (Feedback) 尖叫聲？', a: '回授通常是特定頻率（常見於1-4kHz）在麥克風和喇叭之間循環放大造成的。最快的方法是使用圖形等化器 (GEQ) 精準地找到該頻率點並將其衰減。同時，注意麥克風的指向不要正對監聽喇叭。' }, { q: '我的混音聽起來很「平」，沒有立體感？', a: '立體感主要來自兩方面：聲像 (Panning) 和深度 (Depth)。確保將樂器在立體聲場中左右擺放 (Pan)，不要所有東西都放在中間。使用不同長短的殘響和延遲來創造前後的深度感，例如短殘響讓聲音靠前，長殘響讓聲音靠後。'}, { q: '混音時最重要的訣竅是什麼？', a: '「對比參考」和「休息」。準備一首專業製作的、與你風格相近的歌曲作為參考，時不時切換對比，能幫你校準聽覺。此外，每隔一段時間休息一下耳朵，可以避免聽覺疲勞導致的錯誤判斷。' }
-    ];
-    const accordionContainer = document.querySelector('#resources .space-y-2');
-    faqData.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'accordion-item border rounded-md bg-white';
-        div.innerHTML = `<button class="accordion-header w-full text-left p-3 sm:p-4 font-semibold hover:bg-gray-100 transition flex justify-between items-center text-sm sm:text-base"><span>${item.q}</span><span class="transform transition-transform text-gray-500 text-lg">▼</span></button><div class="accordion-content px-3 sm:px-4 pb-3 sm:pb-4 text-gray-700 text-sm sm:text-base"><p>${item.a}</p></div>`;
-        accordionContainer.appendChild(div);
+
+    copyBtn.addEventListener("click", async ()=>{
+      try{ await navigator.clipboard.writeText(frame.src); setStatus("已複製連結 ✔"); setTimeout(()=>setStatus("就緒"),1200); }
+      catch(_){ setStatus("複製失敗，請手動複製"); }
     });
-    
-    document.querySelectorAll('.accordion-header').forEach(header => {
-        header.addEventListener('click', () => {
-            const content = header.nextElementSibling;
-            const icon = header.querySelector('span:last-child');
-            if (content.style.maxHeight) {
-                content.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                document.querySelectorAll('.accordion-content').forEach(c => { c.style.maxHeight = null; });
-                document.querySelectorAll('.accordion-header span:last-child').forEach(i => { i.style.transform = 'rotate(0deg)'; });
-                icon.style.transform = 'rotate(180deg)';
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
-        });
+
+    openBtn.addEventListener("click", ()=> {
+      const url = frame.src;
+      if(url) window.open(url, "_blank");
     });
-});
-</script>
+
+    fsBtn.addEventListener("click", ()=>{
+      const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+      if(!isFs){
+        if(viewer.requestFullscreen) viewer.requestFullscreen();
+        else if(viewer.webkitRequestFullscreen) viewer.webkitRequestFullscreen();
+      }else{
+        if(document.exitFullscreen) document.exitFullscreen();
+        else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    });
+    document.addEventListener("fullscreenchange", ()=>{ fsBtn.textContent = document.fullscreenElement ? "退出全螢幕" : "全螢幕"; });
+    document.addEventListener("webkitfullscreenchange", ()=>{ fsBtn.textContent = document.webkitFullscreenElement ? "退出全螢幕" : "全螢幕"; });
+
+    resizeBtn.addEventListener("click", ()=>{
+      const v = parseInt(vhInput.value, 10);
+      if(isNaN(v) || v<40 || v>95){ alert("請輸入 40–95 之間的數值"); return; }
+      document.querySelector(".viewer").style.height = v + "vh";
+    });
+  </script>
 </body>
 </html>
