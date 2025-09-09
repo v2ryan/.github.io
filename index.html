@@ -8,8 +8,10 @@
     :root{
       --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
       --border:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed; --hover:#eef2ff;
+      --shadow:0 12px 30px rgba(79,70,229,.18);
     }
-    *{box-sizing:border-box} html,body{height:100%}
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
       color:var(--text);
@@ -17,66 +19,147 @@
         radial-gradient(1000px 300px at -10% -20%, rgba(124,58,237,.08), transparent 70%),
         radial-gradient(900px 260px at 110% -30%, rgba(79,70,229,.08), transparent 70%),
         var(--bg);
-      display:flex; min-height:100vh;
+      display:flex; min-height:100vh; overflow-x:hidden;
     }
-    .sidebar{width:320px;min-width:260px;max-width:420px;border-right:1px solid var(--border);background:linear-gradient(180deg,#fff 0%,#fafaff 100%);display:flex;flex-direction:column}
-    .main{flex:1;display:flex;flex-direction:column;min-width:0}
-    .side-header{padding:18px 16px 10px;border-bottom:1px solid var(--border)}
-    .title{margin:0;font-size:18px}.sub{margin:6px 0 0;color:var(--muted);font-size:12px}
-    .search{display:flex;gap:8px;align-items:center;padding:10px 12px;margin:12px 16px;border:1px solid var(--border);border-radius:10px;background:#fff}
-    .search input{border:none;outline:none;width:100%;font-size:14px;color:var(--text)}
-    .list{padding:8px 8px 16px;overflow:auto}
-    .item{display:flex;gap:10px;align-items:center;padding:10px 10px;margin:8px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;transition:background .15s,border-color .15s}
-    .item:hover{background:var(--hover);border-color:#dbe2ff}
-    .item.active{outline:2px solid #c7d2fe;background:#eef2ff}
-    .badge{font-size:11px;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));padding:4px 8px;border-radius:999px;white-space:nowrap}
-    .meta{display:flex;flex-direction:column;min-width:0}
-    .name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .desc{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border);background:#fbfbff}
-    .linkbox{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:10px;flex:1 1 420px;min-width:260px}
-    .linkbox input{border:none;outline:none;width:100%;min-width:160px;color:var(--text)}
-    .btn{appearance:none;border:1px solid var(--border);background:#fff;color:var(--brand);font-weight:600;padding:10px 14px;border-radius:10px;cursor:pointer}
-    .btn.primary{border:none;color:#fff;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 6px 18px rgba(79,70,229,.25)}
-    .field{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);padding:8px 10px;border-radius:10px}
-    .field input{border:none;outline:none;width:80px}
-    .viewer{position:relative;height:72vh;background:#fff}
-    iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
-    .status{padding:10px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:#fff;display:flex;gap:10px;flex-wrap:wrap}
-    .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fafaff}
-    @media (max-width:900px){.sidebar{width:280px}}
-    @media (max-width:720px){.sidebar{display:none}.viewer{height:70vh}}
+
+    /* ===== Layout ===== */
+    .sidebar{
+      width:320px; min-width:260px; max-width:420px;
+      border-right:1px solid var(--border);
+      background:linear-gradient(180deg,#fff 0%,#fafaff 100%);
+      display:flex; flex-direction:column;
+    }
+    .main{ flex:1; display:flex; flex-direction:column; min-width:0; }
+
+    /* Sidebar header & search */
+    .side-header{ padding:18px 16px 10px; border-bottom:1px solid var(--border) }
+    .title{ margin:0; font-size:18px }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:12px }
+    .search{
+      display:flex; gap:8px; align-items:center;
+      padding:10px 12px; margin:12px 16px;
+      border:1px solid var(--border); border-radius:10px; background:#fff;
+    }
+    .search input{ border:none; outline:none; width:100%; font-size:14px; color:var(--text) }
+
+    /* Resource list */
+    .list{ padding:8px 8px 16px; overflow:auto }
+    .item{
+      display:flex; gap:10px; align-items:center;
+      padding:10px 10px; margin:8px;
+      border:1px solid var(--border); border-radius:12px; background:#fff;
+      cursor:pointer; transition:background .15s ease,border-color .15s ease;
+    }
+    .item:hover{ background:var(--hover); border-color:#dbe2ff }
+    .item.active{ outline:2px solid #c7d2fe; background:#eef2ff }
+    .badge{
+      font-size:11px; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2));
+      padding:4px 8px; border-radius:999px; white-space:nowrap;
+    }
+    .meta{ display:flex; flex-direction:column; min-width:0 }
+    .name{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .desc{ font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* Toolbar */
+    .toolbar{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      padding:12px 16px; border-bottom:1px solid var(--border); background:#fbfbff;
+    }
+    .menuBtn{
+      display:none; align-items:center; gap:8px;
+      border:1px solid var(--border); background:#fff; color:var(--brand);
+      padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700;
+    }
+    .menuBtn svg{ flex:0 0 auto }
+    .linkbox{
+      display:flex; gap:8px; align-items:center; background:#fff;
+      border:1px solid var(--border); padding:8px 10px; border-radius:10px; flex:1 1 420px; min-width:220px;
+    }
+    .linkbox input{ border:none; outline:none; width:100%; min-width:160px; color:var(--text) }
+    .btn{
+      appearance:none; border:1px solid var(--border); background:#fff; color:var(--brand);
+      font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer;
+    }
+    .btn.primary{ border:none; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 6px 18px rgba(79,70,229,.25) }
+    .field{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border); padding:8px 10px; border-radius:10px }
+    .field input{ border:none; outline:none; width:80px }
+
+    /* Viewer */
+    .viewer{ position:relative; height:72vh; background:#fff }
+    iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
+    .status{
+      padding:10px 16px; font-size:12px; color:var(--muted);
+      border-top:1px solid var(--border); background:#fff; display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .pill{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#fafaff }
+
+    /* ===== Mobile drawer behavior ===== */
+    @media (max-width: 720px){
+      .menuBtn{ display:inline-flex }
+      .sidebar{
+        position:fixed; z-index:60; top:0; bottom:0; left:0;
+        transform:translateX(-100%); transition:transform .25s ease;
+        box-shadow:var(--shadow);
+      }
+      .sidebar.open{ transform:translateX(0) }
+      .backdrop{
+        position:fixed; inset:0; background:rgba(15,23,42,.35);
+        backdrop-filter:saturate(140%) blur(2px);
+        z-index:50; opacity:0; pointer-events:none; transition:opacity .2s ease;
+      }
+      .backdrop.show{ opacity:1; pointer-events:auto }
+      .viewer{ height:70vh }
+    }
+    @media (min-width: 721px){
+      .backdrop{ display:none }
+    }
   </style>
 </head>
 <body>
+  <!-- Mobile overlay -->
+  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
+
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside id="sidebar" class="sidebar" aria-label="資源清單">
     <div class="side-header">
       <h1 class="title">資料索引</h1>
       <p class="sub">集中瀏覽多個 Sheet／PDF／Word（Drive）</p>
     </div>
+
     <div class="search">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"
+          stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <input id="searchInput" type="search" placeholder="搜尋標題或描述…" />
     </div>
+
     <div id="list" class="list"></div>
   </aside>
 
   <!-- Main -->
   <main class="main">
     <div class="toolbar">
+      <!-- Mobile: open drawer -->
+      <button id="openMenu" class="menuBtn" type="button" aria-controls="sidebar" aria-expanded="false" title="打開資源清單">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        資源
+      </button>
+
       <div class="linkbox" title="顯示中來源連結（可編輯更換）">
         <span style="white-space:nowrap">來源連結</span>
         <input id="urlInput" type="url" placeholder="將在此顯示目前預覽連結…" />
         <button class="btn" id="applyBtn">套用</button>
       </div>
+
       <div class="field" title="視窗高度（vh）">
         <span>高度</span>
         <input id="vhInput" type="number" min="40" max="95" value="72" />
       </div>
       <button class="btn" id="resizeBtn">調整高度</button>
+
       <button class="btn" id="copyBtn">複製連結</button>
       <button class="btn" id="openBtn">新分頁開啟</button>
       <button class="btn primary" id="fsBtn">全螢幕</button>
@@ -95,63 +178,28 @@
   </main>
 
   <script>
-    // ========= 在此加入你的資源（每類 10 個，2 啟用 + 8 註解） =========
-    // type: 'sheet' | 'pdf' | 'word' | 'doc' | 'url'
+    // ========= 你的資源 =========
+    // 如需更多條目，可自行新增；支援 type: 'sheet' | 'pdf' | 'word' | 'doc' | 'url'
     const RESOURCES = [
-      // --- SHEET（已啟用 2 個） ---
       { id:"sheet-1", type:"sheet", name:"表格 A（Sheet）",
         desc:"以 pubhtml 方式發佈的 Google Sheet",
         url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vTduf3fUmTnlJkiPzt7mxgU6hn1ypC8loXnYKcZA-SBy49jwqnMEPlW_6brv3Q3BFObMoPkjWtZwU_a/pubhtml" },
       { id:"sheet-2", type:"sheet", name:"表格 B（Sheet）",
         desc:"另一張以 pubhtml 發佈的 Google Sheet",
         url:"https://docs.google.com/spreadsheets/d/e/2PACX-1vQgWWN2o8z0uY8Rj0rzzs9cGruqXnRBMERbMr_jZTc2rnovh8-6E7sR5ZQ_K_i_BK_oIzbkK6pyXeVl/pubhtml" },
-      // // { id:"sheet-3", type:"sheet", name:"表格 C（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-4", type:"sheet", name:"表格 D（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-5", type:"sheet", name:"表格 E（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-6", type:"sheet", name:"表格 F（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-7", type:"sheet", name:"表格 G（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-8", type:"sheet", name:"表格 H（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-9", type:"sheet", name:"表格 I（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
-      // // { id:"sheet-10", type:"sheet", name:"表格 J（Sheet）", desc:"預留位", url:"https://docs.google.com/spreadsheets/d/e/XXXX/pubhtml" },
 
-      // --- PDF（已啟用 2 個） ---
-      { id:"pdf-1", type:"pdf", name:"公司手冊（PDF）",
-        desc:"PDF 預覽示例（把 FILE_ID 換為你的）",
-        url:"https://drive.google.com/file/d/FILE_ID_PDF/preview" },
-      { id:"pdf-2", type:"pdf", name:"操作指引（PDF）",
-        desc:"第二個 PDF 預留",
-        url:"https://drive.google.com/file/d/FILE_ID_PDF2/preview" },
-      // // { id:"pdf-3", type:"pdf", name:"PDF 文件 3", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-4", type:"pdf", name:"PDF 文件 4", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-5", type:"pdf", name:"PDF 文件 5", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-6", type:"pdf", name:"PDF 文件 6", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-7", type:"pdf", name:"PDF 文件 7", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-8", type:"pdf", name:"PDF 文件 8", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-9", type:"pdf", name:"PDF 文件 9", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"pdf-10", type:"pdf", name:"PDF 文件 10", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-
-      // --- WORD（上載 .docx 檔；已啟用 2 個） ---
-      { id:"word-1", type:"word", name:"合約草稿（Word）",
-        desc:"Word 檔案（Drive 預覽）",
-        url:"https://drive.google.com/file/d/FILE_ID_WORD/preview" },
-      { id:"word-2", type:"word", name:"申請表（Word）",
-        desc:"第二個 Word 預留",
-        url:"https://drive.google.com/file/d/FILE_ID_WORD2/preview" },
-      // // { id:"word-3", type:"word", name:"Word 文件 3", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-4", type:"word", name:"Word 文件 4", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-5", type:"word", name:"Word 文件 5", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-6", type:"word", name:"Word 文件 6", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-7", type:"word", name:"Word 文件 7", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-8", type:"word", name:"Word 文件 8", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-9", type:"word", name:"Word 文件 9", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-      // // { id:"word-10", type:"word", name:"Word 文件 10", desc:"預留位", url:"https://drive.google.com/file/d/FILE_ID/preview" },
-
-      // （可選）Google Docs（線上 Word）示例，亦可複製多個：
-      // // { id:"doc-1", type:"doc", name:"會議記錄（Google Docs）", desc:"Docs 預覽", url:"https://docs.google.com/document/d/DOCUMENT_ID/preview" },
+      // 你可以加入 PDF / Word（把檔案權限設「擁有連結者可檢視」）
+      // { id:"pdf-1", type:"pdf", name:"公司手冊（PDF）", desc:"PDF 預覽", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // { id:"word-1", type:"word", name:"合約草稿（Word）", desc:"Word 預覽", url:"https://drive.google.com/file/d/FILE_ID/preview" },
+      // { id:"doc-1",  type:"doc",  name:"會議記錄（Google Docs）", desc:"Docs 預覽", url:"https://docs.google.com/document/d/DOCUMENT_ID/preview" },
     ];
-    // ==================================================================
+    // ===========================
 
     // ========= 元件 =========
+    const sidebar   = document.getElementById("sidebar");
+    const backdrop  = document.getElementById("backdrop");
+    const openMenu  = document.getElementById("openMenu");
+
     const listEl = document.getElementById("list");
     const frame  = document.getElementById("frame");
     const urlInput = document.getElementById("urlInput");
@@ -168,6 +216,34 @@
 
     let activeId = null;
 
+    // ===== Mobile drawer helpers =====
+    function openSidebar(){
+      sidebar.classList.add("open");
+      backdrop.classList.add("show");
+      openMenu.setAttribute("aria-expanded","true");
+      // 防止背景滾動（iOS 安全做法）
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      // 將焦點移到搜尋方便用戶
+      setTimeout(()=> searchInput?.focus(), 80);
+    }
+    function closeSidebar(){
+      sidebar.classList.remove("open");
+      backdrop.classList.remove("show");
+      openMenu.setAttribute("aria-expanded","false");
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    openMenu.addEventListener("click", ()=> {
+      const isOpen = sidebar.classList.contains("open");
+      isOpen ? closeSidebar() : openSidebar();
+    });
+    backdrop.addEventListener("click", closeSidebar);
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") closeSidebar();
+    });
+
+    // ===== App functions =====
     const setStatus = (msg)=> statusEl.textContent = "狀態：" + msg;
     const setActiveCard = (id)=>{
       document.querySelectorAll(".item").forEach(el=>{
@@ -175,7 +251,7 @@
       });
     };
 
-    // 自動將 /view 或 /view?usp=sharing → /preview（Drive 可內嵌）
+    // 自動將 /view 或 /view?usp=sharing → /preview（Drive 直接內嵌）
     function fixUrl(url){
       return url.replace(/\/view(\?usp=sharing)?/, "/preview");
     }
@@ -190,6 +266,11 @@
       localStorage.setItem("last_resource_id", res.id);
       setStatus("載入中…");
       setActiveCard(res.id);
+
+      // 如果係細屏，點選後自動收起側欄
+      if (window.matchMedia("(max-width: 720px)").matches) {
+        closeSidebar();
+      }
     }
 
     function renderList(filter=""){
