@@ -1,287 +1,110 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>資料索引與預覽（由 Google Sheet CSV 自動讀取）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hong Kong Clock</title>
   <style>
-    :root{
-      --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280;
-      --border:#e5e7eb; --brand:#4f46e5; --brand2:#7c3aed; --hover:#eef2ff; --shadow:0 12px 30px rgba(79,70,229,.18);
+    :root {
+      color-scheme: light dark;
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{
-      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1000px 300px at -10% -20%, rgba(124,58,237,.08), transparent 70%),
-        radial-gradient(900px 260px at 110% -30%, rgba(79,70,229,.08), transparent 70%),
-        var(--bg);
-      display:flex; min-height:100vh; overflow-x:hidden;
+    * {
+      box-sizing: border-box;
     }
-
-    .sidebar{ width:320px; min-width:260px; max-width:420px; border-right:1px solid var(--border);
-      background:linear-gradient(180deg,#fff 0%,#fafaff 100%); display:flex; flex-direction:column }
-    .side-header{ padding:18px 16px 10px; border-bottom:1px solid var(--border) }
-    .title{ margin:0; font-size:18px } .sub{ margin:6px 0 0; color:var(--muted); font-size:12px }
-    .search{ display:flex; gap:8px; align-items:center; padding:10px 12px; margin:12px 16px;
-      border:1px solid var(--border); border-radius:10px; background:#fff }
-    .search input{ border:none; outline:none; width:100%; font-size:14px; color:var(--text) }
-    .list{ padding:8px 8px 16px; overflow:auto }
-    .item{ display:flex; gap:10px; align-items:center; padding:10px 10px; margin:8px;
-      border:1px solid var(--border); border-radius:12px; background:#fff; cursor:pointer;
-      transition:background .15s,border-color .15s }
-    .item:hover{ background:var(--hover); border-color:#dbe2ff }
-    .item.active{ outline:2px solid #c7d2fe; background:#eef2ff }
-    .badge{ font-size:11px; color:#fff; background:linear-gradient(135deg,var(--brand),var(--brand2));
-      padding:4px 8px; border-radius:999px; white-space:nowrap }
-    .meta{ display:flex; flex-direction:column; min-width:0 }
-    .name{ font-weight:600; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-    .desc{ font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
-
-    .main{ flex:1; display:flex; flex-direction:column; min-width:0 }
-    .toolbar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 16px;
-      border-bottom:1px solid var(--border); background:#fbfbff }
-    .menuBtn{ display:none; align-items:center; gap:8px; border:1px solid var(--border);
-      background:#fff; color:#4f46e5; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700 }
-    .linkbox{ display:flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--border);
-      padding:8px 10px; border-radius:10px; flex:1 1 420px; min-width:220px }
-    .linkbox input{ border:none; outline:none; width:100%; min-width:160px; color:var(--text) }
-    .btn{ appearance:none; border:1px solid var(--border); background:#fff; color:#4f46e5;
-      font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer }
-    .btn.primary{ border:none; color:#fff; background:linear-gradient(135deg,#4f46e5,#7c3aed);
-      box-shadow:0 6px 18px rgba(79,70,229,.25) }
-    .field{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border);
-      padding:8px 10px; border-radius:10px }
-    .field input{ border:none; outline:none; width:80px }
-
-    .viewer{ position:relative; height:72vh; background:#fff }
-    iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; background:#fff }
-    .status{ padding:10px 16px; font-size:12px; color:var(--muted); border-top:1px solid var(--border);
-      background:#fff; display:flex; gap:10px; flex-wrap:wrap }
-    .pill{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#fafaff }
-
-    @media (max-width: 720px){
-      .menuBtn{ display:inline-flex }
-      .sidebar{ position:fixed; z-index:60; top:0; bottom:0; left:0; transform:translateX(-100%);
-        transition:transform .25s ease; box-shadow:var(--shadow) }
-      .sidebar.open{ transform:translateX(0) }
-      .backdrop{ position:fixed; inset:0; background:rgba(15,23,42,.35); backdrop-filter:saturate(140%) blur(2px);
-        z-index:50; opacity:0; pointer-events:none; transition:opacity .2s ease }
-      .backdrop.show{ opacity:1; pointer-events:auto }
-      .viewer{ height:70vh }
+    html, body {
+      height: 100%;
     }
-    @media (min-width: 721px){ .backdrop{ display:none } }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.25), transparent 55%),
+                  radial-gradient(circle at 80% 10%, rgba(14, 165, 233, 0.2), transparent 60%),
+                  linear-gradient(135deg, #111827, #1f2937);
+      color: #f9fafb;
+    }
+    .clock-container {
+      width: min(480px, 100%);
+      border-radius: 24px;
+      background: rgba(17, 24, 39, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+      padding: clamp(24px, 5vw, 40px);
+      text-align: center;
+      backdrop-filter: blur(18px);
+    }
+    .title {
+      margin: 0;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(226, 232, 240, 0.85);
+    }
+    .clock {
+      margin: clamp(18px, 4vw, 28px) 0 0;
+      font-size: clamp(3.4rem, 10vw, 5.6rem);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+    }
+    .date {
+      margin: clamp(12px, 3vw, 20px) 0 0;
+      font-size: clamp(1.1rem, 3.2vw, 1.5rem);
+      font-weight: 400;
+      color: rgba(226, 232, 240, 0.85);
+    }
+    .timezone {
+      margin: clamp(18px, 4vw, 26px) 0 0;
+      font-size: 0.95rem;
+      color: rgba(148, 163, 184, 0.9);
+    }
+    .note {
+      margin: 12px 0 0;
+      font-size: 0.8rem;
+      color: rgba(148, 163, 184, 0.75);
+    }
   </style>
 </head>
 <body>
-  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
-
-  <aside id="sidebar" class="sidebar" aria-label="資源清單">
-    <div class="side-header">
-      <h1 class="title">資料索引</h1>
-      <p class="sub">資料由 Google Sheet（CSV 發佈）供應</p>
-    </div>
-    <div class="search">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"
-          stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <input id="searchInput" type="search" placeholder="搜尋標題或描述…" />
-    </div>
-    <div id="list" class="list"></div>
-  </aside>
-
-  <main class="main">
-    <div class="toolbar">
-      <button id="openMenu" class="menuBtn" type="button" aria-controls="sidebar" aria-expanded="false" title="打開資源清單">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M4 6h16M4 12h16M4 18h16" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        資源
-      </button>
-
-      <div class="linkbox" title="顯示中來源連結（可編輯更換）">
-        <span style="white-space:nowrap">來源連結</span>
-        <input id="urlInput" type="url" placeholder="將在此顯示目前預覽連結…" />
-        <button class="btn" id="applyBtn">套用</button>
-      </div>
-
-      <div class="field" title="視窗高度（vh）">
-        <span>高度</span>
-        <input id="vhInput" type="number" min="40" max="95" value="72" />
-      </div>
-      <button class="btn" id="resizeBtn">調整高度</button>
-
-      <button class="btn" id="copyBtn">複製連結</button>
-      <button class="btn" id="openBtn">新分頁開啟</button>
-      <button class="btn primary" id="fsBtn">全螢幕</button>
-    </div>
-
-    <div class="viewer" id="viewer">
-      <iframe id="frame" allowfullscreen src=""></iframe>
-    </div>
-
-    <div class="status">
-      <div class="pill">狀態：<span id="status">就緒</span></div>
-      <div class="pill" style="min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-        目前項目：<span id="currentName">（未選擇）</span>
-      </div>
-    </div>
+  <main class="clock-container">
+    <p class="title">Hong Kong Time</p>
+    <div id="clock" class="clock" aria-live="polite">--:--:--</div>
+    <p id="date" class="date">Loading…</p>
+    <p class="timezone">Time zone: Hong Kong (UTC+8)</p>
+    <p class="note">Updated every second directly in your browser.</p>
   </main>
-
   <script>
-    // ★ 改成你「發佈到網路」得到的 CSV 連結
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS--b-eO0qdHo9orHyCv8X9bMGNQ3NmNU20cYC4i_jbNgeDpRqIdhCc9fEt-cl9fsBLSyvaaPwIOw3C/pub?gid=0&single=true&output=csv";
+    (function(){
+      const clockEl = document.getElementById("clock");
+      const dateEl = document.getElementById("date");
+      const timeFormatter = new Intl.DateTimeFormat("en-HK", {
+        timeZone: "Asia/Hong_Kong",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+      const dateFormatter = new Intl.DateTimeFormat("en-HK", {
+        timeZone: "Asia/Hong_Kong",
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
 
-    // ===== Mobile drawer =====
-    const sidebar = document.getElementById("sidebar");
-    const backdrop = document.getElementById("backdrop");
-    const openMenu = document.getElementById("openMenu");
-    function openSidebar(){ sidebar.classList.add("open"); backdrop.classList.add("show");
-      openMenu.setAttribute("aria-expanded","true"); document.documentElement.style.overflow="hidden"; document.body.style.overflow="hidden";}
-    function closeSidebar(){ sidebar.classList.remove("open"); backdrop.classList.remove("show");
-      openMenu.setAttribute("aria-expanded","false"); document.documentElement.style.overflow=""; document.body.style.overflow="";}
-    openMenu.addEventListener("click", ()=> sidebar.classList.contains("open") ? closeSidebar() : openSidebar());
-    backdrop.addEventListener("click", closeSidebar);
-    document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeSidebar(); });
-
-    // ===== UI refs =====
-    const listEl = document.getElementById("list");
-    const frame  = document.getElementById("frame");
-    const urlInput = document.getElementById("urlInput");
-    const applyBtn = document.getElementById("applyBtn");
-    const copyBtn = document.getElementById("copyBtn");
-    const openBtn = document.getElementById("openBtn");
-    const fsBtn   = document.getElementById("fsBtn");
-    const viewer  = document.getElementById("viewer");
-    const statusEl= document.getElementById("status");
-    const currentNameEl = document.getElementById("currentName");
-    const searchInput = document.getElementById("searchInput");
-    const vhInput = document.getElementById("vhInput");
-    const resizeBtn = document.getElementById("resizeBtn");
-
-    let ALL_ITEMS = [];
-    let activeId = null;
-
-    const setStatus = (msg)=> statusEl.textContent = "狀態：" + msg;
-    const setActiveCard = (id)=>{
-      document.querySelectorAll(".item").forEach(el=> el.classList.toggle("active", el.dataset.id === id));
-    };
-
-    // 自動將 /view 或 /view?usp=sharing → /preview（Drive 直接內嵌）
-    function fixUrl(url){ return (url || "").replace(/\/view(\?usp=sharing)?/, "/preview"); }
-
-    // --- CSV 解析（支援帶引號、逗號） ---
-    function parseCSV(text){
-      const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
-      if(!lines.length) return {headers:[], rows:[]};
-      const parseLine = (line)=>{
-        const out=[]; let cur="", inQ=false;
-        for(let i=0;i<line.length;i++){
-          const ch=line[i];
-          if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else { inQ=!inQ; } }
-          else if(ch===',' && !inQ){ out.push(cur); cur=""; }
-          else { cur+=ch; }
-        }
-        out.push(cur); return out.map(s=>s.trim());
-      };
-      const headers = parseLine(lines[0]).map(h=>h.toLowerCase());
-      const rows = lines.slice(1).map(parseLine);
-      return {headers, rows};
-    }
-
-    function csvToItems(csv){
-      const {headers, rows} = parseCSV(csv);
-      const idx = Object.fromEntries(headers.map((h,i)=>[h,i]));
-      const required = ["id","type","name","url","desc"];
-      const miss = required.filter(k=> idx[k]===undefined);
-      if(miss.length){ throw new Error("CSV 表頭缺少： " + miss.join(", ")); }
-      const items = rows.map(cells => ({
-        id:   (cells[idx.id]||"").trim(),
-        type: (cells[idx.type]||"").trim().toLowerCase(),
-        name: (cells[idx.name]||"").trim(),
-        url:  (cells[idx.url]||"").trim(),
-        desc: (cells[idx.desc]||"").trim(),
-      })).filter(r=> r.id && r.url);
-      return items;
-    }
-
-    async function loadItems(){
-      try{
-        setStatus("載入清單中（CSV）…");
-        const res = await fetch(SHEET_CSV_URL, { cache:"no-store" });
-        if(!res.ok) throw new Error("HTTP " + res.status);
-        const text = await res.text();
-        ALL_ITEMS = csvToItems(text);
-        renderList();
-        if(ALL_ITEMS.length) openResource(ALL_ITEMS[0]);
-        setStatus("完成（CSV）");
-      }catch(e){
-        console.error(e);
-        setStatus("讀取 CSV 失敗：" + e.message);
-        listEl.innerHTML = `<div style="color:#ef4444;padding:12px 16px;">讀取 CSV 失敗：${e.message}</div>`;
+      function updateClock(){
+        const now = new Date();
+        clockEl.textContent = timeFormatter.format(now);
+        dateEl.textContent = dateFormatter.format(now);
       }
-    }
 
-    function renderList(filter=""){
-      listEl.innerHTML = "";
-      const q = (filter || "").toLowerCase().trim();
-      const items = ALL_ITEMS.filter(r => !q || (r.name||"").toLowerCase().includes(q) || (r.desc||"").toLowerCase().includes(q) || (r.type||"").toLowerCase().includes(q));
-      if(!items.length){
-        const empty = document.createElement("div");
-        empty.style.cssText = "color:#9ca3af;padding:12px 16px;"; empty.textContent = "找不到符合的項目。";
-        listEl.appendChild(empty); return;
-      }
-      for(const r of items){
-        const row = document.createElement("div");
-        row.className = "item"; row.dataset.id = r.id;
-        const badge = document.createElement("span"); badge.className = "badge"; badge.textContent = (r.type||"URL").toUpperCase();
-        const meta = document.createElement("div"); meta.className = "meta";
-        const name = document.createElement("div"); name.className = "name"; name.textContent = r.name || r.id;
-        const desc = document.createElement("div"); desc.className = "desc"; desc.textContent = r.desc || r.url;
-        meta.appendChild(name); meta.appendChild(desc);
-        row.appendChild(badge); row.appendChild(meta);
-        row.addEventListener("click", ()=> openResource(r));
-        listEl.appendChild(row);
-      }
-      setActiveCard(activeId);
-    }
-
-    function openResource(res){
-      if(!res) return;
-      activeId = res.id;
-      const fixed = fixUrl(res.url);
-      frame.src = fixed; urlInput.value = fixed;
-      currentNameEl.textContent = `${res.name || res.id}（${(res.type||"URL").toUpperCase()}）`;
-      setStatus("載入中…"); setActiveCard(res.id);
-      if (window.matchMedia("(max-width: 720px)").matches) closeSidebar();
-    }
-
-    // 互動
-    document.getElementById("searchInput").addEventListener("input", (e)=> renderList(e.target.value));
-    applyBtn.addEventListener("click", ()=>{
-      let url = (urlInput.value || "").trim();
-      if(!url){ alert("請貼上可嵌入的連結"); return; }
-      url = fixUrl(url); frame.src = url; setStatus("載入中…"); currentNameEl.textContent = "自訂連結預覽"; setActiveCard("");
-    });
-    copyBtn.addEventListener("click", async ()=>{
-      try{ await navigator.clipboard.writeText(frame.src); setStatus("已複製連結 ✔"); setTimeout(()=>setStatus("就緒"),1200); }
-      catch(_){ setStatus("複製失敗，請手動複製"); }
-    });
-    openBtn.addEventListener("click", ()=> { const url = frame.src; if(url) window.open(url, "_blank"); });
-    fsBtn.addEventListener("click", ()=>{
-      const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-      if(!isFs){ if(viewer.requestFullscreen) viewer.requestFullscreen(); else if(viewer.webkitRequestFullscreen) viewer.webkitRequestFullscreen(); }
-      else{ if(document.exitFullscreen) document.exitFullscreen(); else if(document.webkitExitFullscreen) document.webkitExitFullscreen(); }
-    });
-    document.addEventListener("fullscreenchange", ()=>{ fsBtn.textContent = document.fullscreenElement ? "退出全螢幕" : "全螢幕"; });
-    document.addEventListener("webkitfullscreenchange", ()=>{ fsBtn.textContent = document.webkitFullscreenElement ? "退出全螢幕" : "全螢幕"; });
-    resizeBtn.addEventListener("click", ()=>{ const v = parseInt(vhInput.value, 10); if(isNaN(v)||v<40||v>95){ alert("請輸入 40–95 之間的數值"); return; } document.querySelector(".viewer").style.height = v + "vh"; });
-
-    // 啟動
-    loadItems();
+      updateClock();
+      setInterval(updateClock, 1000);
+    })();
   </script>
 </body>
 </html>
-
