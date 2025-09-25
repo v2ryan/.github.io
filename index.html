@@ -17,9 +17,7 @@
         font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
@@ -66,18 +64,13 @@
         font-weight: 600;
         transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
       }
-
       .lang-toggle:hover,
       .lang-toggle:focus-visible {
         border-color: rgba(56, 189, 248, 0.6);
         color: var(--accent-strong);
         outline: none;
       }
-
-      .lang-toggle span[data-active="true"] {
-        opacity: 1;
-      }
-
+      .lang-toggle span[data-active="true"] { opacity: 1; }
       .lang-toggle span[data-lang-code] {
         opacity: 0.55;
         transition: opacity 0.18s ease;
@@ -89,7 +82,6 @@
         gap: 14px;
         margin-bottom: clamp(24px, 5vw, 40px);
       }
-
       .eyebrow {
         margin: 0;
         text-transform: uppercase;
@@ -98,14 +90,12 @@
         color: var(--accent);
         font-weight: 600;
       }
-
       h1 {
         margin: 0;
         font-size: clamp(2.1rem, 5vw, 2.8rem);
         font-weight: 700;
         letter-spacing: 0.01em;
       }
-
       .lead {
         margin: 0;
         max-width: 620px;
@@ -119,7 +109,6 @@
         gap: clamp(18px, 4vw, 26px);
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       }
-
       .idea-card {
         display: flex;
         flex-direction: column;
@@ -132,7 +121,6 @@
         color: inherit;
         transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       }
-
       .idea-card:hover,
       .idea-card:focus-visible {
         transform: translateY(-4px);
@@ -146,7 +134,6 @@
         gap: 14px;
         align-items: flex-start;
       }
-
       .idea-icon {
         flex-shrink: 0;
         width: 46px;
@@ -158,13 +145,11 @@
         background: rgba(56, 189, 248, 0.18);
         border: 1px solid rgba(56, 189, 248, 0.35);
       }
-
       .card-text h2 {
         margin: 0;
         font-size: 1.16rem;
         font-weight: 600;
       }
-
       .card-text p {
         margin: 8px 0 0;
         color: var(--text-soft);
@@ -180,7 +165,6 @@
         flex-wrap: wrap;
         gap: 10px;
       }
-
       .meta li {
         display: inline-flex;
         align-items: center;
@@ -192,11 +176,7 @@
         font-size: 0.78rem;
         color: rgba(226, 232, 240, 0.82);
       }
-
-      .meta li span {
-        color: var(--accent);
-        font-weight: 600;
-      }
+      .meta li span { color: var(--accent); font-weight: 600; }
 
       .helper {
         margin-top: clamp(32px, 6vw, 48px);
@@ -205,41 +185,14 @@
         border: 1px dashed rgba(148, 163, 184, 0.35);
         background: rgba(15, 23, 42, 0.6);
       }
-
-      .helper h2 {
-        margin: 0 0 12px;
-        font-size: 1.04rem;
-        font-weight: 600;
-      }
-
-      .helper p {
-        margin: 0 0 16px;
-        color: var(--text-soft);
-        font-size: 0.95rem;
-        line-height: 1.6;
-      }
-
-      .helper ol {
-        margin: 0;
-        padding-left: 22px;
-        color: rgba(226, 232, 240, 0.86);
-        font-size: 0.93rem;
-        line-height: 1.55;
-      }
-
-      .helper ol li + li {
-        margin-top: 8px;
-      }
+      .helper h2 { margin: 0 0 12px; font-size: 1.04rem; font-weight: 600; }
+      .helper p  { margin: 0 0 16px; color: var(--text-soft); font-size: 0.95rem; line-height: 1.6; }
+      .helper ol { margin: 0; padding-left: 22px; color: rgba(226, 232, 240, 0.86); font-size: 0.93rem; line-height: 1.55; }
+      .helper ol li + li { margin-top: 8px; }
 
       @media (max-width: 640px) {
-        body {
-          padding: 16px;
-        }
-
-        main {
-          padding: 20px;
-        }
-
+        body { padding: 16px; }
+        main { padding: 20px; }
         .top-bar {
           position: static;
           display: flex;
@@ -258,6 +211,7 @@
           <span data-lang-code="zh-HK">繁</span>
         </button>
       </div>
+
       <header>
         <p class="eyebrow" data-i18n="eyebrow">Idea Hub</p>
         <h1 data-i18n="headline">Choose a concept to explore</h1>
@@ -266,7 +220,9 @@
           strikes—each tile is generated from the data list below.
         </p>
       </header>
+
       <section class="idea-grid" id="ideaGrid" aria-live="polite"></section>
+
       <section class="helper">
         <h2 data-i18n="howToTitle">Add a new sublink</h2>
         <p data-i18n="howToIntro">
@@ -280,14 +236,12 @@
         </ol>
       </section>
     </main>
+
     <script>
       const SUPPORTED_LOCALES = ['en', 'zh-HK'];
       const DEFAULT_LOCALE = 'en';
       const LOCALE_STORAGE_KEY = 'ideaHubLocale';
-      const localeFallbacks = {
-        en: 'en',
-        'zh-HK': 'zh-Hant-HK',
-      };
+      const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
 
       const translations = {
         en: {
@@ -338,20 +292,8 @@
             },
           },
           badges: [
-            {
-              id: 'cadence',
-              text: {
-                en: 'Weekly snapshot',
-                'zh-HK': '每週快照',
-              },
-            },
-            {
-              id: 'source',
-              text: {
-                en: 'Live GitHub Search',
-                'zh-HK': '即時 GitHub 搜尋',
-              },
-            },
+            { id: 'cadence', text: { en: 'Weekly snapshot', 'zh-HK': '每週快照' } },
+            { id: 'source',  text: { en: 'Live GitHub Search', 'zh-HK': '即時 GitHub 搜尋' } },
           ],
         },
       ];
@@ -368,23 +310,11 @@
       let currentLocale = DEFAULT_LOCALE;
 
       function getLocalizedCopy(copyMap, locale) {
-        if (!copyMap || typeof copyMap !== 'object') {
-          return { title: '', summary: '' };
-        }
-
-        const fromLocale = copyMap[locale];
-        if (fromLocale) {
-          return fromLocale;
-        }
-
-        return copyMap[DEFAULT_LOCALE] || { title: '', summary: '' };
+        if (!copyMap || typeof copyMap !== 'object') return { title: '', summary: '' };
+        return copyMap[locale] || copyMap[DEFAULT_LOCALE] || { title: '', summary: '' };
       }
-
       function getLocalizedBadgeText(badge, locale) {
-        if (!badge || typeof badge !== 'object' || !badge.text) {
-          return '';
-        }
-
+        if (!badge || !badge.text) return '';
         return badge.text[locale] || badge.text[DEFAULT_LOCALE] || '';
       }
 
@@ -406,9 +336,7 @@
         textWrapper.className = 'card-text';
 
         const localizedCopy = getLocalizedCopy(idea.copy, locale);
-        if (localizedCopy.title) {
-          link.setAttribute('aria-label', localizedCopy.title);
-        }
+        if (localizedCopy.title) link.setAttribute('aria-label', localizedCopy.title);
 
         const title = document.createElement('h2');
         title.textContent = localizedCopy.title;
@@ -423,13 +351,11 @@
         if (Array.isArray(idea.badges) && idea.badges.length > 0) {
           const metaList = document.createElement('ul');
           metaList.className = 'meta';
-
           idea.badges.forEach((badge) => {
             const item = document.createElement('li');
             item.textContent = getLocalizedBadgeText(badge, locale);
             metaList.appendChild(item);
           });
-
           link.append(metaList);
         }
 
@@ -438,9 +364,7 @@
 
       function renderCards(locale) {
         ideaGrid.innerHTML = '';
-        ideas.forEach((idea) => {
-          ideaGrid.appendChild(createCard(idea, locale));
-        });
+        ideas.forEach((idea) => ideaGrid.appendChild(createCard(idea, locale)));
       }
 
       function renderStaticCopy(locale) {
@@ -463,22 +387,17 @@
       function applyLocaleToDocument(locale) {
         document.documentElement.lang = localeFallbacks[locale] || 'en';
       }
-
       function updateToggleVisual(locale) {
         langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
         langToggle?.querySelectorAll('[data-lang-code]').forEach((span) => {
           span.dataset.active = span.dataset.langCode === locale ? 'true' : 'false';
         });
       }
-
       function getStoredLocale() {
         const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
         return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
       }
-
-      function persistLocale(locale) {
-        localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      }
+      function persistLocale(locale) { localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
 
       function setLocale(locale) {
         const nextLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;

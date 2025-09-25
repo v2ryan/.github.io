@@ -17,9 +17,7 @@
         font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
@@ -53,6 +51,7 @@
         margin-bottom: clamp(24px, 4vw, 36px);
       }
 
+      /* Language toggle */
       .top-bar {
         position: absolute;
         top: clamp(16px, 3vw, 24px);
@@ -60,7 +59,6 @@
         display: flex;
         justify-content: flex-end;
       }
-
       .lang-toggle {
         display: inline-flex;
         align-items: center;
@@ -75,22 +73,14 @@
         font-weight: 600;
         transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
       }
-
       .lang-toggle:hover,
       .lang-toggle:focus-visible {
         border-color: rgba(56, 189, 248, 0.6);
         color: var(--accent-strong);
         outline: none;
       }
-
-      .lang-toggle span {
-        opacity: 0.6;
-        transition: opacity 0.18s ease;
-      }
-
-      .lang-toggle span[data-active="true"] {
-        opacity: 1;
-      }
+      .lang-toggle span { opacity: 0.6; transition: opacity 0.18s ease; }
+      .lang-toggle span[data-active="true"] { opacity: 1; }
 
       .breadcrumb {
         font-size: 0.85rem;
@@ -99,16 +89,8 @@
         gap: 8px;
         align-items: center;
       }
-
-      .breadcrumb a {
-        color: var(--accent);
-        text-decoration: none;
-        font-weight: 600;
-      }
-
-      .breadcrumb a:hover {
-        text-decoration: underline;
-      }
+      .breadcrumb a { color: var(--accent); text-decoration: none; font-weight: 600; }
+      .breadcrumb a:hover { text-decoration: underline; }
 
       h1 {
         margin: 0;
@@ -132,7 +114,6 @@
         font-size: 0.86rem;
         color: rgba(148, 163, 184, 0.85);
       }
-
       .snapshot-meta span {
         display: inline-flex;
         align-items: center;
@@ -151,63 +132,29 @@
         overflow: hidden;
         border: 1px solid rgba(148, 163, 184, 0.26);
       }
-
-      thead {
-        background: rgba(15, 23, 42, 0.9);
-      }
-
-      th,
-      td {
+      thead { background: rgba(15, 23, 42, 0.9); }
+      th, td {
         padding: clamp(14px, 2.8vw, 18px);
         text-align: left;
         border-bottom: 1px solid rgba(148, 163, 184, 0.18);
       }
-
       th {
         font-size: 0.78rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: rgba(148, 163, 184, 0.8);
       }
+      tbody tr:last-child td { border-bottom: none; }
+      tbody tr:hover { background: rgba(30, 64, 175, 0.18); }
 
-      tbody tr:last-child td {
-        border-bottom: none;
-      }
+      .repo { display: flex; flex-direction: column; gap: 6px; }
+      .repo a { color: var(--accent); font-weight: 600; text-decoration: none; }
+      .repo a:hover { text-decoration: underline; }
 
-      tbody tr:hover {
-        background: rgba(30, 64, 175, 0.18);
-      }
-
-      .repo {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .repo a {
-        color: var(--accent);
-        font-weight: 600;
-        text-decoration: none;
-      }
-
-      .repo a:hover {
-        text-decoration: underline;
-      }
-
-      .tags {
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        font-size: 0.75rem;
-        color: rgba(148, 163, 184, 0.85);
-      }
-
+      .tags { display: inline-flex; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; color: rgba(148, 163, 184, 0.85); }
       .tag-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 999px;
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 10px; border-radius: 999px;
         background: rgba(56, 189, 248, 0.14);
         border: 1px solid rgba(56, 189, 248, 0.3);
         color: var(--accent);
@@ -222,24 +169,13 @@
         color: rgba(148, 163, 184, 0.8);
         font-size: 0.95rem;
       }
-
       .loading-state .spinner {
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
+        width: 16px; height: 16px; border-radius: 50%;
         border: 2px solid rgba(148, 163, 184, 0.28);
         border-top-color: var(--accent);
         animation: spin 1s linear infinite;
       }
-
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
       .footnote {
         margin-top: clamp(22px, 4vw, 32px);
@@ -249,37 +185,12 @@
       }
 
       @media (max-width: 720px) {
-        main {
-          padding-top: clamp(60px, 12vw, 72px);
-        }
-
-        table,
-        thead,
-        tbody,
-        th,
-        td,
-        tr {
-          display: block;
-        }
-
-        thead {
-          display: none;
-        }
-
-        tbody tr {
-          border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-          padding: 18px 0;
-        }
-
-        tbody tr:last-child {
-          border-bottom: none;
-        }
-
-        td {
-          border: none;
-          padding: 6px 0;
-        }
-
+        main { padding-top: clamp(60px, 12vw, 72px); }
+        table, thead, tbody, th, td, tr { display: block; }
+        thead { display: none; }
+        tbody tr { border-bottom: 1px solid rgba(148, 163, 184, 0.18); padding: 18px 0; }
+        tbody tr:last-child { border-bottom: none; }
+        td { border: none; padding: 6px 0; }
         td::before {
           content: attr(data-label);
           display: block;
@@ -289,10 +200,7 @@
           margin-bottom: 4px;
           letter-spacing: 0.08em;
         }
-
-        .repo {
-          gap: 4px;
-        }
+        .repo { gap: 4px; }
       }
     </style>
   </head>
@@ -303,6 +211,7 @@
           <span data-lang-code="en" data-active="true">EN</span> / <span data-lang-code="zh-HK">繁</span>
         </button>
       </div>
+
       <header>
         <nav class="breadcrumb" aria-label="Breadcrumb">
           <a href="index.html" data-i18n="breadcrumbHome">← Back to Idea Hub</a>
@@ -357,10 +266,7 @@
       const DEFAULT_LOCALE = 'en';
       const SUPPORTED_LOCALES = ['en', 'zh-HK'];
 
-      const localeFallbacks = {
-        en: 'en',
-        'zh-HK': 'zh-Hant-HK',
-      };
+      const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
 
       const translations = {
         en: {
@@ -421,15 +327,8 @@
         const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
         return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
       }
-
-      function persistLocale(locale) {
-        localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-      }
-
-      function applyLocaleToDocument(locale) {
-        document.documentElement.lang = localeFallbacks[locale] || 'en';
-      }
-
+      function persistLocale(locale) { localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
+      function applyLocaleToDocument(locale) { document.documentElement.lang = localeFallbacks[locale] || 'en'; }
       function updateToggleVisual(locale) {
         langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
         langToggle?.querySelectorAll('span').forEach((span) => {
@@ -440,35 +339,22 @@
 
       function formatDate(date, options = {}) {
         return new Intl.DateTimeFormat(localeFallbacks[currentLocale] || 'en', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          ...options,
+          day: 'numeric', month: 'short', year: 'numeric', ...options,
         }).format(date);
       }
-
       function formatCompact(number) {
         return new Intl.NumberFormat(localeFallbacks[currentLocale] || 'en', {
-          notation: 'compact',
-          maximumFractionDigits: 1,
+          notation: 'compact', maximumFractionDigits: 1,
         }).format(number);
       }
-
       function formatTag(label) {
-        return label
-          .replace(/[-_]/g, ' ')
-          .replace(/\b\w/g, (match) => match.toUpperCase());
+        return label.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
       }
 
       function renderStaticCopy() {
         Object.entries(translations[currentLocale]).forEach(([key, value]) => {
-          const nodeList = document.querySelectorAll(`[data-i18n="${key}"]`);
-          nodeList.forEach((node) => {
-            if (key === 'footnote') {
-              node.innerHTML = value;
-            } else {
-              node.textContent = value;
-            }
+          document.querySelectorAll(`[data-i18n="${key}"]`).forEach((node) => {
+            if (key === 'footnote') node.innerHTML = value; else node.textContent = value;
           });
         });
       }
@@ -483,7 +369,6 @@
           const to = formatDate(now, { day: 'numeric', month: 'short', year: 'numeric' });
           weekRangeLabel.textContent = `${from} – ${to}`;
         }
-
         if (lastUpdatedLabel) {
           const formattedNow = formatDate(now, { day: 'numeric', month: 'short', year: 'numeric' });
           lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formattedNow}`;
@@ -499,15 +384,13 @@
                 <span>${translations[currentLocale].loading}</span>
               </div>
             </td>
-          </tr>
-        `;
+          </tr>`;
       }
 
       function showError(messageKey) {
-        const message =
-          messageKey === 'noResults'
-            ? translations[currentLocale].noResults
-            : translations[currentLocale].genericError;
+        const message = messageKey === 'noResults'
+          ? translations[currentLocale].noResults
+          : translations[currentLocale].genericError;
         resultsBody.innerHTML = `
           <tr>
             <td colspan="3">
@@ -516,8 +399,7 @@
                 <span>${message}</span>
               </div>
             </td>
-          </tr>
-        `;
+          </tr>`;
       }
 
       function createRow(repo) {
@@ -529,28 +411,16 @@
           <div class="repo">
             <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
             <div class="tags"></div>
-          </div>
-        `;
+          </div>`;
 
         const tagsContainer = repoCell.querySelector('.tags');
         const tagSet = new Set();
         const topics = repo.topics || [];
-
-        topics.forEach((topic) => {
-          if (tagSet.size < 3) {
-            tagSet.add(formatTag(topic));
-          }
-        });
-
+        topics.forEach((topic) => { if (tagSet.size < 3) tagSet.add(formatTag(topic)); });
         if (tagSet.size === 0) {
           const fallback = repo.language ? [repo.language] : [];
-          [...fallback, 'AI', 'LLM'].forEach((item) => {
-            if (tagSet.size < 3) {
-              tagSet.add(formatTag(item));
-            }
-          });
+          [...fallback, 'AI', 'LLM'].forEach((item) => { if (tagSet.size < 3) tagSet.add(formatTag(item)); });
         }
-
         tagSet.forEach((tag) => {
           const span = document.createElement('span');
           span.className = 'tag-chip';
@@ -572,60 +442,32 @@
       }
 
       async function fetchQuery(query) {
-        const searchParams = new URLSearchParams({
-          q: query,
-          sort: 'stars',
-          order: 'desc',
-          per_page: '20',
-        });
-
+        const searchParams = new URLSearchParams({ q: query, sort: 'stars', order: 'desc', per_page: '20' });
         const token = new URLSearchParams(window.location.search).get('token');
-        const headers = {
-          Accept: 'application/vnd.github+json',
-        };
-
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-
+        const headers = { Accept: 'application/vnd.github+json' };
+        if (token) headers.Authorization = `Bearer ${token}`;
         const response = await fetch(`https://api.github.com/search/repositories?${searchParams}`, { headers });
-
-        if (!response.ok) {
-          throw new Error(`GitHub API error (${response.status})`);
-        }
-
+        if (!response.ok) throw new Error(`GitHub API error (${response.status})`);
         const payload = await response.json();
         return payload.items || [];
       }
 
       function repoIsRelevant(repo) {
         const haystack = [repo.name, repo.full_name, repo.description || '', ...(repo.topics || [])]
-          .join(' ')
-          .toLowerCase();
-        return keywords.some((keyword) => haystack.includes(keyword));
+          .join(' ').toLowerCase();
+        return keywords.some((k) => haystack.includes(k));
       }
 
       function renderResults() {
-        if (!cachedResults.length) {
-          if (dataLoaded) {
-            showError('noResults');
-          } else {
-            showLoading();
-          }
-          return;
-        }
-
+        if (!cachedResults.length) { dataLoaded ? showError('noResults') : showLoading(); return; }
         resultsBody.innerHTML = '';
-        cachedResults.forEach((repo) => {
-          resultsBody.appendChild(createRow(repo));
-        });
+        cachedResults.forEach((repo) => resultsBody.appendChild(createRow(repo)));
       }
 
       async function loadWeeklyStars() {
         const now = new Date();
         const since = new Date(now);
         since.setDate(since.getDate() - 7);
-
         const sinceIso = since.toISOString().slice(0, 10);
 
         const queries = [
@@ -634,17 +476,12 @@
         ];
 
         const results = new Map();
-
-        for (const query of queries) {
+        for (const q of queries) {
           try {
-            const repos = await fetchQuery(query);
-            repos.forEach((repo) => {
-              if (!results.has(repo.id)) {
-                results.set(repo.id, repo);
-              }
-            });
-          } catch (error) {
-            console.error(error);
+            const repos = await fetchQuery(q);
+            repos.forEach((repo) => { if (!results.has(repo.id)) results.set(repo.id, repo); });
+          } catch (err) {
+            console.error(err);
             dataLoaded = true;
             showError('genericError');
             return;
@@ -668,9 +505,7 @@
         renderStaticCopy();
         document.title = translations[currentLocale].pageTitle;
         renderMetaDates();
-        if (rerenderOnly) {
-          renderResults();
-        }
+        if (rerenderOnly) renderResults();
       }
 
       async function init() {
@@ -681,7 +516,7 @@
         renderMetaDates();
       }
 
-      langToggle?.addEventListener('click', () => {
+      document.querySelector('[data-lang-toggle]')?.addEventListener('click', () => {
         const nextLocale = currentLocale === 'en' ? 'zh-HK' : 'en';
         setLocale(nextLocale, { rerenderOnly: true });
       });
