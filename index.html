@@ -301,7 +301,7 @@
             'Every card on this page is driven by a single JavaScript array. Editing that list is all you need to keep the hub growing.',
           howToSteps: [
             'Duplicate one of the objects in the ideas array.',
-            'Update the link, icon, and localized copy for English and zh-HK.',
+            'Update the link, icon, and localized copy for English and zh-HK (missing translations fall back to English).',
             'Save the file—your new tile appears automatically.',
           ],
         },
@@ -315,7 +315,7 @@
           howToIntro: '此頁的所有卡片都來自同一個 JavaScript 陣列，更新它就能持續擴充內容。',
           howToSteps: [
             '複製 ideas 陣列中的其中一個物件。',
-            '更新連結、圖示，以及英文與繁體中文（香港）的對應文案。',
+            '更新連結、圖示，以及英文與繁體中文（香港）的對應文案（如未填寫繁中會自動顯示英文）。',
             '儲存檔案後，新卡片便會自動出現。',
           ],
         },
@@ -367,6 +367,27 @@
 
       let currentLocale = DEFAULT_LOCALE;
 
+      function getLocalizedCopy(copyMap, locale) {
+        if (!copyMap || typeof copyMap !== 'object') {
+          return { title: '', summary: '' };
+        }
+
+        const fromLocale = copyMap[locale];
+        if (fromLocale) {
+          return fromLocale;
+        }
+
+        return copyMap[DEFAULT_LOCALE] || { title: '', summary: '' };
+      }
+
+      function getLocalizedBadgeText(badge, locale) {
+        if (!badge || typeof badge !== 'object' || !badge.text) {
+          return '';
+        }
+
+        return badge.text[locale] || badge.text[DEFAULT_LOCALE] || '';
+      }
+
       function createCard(idea, locale) {
         const link = document.createElement('a');
         link.className = 'idea-card';
@@ -384,11 +405,16 @@
         const textWrapper = document.createElement('div');
         textWrapper.className = 'card-text';
 
+        const localizedCopy = getLocalizedCopy(idea.copy, locale);
+        if (localizedCopy.title) {
+          link.setAttribute('aria-label', localizedCopy.title);
+        }
+
         const title = document.createElement('h2');
-        title.textContent = idea.copy[locale].title;
+        title.textContent = localizedCopy.title;
 
         const summary = document.createElement('p');
-        summary.textContent = idea.copy[locale].summary;
+        summary.textContent = localizedCopy.summary;
 
         textWrapper.append(title, summary);
         header.append(icon, textWrapper);
@@ -400,7 +426,7 @@
 
           idea.badges.forEach((badge) => {
             const item = document.createElement('li');
-            item.textContent = badge.text[locale];
+            item.textContent = getLocalizedBadgeText(badge, locale);
             metaList.appendChild(item);
           });
 
