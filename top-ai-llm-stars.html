@@ -164,7 +164,8 @@
           <span data-lang-code="en" data-active="true">EN</span> / <span data-lang-code="zh-HK">繁</span>
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
-        <button type="button" class="chip-btn" id="translateDynBtn" title="Toggle dynamic description translation (試驗)">翻譯</button>
+  <button type="button" class="chip-btn" id="geminiBtn" title="Set Gemini API Key for better zh-HK translation">Gemini</button>
+  <button type="button" class="chip-btn" id="translateDynBtn" title="Toggle AI translation (Gemini) for descriptions">翻譯AI</button>
         <button type="button" class="chip-btn" id="modeBadge" title="Toggle mode: auto → live → static">Mode: auto</button>
       </div>
       <div class="saved-topics" aria-label="Saved topics section">
@@ -447,10 +448,8 @@
 
     const repoCell = document.createElement('td');
     repoCell.dataset.label = translations[currentLocale].thRepository;
-    // highlight term if applicable
-    const term = (document.getElementById('topicInput')?.value || '').trim();
-    const safeTerm = term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-    const nameDisplay = term ? repo.full_name.replace(new RegExp(safeTerm,'ig'), m => `<mark class="match">${m}</mark>`) : repo.full_name;
+  // simplified: no highlight
+  const nameDisplay = repo.full_name;
     repoCell.innerHTML = `
       <div class="repo">
         <a href="${repo.html_url}" target="_blank" rel="noopener">${nameDisplay}</a>
@@ -477,28 +476,54 @@
     return tr;
   }
 
-  /* ===== Dynamic zh-HK translation (simple dictionary based, non-AI) ===== */
-  const hkWordMap = {
-    'transformer':'Transformer 模型', 'based':'基於', 'language':'語言', 'model':'模型', 'agent':'代理', 'agents':'代理',
-    'multi-modal':'多模態', 'universal':'通用', 'rust':'Rust', 'python':'Python', 'linear algebra':'線性代數', 'written':'編寫',
-    'completely':'完全', 'real time':'即時', 'feed-forward':'前饋', 'metric':'度量', 'reconstruction':'重建'
-  };
-  function hkReplacePhrase(text){
-    if(!text) return text;
-    let out = text;
-    // phrase replacements first
-    Object.entries(hkWordMap).forEach(([k,v]) => {
-      const re = new RegExp(`\\b${k.replace(/[-/\\]/g,'\\$&')}\\b`,'gi');
-      out = out.replace(re, (m)=>v);
-    });
-    return out;
+  /* ===== AI Translation (Gemini) zh-HK ===== */
+  const GEMINI_KEY_STORAGE = 'GEMINI_KEY_LOCAL_V1';
+  function getGeminiKey(){ try { return localStorage.getItem(GEMINI_KEY_STORAGE) || ''; } catch { return ''; } }
+  function setGeminiKey(v){ try { if(v) localStorage.setItem(GEMINI_KEY_STORAGE, v); else localStorage.removeItem(GEMINI_KEY_STORAGE);}catch{} }
+  async function translateDescriptionsGemini(){
+    if(currentLocale !== 'zh-HK') return;
+    const key = getGeminiKey();
+    if(!key){ alert('請先設定 Gemini API Key'); return; }
+    const rows = Array.from(document.querySelectorAll('[data-results] tr'));
+    const toTranslate = rows.map(r => {
+      const td = r.querySelector('td:nth-child(2)');
+      if(!td) return null;
+      if(!td.dataset.orig) td.dataset.orig = td.textContent;
+      // skip if already translated
+      if(td.dataset.aiTranslated === '1') return null;
+      return td;
+    }).filter(Boolean);
+    if(!toTranslate.length){ return; }
+    for(const td of toTranslate){
+      const original = td.dataset.orig || td.textContent || '';
+      if(!original.trim()){ td.dataset.aiTranslated='1'; continue; }
+      td.style.opacity = '.5';
+      try {
+        const body = {
+          contents:[{parts:[{text:`Translate the following repository description into Traditional Chinese (Hong Kong locale). Keep technical terms (like model names) in English. Return ONLY the translated sentence.\n\n${original}` }]}]
+        };
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+          method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+        });
+        if(!res.ok){ throw new Error(await res.text()); }
+        const data = await res.json();
+        const translated = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if(translated){ td.textContent = translated; td.dataset.aiTranslated='1'; }
+      }catch(e){ console.warn('Gemini translation failed', e); td.dataset.aiTranslated='err'; }
+      finally { td.style.opacity=''; }
+      // small delay to be polite
+      await new Promise(r=>setTimeout(r,400));
+      if(!translateDynamic) break; // user toggled off mid-way
+    }
   }
   function applyDynamicTranslation(){
-    if (currentLocale !== 'zh-HK' || !translateDynamic) return;
-    document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
-      if(!td.dataset.orig){ td.dataset.orig = td.textContent; }
-      td.textContent = hkReplacePhrase(td.dataset.orig);
-    });
+    if(!translateDynamic){ // restore
+      document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
+        if(td.dataset.orig) td.textContent = td.dataset.orig;
+      });
+      return;
+    }
+    translateDescriptionsGemini();
   }
 
   async function fetchQuery(query, {useAuth=true} = {}){
@@ -673,15 +698,18 @@
       translateDynBtn.addEventListener('click', () => {
         translateDynamic = !translateDynamic;
         translateDynBtn.dataset.active = translateDynamic ? 'true' : 'false';
-        if (translateDynamic) applyDynamicTranslation();
-        else {
-          // restore originals
-            document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
-              if(td.dataset.orig) td.textContent = td.dataset.orig;
-            });
-        }
+        applyDynamicTranslation();
       });
     }
+    const geminiBtn = document.getElementById('geminiBtn');
+    geminiBtn?.addEventListener('click', () => {
+      const existing = getGeminiKey();
+      const input = prompt('Enter Gemini API Key (stored locally). 留空刪除。', existing);
+      if(input === null) return;
+      const v = (input||'').trim();
+      if(v){ setGeminiKey(v); alert('Saved'); }
+      else { setGeminiKey(''); alert('Removed'); }
+    });
 
     /* ===== Saved topics logic ===== */
     const topicChips = document.getElementById('topicChips');
