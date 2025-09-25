@@ -633,8 +633,11 @@
     if (!v.ok && v.status) {
       console.warn('Token invalid:', v.status, v.message);
     }
-
-  await loadWeeklyStars();
+    // Try static snapshot first if no token & user hasn't specified a topic
+    const staticLoaded = await tryLoadStaticIfNoToken();
+    if(!staticLoaded){
+      await loadWeeklyStars();
+    }
     renderMetaDates();
 
     // Add topic search event
@@ -731,6 +734,30 @@
     });
 
     renderSavedTopics();
+  }
+
+  // Static snapshot fallback
+  async function tryLoadStaticIfNoToken(){
+    if (getAuthToken()) return false;
+    const topic = (document.getElementById('topicInput')?.value||'').trim();
+    if (topic) return false; // user wants live search
+    try{
+      const res = await fetch('data/latest.json', {cache:'no-store'});
+      if(!res.ok) return false;
+      const payload = await res.json();
+      cachedResults = (payload.repos||[]).slice(0, maxRows);
+      if(!cachedResults.length){ return false; }
+      resultsBody.innerHTML='';
+      cachedResults.forEach(r=>resultsBody.appendChild(createRow(r)));
+      const stamp = document.querySelector('[data-last-updated]');
+      if (stamp && payload.generated_at){
+        stamp.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(payload.generated_at))} (static)`;
+      }
+      return true;
+    }catch(e){
+      console.warn('Static snapshot load failed', e);
+      return false;
+    }
   }
 
   langToggle?.addEventListener('click', () => {
