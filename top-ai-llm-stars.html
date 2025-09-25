@@ -89,6 +89,19 @@
       th{ font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(148,163,184,.8); }
       tbody tr:last-child td{ border-bottom:none; }
       tbody tr:hover{ background:rgba(30,64,175,.18); }
+  tbody tr{ transition: background .18s ease, transform .18s ease, box-shadow .25s ease; }
+  tbody tr:hover{ transform:translateY(-2px); box-shadow:0 6px 18px -6px rgba(0,0,0,.5); }
+  tbody td{ vertical-align:top; }
+
+  /* Modern card feel inside table */
+  tbody tr{ backdrop-filter:blur(6px); }
+  .repo a{ font-size:1rem; letter-spacing:.3px; }
+  .repo .tags{ margin-top:2px; }
+  .stars-badge{ display:inline-flex; align-items:center; gap:4px; background:linear-gradient(135deg,#0f172a,#1e293b); padding:4px 10px; border-radius:999px; font-size:.75rem; font-weight:600; color:var(--accent); border:1px solid rgba(56,189,248,.35); }
+  .stars-badge svg{ width:14px; height:14px; }
+
+  /* Translation toggle chip icon state */
+  .chip-btn[data-active="true"]{ border-color:rgba(56,189,248,.7); color:var(--accent-strong); }
 
       .repo{ display:flex; flex-direction:column; gap:6px; }
       .repo a{ color:var(--accent); font-weight:600; text-decoration:none; }
@@ -128,6 +141,7 @@
           <span data-lang-code="en" data-active="true">EN</span> / <span data-lang-code="zh-HK">繁</span>
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
+        <button type="button" class="chip-btn" id="translateDynBtn" title="Toggle dynamic description translation (試驗)">翻譯</button>
       </div>
       <div class="filters" aria-label="Search & filters">
         <div class="field" style="flex:2 1 180px;">
@@ -271,6 +285,7 @@
   let currentLocale = DEFAULT_LOCALE;
   let cachedResults = [];
   let dataLoaded = false;
+  let translateDynamic = false; // experimental zh-HK toggle
 
   /* ===== Token helpers ===== */
   const TOKEN_KEYS = ['GITHUB_PAT_SESSION', 'GITHUB_PAT_LOCAL'];
@@ -408,12 +423,36 @@
     hi.dataset.label = translations[currentLocale].thHighlights;
     hi.textContent = repo.description ? repo.description.trim() : translations[currentLocale].noDescription;
 
-    const stars = document.createElement('td');
-    stars.dataset.label = translations[currentLocale].thStars;
-    stars.textContent = `+${formatCompact(repo.stargazers_count)}`;
+  const stars = document.createElement('td');
+  stars.dataset.label = translations[currentLocale].thStars;
+  stars.innerHTML = `<span class="stars-badge" title="Total stars">${formatCompact(repo.stargazers_count)}★</span>`;
 
     tr.append(repoCell, hi, stars);
     return tr;
+  }
+
+  /* ===== Dynamic zh-HK translation (simple dictionary based, non-AI) ===== */
+  const hkWordMap = {
+    'transformer':'Transformer 模型', 'based':'基於', 'language':'語言', 'model':'模型', 'agent':'代理', 'agents':'代理',
+    'multi-modal':'多模態', 'universal':'通用', 'rust':'Rust', 'python':'Python', 'linear algebra':'線性代數', 'written':'編寫',
+    'completely':'完全', 'real time':'即時', 'feed-forward':'前饋', 'metric':'度量', 'reconstruction':'重建'
+  };
+  function hkReplacePhrase(text){
+    if(!text) return text;
+    let out = text;
+    // phrase replacements first
+    Object.entries(hkWordMap).forEach(([k,v]) => {
+      const re = new RegExp(`\\b${k.replace(/[-/\\]/g,'\\$&')}\\b`,'gi');
+      out = out.replace(re, (m)=>v);
+    });
+    return out;
+  }
+  function applyDynamicTranslation(){
+    if (currentLocale !== 'zh-HK' || !translateDynamic) return;
+    document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
+      if(!td.dataset.orig){ td.dataset.orig = td.textContent; }
+      td.textContent = hkReplacePhrase(td.dataset.orig);
+    });
   }
 
   async function fetchQuery(query, {useAuth=true} = {}){
@@ -523,6 +562,8 @@
 
     resultsBody.innerHTML = '';
     cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+    applyDynamicTranslation();
+      applyDynamicTranslation();
   }
 
   /* ===== init & events ===== */
@@ -562,6 +603,7 @@
     const topicInput = document.getElementById('topicInput');
     const searchBtn = document.getElementById('searchBtn');
     const resetBtn = document.getElementById('resetBtn');
+  const translateDynBtn = document.getElementById('translateDynBtn');
     if (searchBtn) searchBtn.addEventListener('click', async () => { showLoading(); await loadWeeklyStars(); });
     if (topicInput) topicInput.addEventListener('keydown', async e => { if(e.key==='Enter'){ showLoading(); await loadWeeklyStars(); }});
     if (resetBtn) resetBtn.addEventListener('click', async () => {
@@ -572,6 +614,19 @@
       (document.getElementById('maxRowsSel')||{}).value='5';
       showLoading(); await loadWeeklyStars();
     });
+    if (translateDynBtn){
+      translateDynBtn.addEventListener('click', () => {
+        translateDynamic = !translateDynamic;
+        translateDynBtn.dataset.active = translateDynamic ? 'true' : 'false';
+        if (translateDynamic) applyDynamicTranslation();
+        else {
+          // restore originals
+            document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
+              if(td.dataset.orig) td.textContent = td.dataset.orig;
+            });
+        }
+      });
+    }
   }
 
   langToggle?.addEventListener('click', () => {
