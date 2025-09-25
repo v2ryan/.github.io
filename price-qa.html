@@ -24,10 +24,27 @@
   <button id="searchBtn" onclick="search()">Search</button>
   <button id="clearBtn" onclick="clearQuery()" class="dim">Clear</button>
   <button id="configBtn" type="button" title="設定/編輯鏡片類型名稱" style="background:#eef;border:1px solid #ccd;">⚙</button>
+  <label style="display:flex;align-items:center;gap:.35rem;font-size:.65rem;padding:.25rem .5rem;border:1px solid #ddd;border-radius:4px;">
+    <input type="checkbox" id="summaryOnlyToggle" /> 只顯示摘要
+  </label>
+  <button id="multiIndexBtn" type="button" style="background:#efe;border:1px solid #bcb;">多 Index 摘要</button>
+  <button id="exportCsvBtn" type="button" style="background:#ffe;border:1px solid #ddc;">匯出 CSV</button>
 </div>
 <div id="status">Loading data…</div>
 <div id="summary" style="margin-top:.5rem;font-size:.9rem;color:#222;background:#eef6ff;padding:.6rem .75rem;border:1px solid #c3e1ff;border-radius:6px;display:none"></div>
 <pre id="result">(No results yet)</pre>
+
+<details id="headerDetect" style="margin-top:.75rem;background:#fafafa;border:1px solid #ddd;padding:.6rem .7rem;border-radius:6px;">
+  <summary style="cursor:pointer;font-size:.75rem;font-weight:600;">貼上 PDF 標題列 (自動拆解成 coating 名稱)</summary>
+  <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;">
+    <textarea id="headerLineInput" rows="2" placeholder="例: UV CONTROL  FULL CONTROL  CLEAR  SENSITY2  SENSITY2 SHINE  POLARIZED" style="width:100%;font-family:monospace;font-size:.7rem;padding:.4rem;"></textarea>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <button type="button" id="parseHeaderBtn" style="background:#e0f3ff;border:1px solid #9bd;">解析並套用</button>
+      <span id="headerParseMsg" style="font-size:.65rem;color:#555;"></span>
+    </div>
+  </div>
+</details>
+<div id="multiSummary" style="display:none;margin-top:1rem;overflow:auto;max-width:100%;"></div>
 
 <dialog id="configDialog" style="max-width:520px;width:95%;border:1px solid #aac;background:#fff;padding:1rem;border-radius:10px;">
   <form method="dialog" style="margin:0;display:flex;flex-direction:column;gap:.75rem;">
@@ -68,6 +85,14 @@ const configDialog = document.getElementById('configDialog');
 const mappingFields = document.getElementById('mappingFields');
 const applyAllIndexesEl = document.getElementById('applyAllIndexes');
 const resetMappingBtn = document.getElementById('resetMapping');
+const summaryOnlyToggle = document.getElementById('summaryOnlyToggle');
+const parseHeaderBtn = document.getElementById('parseHeaderBtn');
+const headerLineInput = document.getElementById('headerLineInput');
+const headerParseMsg = document.getElementById('headerParseMsg');
+const multiIndexBtn = document.getElementById('multiIndexBtn');
+const multiSummaryEl = document.getElementById('multiSummary');
+const exportCsvBtn = document.getElementById('exportCsvBtn');
+const summaryEl = document.getElementById('summary');
 
 // Load data
 fetch('prices.json', { cache: 'no-store' })
@@ -132,7 +157,6 @@ configDialog.addEventListener('close', ()=>{
 function summarize(indexToken, matched){
   if(!indexToken) return '';
   const brand = BRAND_MAP[indexToken] || 'UNKNOWN BRAND';
-  // group by coating label
   const byCoating = new Map();
   matched.filter(r=>r.index===indexToken).forEach(r=>{
     const key = mapVariantName(r.index, r.coating);
@@ -141,21 +165,93 @@ function summarize(indexToken, matched){
     byCoating.set(key, arr);
   });
   const rowsSumm = [...byCoating.entries()].map(([coating, list])=>{
-    const prices = list.map(x=>x.price_hkd);
-    prices.sort((a,b)=>a-b);
+    const prices = list.map(x=>x.price_hkd).sort((a,b)=>a-b);
     const min = prices[0];
     const max = prices[prices.length-1];
     const starCount = list.filter(x=>x.starred).length;
-    const starFlag = starCount ? ` *${starCount}`: '';
-    return { coating, min, max, count: list.length, starFlag };
+    const avg = (prices.reduce((a,b)=>a+b,0)/prices.length).toFixed(1);
+    const med = (prices.length%2? prices[(prices.length-1)/2] : ((prices[prices.length/2-1]+prices[prices.length/2])/2).toFixed(1));
+    return { coating, min, max, count: list.length, star: starCount, avg, med };
   }).sort((a,b)=>a.min-b.min);
   if(!rowsSumm.length) return '';
-  const lines = rowsSumm.map(r=>{
+  const tableLines = rowsSumm.map(r=>{
     const range = r.min===r.max ? r.min : `${r.min}-${r.max}`;
-    return `${r.coating.padEnd(12,' ')} HK$${range}${r.starFlag}`;
+    const starChunk = r.star? ` *${r.star}`: '';
+    return `${r.coating.padEnd(14,' ')} ${String(range).padEnd(10,' ')} avg:${String(r.avg).padEnd(6,' ')} med:${String(r.med).padEnd(6,' ')} n=${r.count}${starChunk}`;
   });
-  return `${brand} ${indexToken} 摘要 (每片)\n` + lines.join('\n');
+  const header = `${brand} ${indexToken} 摘要 (每片)\nCoating         Range      Avg     Med     Count`;
+  return header + "\n" + tableLines.join('\n');
 }
+
+function buildSummaryData(indexToken, matched){
+  if(!indexToken) return [];
+  const byCoating = new Map();
+  matched.filter(r=>r.index===indexToken).forEach(r=>{
+    const key = mapVariantName(r.index, r.coating);
+    const arr = byCoating.get(key) || []; arr.push(r); byCoating.set(key, arr);
+  });
+  return [...byCoating.entries()].map(([coating,list])=>{
+    const prices=list.map(x=>x.price_hkd).sort((a,b)=>a-b);
+    const min=prices[0]; const max=prices[prices.length-1];
+    const avg = prices.reduce((a,b)=>a+b,0)/prices.length;
+    const med = prices.length%2? prices[(prices.length-1)/2] : (prices[prices.length/2-1]+prices[prices.length/2])/2;
+    const star = list.filter(x=>x.starred).length;
+    return { index:indexToken, coating, min, max, avg, med, count:prices.length, star };
+  }).sort((a,b)=>a.min-b.min);
+}
+
+function exportSummaryCsv(currentIndex, matched){
+  const rows = buildSummaryData(currentIndex, matched);
+  if(!rows.length){ alert('No summary rows'); return; }
+  const header='index,coating,min,max,avg,median,count,starred';
+  const lines = rows.map(r=>`${r.index},"${r.coating}",${r.min},${r.max},${r.avg.toFixed? r.avg.toFixed(2):r.avg},${r.med},${r.count},${r.star}`);
+  const csv = [header,...lines].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`summary_${currentIndex||'all'}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+
+function buildMultiIndexSummary(){
+  const indices = [...new Set(rows.map(r=>r.index))].filter(x=>/^\d/.test(x)).sort((a,b)=>parseFloat(a)-parseFloat(b));
+  if(indices.length<2){ multiSummaryEl.style.display='none'; multiSummaryEl.innerHTML=''; return; }
+  const variantLabels = getLabelsForIndex('*');
+  const matrix = variantLabels.map(label=>({ label, values:{} }));
+  indices.forEach(idx=>{
+    const subset = rows.filter(r=>r.index===idx);
+    const map = new Map();
+    subset.forEach(r=>{ const label = mapVariantName(r.index, r.coating); const arr = map.get(label) || []; arr.push(r.price_hkd); map.set(label, arr); });
+    map.forEach((arr,label)=>{ arr.sort((a,b)=>a-b); const rowObj = matrix.find(m=>m.label===label); if(rowObj) rowObj.values[idx] = { min:arr[0], max:arr[arr.length-1] }; });
+  });
+  let html = '<table style="border-collapse:collapse;font-size:.7rem;min-width:520px;">';
+  html += '<thead><tr><th style="border:1px solid #ccc;padding:4px 6px;text-align:left;">Coating</th>' + indices.map(i=>`<th style=\"border:1px solid #ccc;padding:4px 6px;\">${i}</th>`).join('') + '</tr></thead><tbody>';
+  matrix.forEach(row=>{
+    html+='<tr><td style="border:1px solid #ddd;padding:4px 6px;">'+row.label+'</td>';
+    indices.forEach(i=>{ const cell=row.values[i]; const txt = cell? (cell.min===cell.max? cell.min : `${cell.min}-${cell.max}`) : ''; html+=`<td style=\"border:1px solid #ddd;padding:4px 6px;\">${txt}</td>`; });
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  multiSummaryEl.innerHTML = html;
+  multiSummaryEl.style.display='block';
+}
+
+multiIndexBtn.addEventListener('click', ()=>{ buildMultiIndexSummary(); });
+exportCsvBtn.addEventListener('click', ()=>{
+  const idxTok = (lastQuery.split(/\s+/).find(t=>/^\d+(?:\.\d+)?$/.test(t))) || prompt('輸入要匯出的 index (例如 1.6) 空白=使用第一個');
+  const chosen = idxTok || (rows[0]? rows[0].index : '');
+  const matched = chosen? rows.filter(r=>r.index===chosen) : rows;
+  exportSummaryCsv(chosen, matched);
+});
+summaryOnlyToggle.addEventListener('change', ()=>{ resultEl.style.display = summaryOnlyToggle.checked ? 'none':'block'; });
+parseHeaderBtn.addEventListener('click', ()=>{
+  const raw = headerLineInput.value.trim();
+  if(!raw){ headerParseMsg.textContent='空白'; return; }
+  const tokens = raw.split(/[,|\t]+|\s{2,}/).map(t=>t.trim()).filter(Boolean);
+  if(tokens.length<2){ headerParseMsg.textContent='辨識不到多個欄位 (需要至少 2 個)'; return; }
+  variantMapping['*'] = tokens;
+  saveVariantMapping();
+  headerParseMsg.textContent = `已套用 ${tokens.length} 個名稱`; setTimeout(()=>headerParseMsg.textContent='',3000);
+  search();
+});
 
 function search(){
   if(!loaded){ statusEl.textContent='Data not yet loaded…'; return; }
@@ -176,18 +272,19 @@ function search(){
   let status = `Matched ${matched.length} / ${rows.length} records`;
   if(skippedTokens.length) status += ` (ignored: ${skippedTokens.join(', ')})`;
   statusEl.textContent = status;
-  if(matched.length===0){ resultEl.textContent='No matching data'; summary.style.display='none'; return; }
+  if(matched.length===0){ resultEl.textContent='No matching data'; summaryEl.style.display='none'; return; }
   // try to detect first numeric token as index for summary
   const firstIndexTok = usedTokens.find(t=>/^\d+(?:\.\d+)?$/.test(t));
   const summaryHtml = summarize(firstIndexTok, matched);
   if(summaryHtml){
-    summary.textContent = summaryHtml;
-    summary.style.display='block';
+    summaryEl.textContent = summaryHtml;
+    summaryEl.style.display='block';
   } else {
-    summary.style.display='none';
+    summaryEl.style.display='none';
   }
   const tokensLower=usedTokens.map(t=>t.toLowerCase());
   resultEl.innerHTML = matched.map(r=>highlight(formatRow(r), tokensLower)).join('\n');
+  if(summaryOnlyToggle.checked){ resultEl.style.display='none'; }
 }
 questionEl.addEventListener('keydown', e => { if(e.key==='Enter'){ search(); } });
 </script>
