@@ -18,13 +18,8 @@
       }
 
       * { box-sizing: border-box; }
-
       body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
         padding: clamp(20px, 5vw, 48px);
         background:
           radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
@@ -44,172 +39,84 @@
         position: relative;
       }
 
-      header {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: clamp(24px, 4vw, 36px);
-      }
+      header { display: flex; flex-direction: column; gap: 12px; margin-bottom: clamp(24px, 4vw, 36px); }
 
-      /* Language toggle */
+      /* top bar */
       .top-bar {
-        position: absolute;
-        top: clamp(16px, 3vw, 24px);
-        right: clamp(16px, 3vw, 24px);
-        display: flex;
-        justify-content: flex-end;
+        position: absolute; top: clamp(16px, 3vw, 24px); right: clamp(16px, 3vw, 24px);
+        display: flex; gap: 8px; justify-content: flex-end;
       }
-      .lang-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        border-radius: 999px;
+      .chip-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 14px; border-radius: 999px;
         border: 1px solid rgba(148, 163, 184, 0.3);
         background: rgba(15, 23, 42, 0.7);
-        color: var(--text);
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: 600;
-        transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+        color: var(--text); cursor: pointer; font-size: 0.85rem; font-weight: 600;
+        transition: border-color .18s ease, background .18s ease, color .18s ease;
       }
-      .lang-toggle:hover,
-      .lang-toggle:focus-visible {
-        border-color: rgba(56, 189, 248, 0.6);
-        color: var(--accent-strong);
-        outline: none;
-      }
-      .lang-toggle span { opacity: 0.6; transition: opacity 0.18s ease; }
-      .lang-toggle span[data-active="true"] { opacity: 1; }
+      .chip-btn:hover, .chip-btn:focus-visible { border-color: rgba(56, 189, 248, .6); color: var(--accent-strong); outline: none; }
+      .chip-btn[data-kind="lang"] span { opacity: .6; transition: opacity .18s ease; }
+      .chip-btn[data-kind="lang"] span[data-active="true"] { opacity: 1; }
+      .chip-btn[data-kind="api"]{ font-variant: all-small-caps; letter-spacing: .04em; }
 
-      .breadcrumb {
-        font-size: 0.85rem;
-        color: var(--text-soft);
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .breadcrumb a { color: var(--accent); text-decoration: none; font-weight: 600; }
-      .breadcrumb a:hover { text-decoration: underline; }
+      .breadcrumb{ font-size:.85rem;color:var(--text-soft);display:inline-flex;gap:8px;align-items:center; }
+      .breadcrumb a{ color:var(--accent); text-decoration:none; font-weight:600; }
+      .breadcrumb a:hover{ text-decoration:underline; }
 
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4.8vw, 2.6rem);
-        font-weight: 700;
+      h1{ margin:0; font-size:clamp(2rem,4.8vw,2.6rem); font-weight:700; }
+      .lead{ margin:0; font-size:1rem; color:var(--text-soft); line-height:1.6; max-width:680px; }
+
+      .snapshot-meta{ display:flex; flex-wrap:wrap; gap:12px; margin:clamp(16px,3vw,24px) 0; font-size:.86rem; color:rgba(148,163,184,.85); }
+      .snapshot-meta span{
+        display:inline-flex; align-items:center; gap:6px; background:rgba(15,23,42,.68);
+        border-radius:999px; padding:6px 12px; border:1px solid rgba(148,163,184,.24);
       }
 
-      .lead {
-        margin: 0;
-        font-size: 1rem;
-        color: var(--text-soft);
-        line-height: 1.6;
-        max-width: 680px;
+      table{ width:100%; border-collapse:collapse; background:rgba(15,23,42,.7); border-radius:22px; overflow:hidden; border:1px solid rgba(148,163,184,.26); }
+      thead{ background:rgba(15,23,42,.9); }
+      th,td{ padding:clamp(14px,2.8vw,18px); text-align:left; border-bottom:1px solid rgba(148,163,184,.18); }
+      th{ font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:rgba(148,163,184,.8); }
+      tbody tr:last-child td{ border-bottom:none; }
+      tbody tr:hover{ background:rgba(30,64,175,.18); }
+
+      .repo{ display:flex; flex-direction:column; gap:6px; }
+      .repo a{ color:var(--accent); font-weight:600; text-decoration:none; }
+      .repo a:hover{ text-decoration:underline; }
+
+      .tags{ display:inline-flex; flex-wrap:wrap; gap:6px; font-size:.75rem; color:rgba(148,163,184,.85); }
+      .tag-chip{
+        display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px;
+        background:rgba(56,189,248,.14); border:1px solid rgba(56,189,248,.3); color:var(--accent);
       }
 
-      .snapshot-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin: clamp(16px, 3vw, 24px) 0;
-        font-size: 0.86rem;
-        color: rgba(148, 163, 184, 0.85);
-      }
-      .snapshot-meta span {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(15, 23, 42, 0.68);
-        border-radius: 999px;
-        padding: 6px 12px;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-      }
+      .loading-state{ display:flex; align-items:center; justify-content:center; gap:12px; padding:28px 18px; color:rgba(148,163,184,.8); font-size:.95rem; }
+      .loading-state .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(148,163,184,.28); border-top-color:var(--accent); animation:spin 1s linear infinite; }
+      @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: rgba(15, 23, 42, 0.7);
-        border-radius: 22px;
-        overflow: hidden;
-        border: 1px solid rgba(148, 163, 184, 0.26);
-      }
-      thead { background: rgba(15, 23, 42, 0.9); }
-      th, td {
-        padding: clamp(14px, 2.8vw, 18px);
-        text-align: left;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-      }
-      th {
-        font-size: 0.78rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: rgba(148, 163, 184, 0.8);
-      }
-      tbody tr:last-child td { border-bottom: none; }
-      tbody tr:hover { background: rgba(30, 64, 175, 0.18); }
+      .footnote{ margin-top:clamp(22px,4vw,32px); font-size:.85rem; color:rgba(148,163,184,.85); line-height:1.6; }
 
-      .repo { display: flex; flex-direction: column; gap: 6px; }
-      .repo a { color: var(--accent); font-weight: 600; text-decoration: none; }
-      .repo a:hover { text-decoration: underline; }
-
-      .tags { display: inline-flex; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; color: rgba(148, 163, 184, 0.85); }
-      .tag-chip {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 4px 10px; border-radius: 999px;
-        background: rgba(56, 189, 248, 0.14);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        color: var(--accent);
-      }
-
-      .loading-state {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        padding: 28px 18px;
-        color: rgba(148, 163, 184, 0.8);
-        font-size: 0.95rem;
-      }
-      .loading-state .spinner {
-        width: 16px; height: 16px; border-radius: 50%;
-        border: 2px solid rgba(148, 163, 184, 0.28);
-        border-top-color: var(--accent);
-        animation: spin 1s linear infinite;
-      }
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-      .footnote {
-        margin-top: clamp(22px, 4vw, 32px);
-        font-size: 0.85rem;
-        color: rgba(148, 163, 184, 0.85);
-        line-height: 1.6;
-      }
-
-      @media (max-width: 720px) {
-        main { padding-top: clamp(60px, 12vw, 72px); }
-        table, thead, tbody, th, td, tr { display: block; }
-        thead { display: none; }
-        tbody tr { border-bottom: 1px solid rgba(148, 163, 184, 0.18); padding: 18px 0; }
-        tbody tr:last-child { border-bottom: none; }
-        td { border: none; padding: 6px 0; }
-        td::before {
-          content: attr(data-label);
-          display: block;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          color: rgba(148, 163, 184, 0.72);
-          margin-bottom: 4px;
-          letter-spacing: 0.08em;
+      @media (max-width: 720px){
+        main{ padding-top:clamp(60px,12vw,72px); }
+        table, thead, tbody, th, td, tr{ display:block; }
+        thead{ display:none; }
+        tbody tr{ border-bottom:1px solid rgba(148,163,184,.18); padding:18px 0; }
+        tbody tr:last-child{ border-bottom:none; }
+        td{ border:none; padding:6px 0; }
+        td::before{
+          content:attr(data-label); display:block; font-size:.75rem; text-transform:uppercase;
+          color:rgba(148,163,184,.72); margin-bottom:4px; letter-spacing:.08em;
         }
-        .repo { gap: 4px; }
+        .repo{ gap:4px; }
       }
     </style>
   </head>
   <body>
     <main>
       <div class="top-bar">
-        <button type="button" class="lang-toggle" data-lang-toggle aria-label="Switch language">
+        <button type="button" class="chip-btn" data-kind="lang" data-lang-toggle aria-label="Switch language">
           <span data-lang-code="en" data-active="true">EN</span> / <span data-lang-code="zh-HK">繁</span>
         </button>
+        <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
       </div>
 
       <header>
@@ -262,10 +169,10 @@
     </main>
 
     <script>
+      /* ===== i18n strings ===== */
       const LOCALE_STORAGE_KEY = 'ideaHubLocale';
       const DEFAULT_LOCALE = 'en';
       const SUPPORTED_LOCALES = ['en', 'zh-HK'];
-
       const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
 
       const translations = {
@@ -315,6 +222,7 @@
       const maxRows = 5;
 
       const langToggle = document.querySelector('[data-lang-toggle]');
+      const tokenBtn = document.getElementById('tokenBtn');
       const resultsBody = document.querySelector('[data-results]');
       const weekRangeLabel = document.querySelector('[data-week-range]');
       const lastUpdatedLabel = document.querySelector('[data-last-updated]');
@@ -323,86 +231,98 @@
       let cachedResults = [];
       let dataLoaded = false;
 
-      function getStoredLocale() {
+      /* ===== Token helpers (安全處理，不硬編) ===== */
+      const TOKEN_KEYS = ['GITHUB_PAT_SESSION', 'GITHUB_PAT_LOCAL'];
+
+      // 1) 若 URL 有 ?token=...，存到 sessionStorage，並清走 URL
+      (function captureTokenFromURL(){
+        const params = new URLSearchParams(location.search);
+        const t = params.get('token');
+        if (t) {
+          try { sessionStorage.setItem(TOKEN_KEYS[0], t); } catch {}
+          // 立即移除 URL 上的 token 以免外洩
+          const clean = location.pathname + location.hash;
+          history.replaceState({}, '', clean);
+        }
+      })();
+
+      function getAuthToken(){
+        return sessionStorage.getItem(TOKEN_KEYS[0]) || localStorage.getItem(TOKEN_KEYS[1]) || null;
+      }
+      function setAuthTokenLocal(t){
+        if (t) { localStorage.setItem(TOKEN_KEYS[1], t); }
+        else   { localStorage.removeItem(TOKEN_KEYS[1]); }
+      }
+
+      /* ===== i18n render ===== */
+      function getStoredLocale(){
         const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
         return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
       }
-      function persistLocale(locale) { localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
-      function applyLocaleToDocument(locale) { document.documentElement.lang = localeFallbacks[locale] || 'en'; }
-      function updateToggleVisual(locale) {
+      function persistLocale(locale){ localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
+      function applyLocaleToDocument(locale){ document.documentElement.lang = localeFallbacks[locale] || 'en'; }
+      function updateToggleVisual(locale){
         langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
         langToggle?.querySelectorAll('span').forEach((span) => {
-          const spanLocale = span.dataset.langCode;
-          span.dataset.active = spanLocale === locale;
+          span.dataset.active = (span.dataset.langCode === locale) ? 'true' : 'false';
         });
       }
-
-      function formatDate(date, options = {}) {
-        return new Intl.DateTimeFormat(localeFallbacks[currentLocale] || 'en', {
-          day: 'numeric', month: 'short', year: 'numeric', ...options,
-        }).format(date);
-      }
-      function formatCompact(number) {
-        return new Intl.NumberFormat(localeFallbacks[currentLocale] || 'en', {
-          notation: 'compact', maximumFractionDigits: 1,
-        }).format(number);
-      }
-      function formatTag(label) {
-        return label.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
-      }
-
-      function renderStaticCopy() {
+      function renderStaticCopy(){
         Object.entries(translations[currentLocale]).forEach(([key, value]) => {
           document.querySelectorAll(`[data-i18n="${key}"]`).forEach((node) => {
             if (key === 'footnote') node.innerHTML = value; else node.textContent = value;
           });
         });
       }
-
-      function renderMetaDates() {
+      function formatDate(date, options = {}){
+        return new Intl.DateTimeFormat(localeFallbacks[currentLocale] || 'en',
+          { day:'numeric', month:'short', year:'numeric', ...options }).format(date);
+      }
+      function formatCompact(n){
+        return new Intl.NumberFormat(localeFallbacks[currentLocale] || 'en',
+          { notation:'compact', maximumFractionDigits:1 }).format(n);
+      }
+      function formatTag(label){
+        return label.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase());
+      }
+      function renderMetaDates(){
         const now = new Date();
-        const since = new Date(now);
-        since.setDate(since.getDate() - 7);
-
-        if (weekRangeLabel) {
-          const from = formatDate(since, { day: 'numeric', month: 'short' });
-          const to = formatDate(now, { day: 'numeric', month: 'short', year: 'numeric' });
+        const since = new Date(now); since.setDate(since.getDate() - 7);
+        if (weekRangeLabel){
+          const from = formatDate(since, { day:'numeric', month:'short' });
+          const to = formatDate(now,   { day:'numeric', month:'short', year:'numeric' });
           weekRangeLabel.textContent = `${from} – ${to}`;
         }
-        if (lastUpdatedLabel) {
-          const formattedNow = formatDate(now, { day: 'numeric', month: 'short', year: 'numeric' });
-          lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formattedNow}`;
+        if (lastUpdatedLabel){
+          lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(), { day:'numeric', month:'short', year:'numeric' })}`;
         }
       }
 
-      function showLoading() {
+      /* ===== UI states ===== */
+      function showLoading(){
         resultsBody.innerHTML = `
-          <tr>
-            <td colspan="3">
-              <div class="loading-state" role="status">
-                <span class="spinner" aria-hidden="true"></span>
-                <span>${translations[currentLocale].loading}</span>
-              </div>
-            </td>
-          </tr>`;
+          <tr><td colspan="3">
+            <div class="loading-state" role="status">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>${translations[currentLocale].loading}</span>
+            </div>
+          </td></tr>`;
+      }
+      function showError(messageKey){
+        const msg = (messageKey === 'noResults') ? translations[currentLocale].noResults : translations[currentLocale].genericError;
+        resultsBody.innerHTML = `
+          <tr><td colspan="3">
+            <div class="loading-state"><span aria-hidden="true">⚠️</span><span>${msg}</span></div>
+          </td></tr>`;
       }
 
-      function showError(messageKey) {
-        const message = messageKey === 'noResults'
-          ? translations[currentLocale].noResults
-          : translations[currentLocale].genericError;
-        resultsBody.innerHTML = `
-          <tr>
-            <td colspan="3">
-              <div class="loading-state">
-                <span aria-hidden="true">⚠️</span>
-                <span>${message}</span>
-              </div>
-            </td>
-          </tr>`;
+      /* ===== GitHub search ===== */
+      function repoIsRelevant(repo){
+        const haystack = [repo.name, repo.full_name, repo.description || '', ...(repo.topics || [])].join(' ').toLowerCase();
+        return keywords.some(k => haystack.includes(k));
       }
 
-      function createRow(repo) {
+      function createRow(repo){
         const tr = document.createElement('tr');
 
         const repoCell = document.createElement('td');
@@ -412,76 +332,56 @@
             <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
             <div class="tags"></div>
           </div>`;
-
-        const tagsContainer = repoCell.querySelector('.tags');
+        const tags = repoCell.querySelector('.tags');
         const tagSet = new Set();
-        const topics = repo.topics || [];
-        topics.forEach((topic) => { if (tagSet.size < 3) tagSet.add(formatTag(topic)); });
-        if (tagSet.size === 0) {
+        (repo.topics || []).forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
+        if (!tagSet.size){
           const fallback = repo.language ? [repo.language] : [];
-          [...fallback, 'AI', 'LLM'].forEach((item) => { if (tagSet.size < 3) tagSet.add(formatTag(item)); });
+          [...fallback, 'AI', 'LLM'].forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
         }
-        tagSet.forEach((tag) => {
-          const span = document.createElement('span');
-          span.className = 'tag-chip';
-          span.textContent = tag;
-          tagsContainer.appendChild(span);
-        });
+        tagSet.forEach(t => { const s = document.createElement('span'); s.className='tag-chip'; s.textContent=t; tags.appendChild(s); });
 
-        const highlightsCell = document.createElement('td');
-        highlightsCell.dataset.label = translations[currentLocale].thHighlights;
-        const description = repo.description ? repo.description.trim() : translations[currentLocale].noDescription;
-        highlightsCell.textContent = description;
+        const hi = document.createElement('td');
+        hi.dataset.label = translations[currentLocale].thHighlights;
+        hi.textContent = repo.description ? repo.description.trim() : translations[currentLocale].noDescription;
 
-        const starsCell = document.createElement('td');
-        starsCell.dataset.label = translations[currentLocale].thStars;
-        starsCell.textContent = `+${formatCompact(repo.stargazers_count)}`;
+        const stars = document.createElement('td');
+        stars.dataset.label = translations[currentLocale].thStars;
+        stars.textContent = `+${formatCompact(repo.stargazers_count)}`;
 
-        tr.append(repoCell, highlightsCell, starsCell);
+        tr.append(repoCell, hi, stars);
         return tr;
       }
 
-      async function fetchQuery(query) {
-        const searchParams = new URLSearchParams({ q: query, sort: 'stars', order: 'desc', per_page: '20' });
-        const token = new URLSearchParams(window.location.search).get('token');
+      async function fetchQuery(query){
+        const params = new URLSearchParams({ q: query, sort: 'stars', order: 'desc', per_page: '20' });
         const headers = { Accept: 'application/vnd.github+json' };
+        const token = getAuthToken();
         if (token) headers.Authorization = `Bearer ${token}`;
-        const response = await fetch(`https://api.github.com/search/repositories?${searchParams}`, { headers });
-        if (!response.ok) throw new Error(`GitHub API error (${response.status})`);
-        const payload = await response.json();
+        const res = await fetch(`https://api.github.com/search/repositories?${params}`, { headers });
+        if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
+        const payload = await res.json();
         return payload.items || [];
       }
 
-      function repoIsRelevant(repo) {
-        const haystack = [repo.name, repo.full_name, repo.description || '', ...(repo.topics || [])]
-          .join(' ').toLowerCase();
-        return keywords.some((k) => haystack.includes(k));
-      }
+      let currentQueries = [];
+      async function loadWeeklyStars(){
+        const now = new Date(); const since = new Date(now); since.setDate(since.getDate() - 7);
+        const sinceIso = since.toISOString().slice(0,10);
 
-      function renderResults() {
-        if (!cachedResults.length) { dataLoaded ? showError('noResults') : showLoading(); return; }
-        resultsBody.innerHTML = '';
-        cachedResults.forEach((repo) => resultsBody.appendChild(createRow(repo)));
-      }
-
-      async function loadWeeklyStars() {
-        const now = new Date();
-        const since = new Date(now);
-        since.setDate(since.getDate() - 7);
-        const sinceIso = since.toISOString().slice(0, 10);
-
-        const queries = [
+        // 你可以按需要調整條件（星數 / 關鍵字）
+        currentQueries = [
           `created:>=${sinceIso}+stars:>=20+llm+in:name,description,readme`,
           `created:>=${sinceIso}+stars:>=20+ai+agent+in:name,description,readme`,
         ];
 
         const results = new Map();
-        for (const q of queries) {
-          try {
+        for (const q of currentQueries){
+          try{
             const repos = await fetchQuery(q);
-            repos.forEach((repo) => { if (!results.has(repo.id)) results.set(repo.id, repo); });
-          } catch (err) {
-            console.error(err);
+            repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
+          }catch(e){
+            console.error(e);
             dataLoaded = true;
             showError('genericError');
             return;
@@ -490,14 +390,18 @@
 
         cachedResults = Array.from(results.values())
           .filter(repoIsRelevant)
-          .sort((a, b) => b.stargazers_count - a.stargazers_count)
+          .sort((a,b) => b.stargazers_count - a.stargazers_count)
           .slice(0, maxRows);
 
         dataLoaded = true;
-        renderResults();
+        if (!cachedResults.length) showError('noResults'); else {
+          resultsBody.innerHTML = '';
+          cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+        }
       }
 
-      function setLocale(locale, { rerenderOnly = false } = {}) {
+      /* ===== init & events ===== */
+      function setLocale(locale, { rerenderOnly=false }={}){
         currentLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
         persistLocale(currentLocale);
         applyLocaleToDocument(currentLocale);
@@ -505,10 +409,17 @@
         renderStaticCopy();
         document.title = translations[currentLocale].pageTitle;
         renderMetaDates();
-        if (rerenderOnly) renderResults();
+        if (rerenderOnly){
+          if (cachedResults.length){
+            resultsBody.innerHTML = '';
+            cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+          } else {
+            showLoading();
+          }
+        }
       }
 
-      async function init() {
+      async function init(){
         currentLocale = getStoredLocale();
         setLocale(currentLocale);
         showLoading();
@@ -516,9 +427,27 @@
         renderMetaDates();
       }
 
-      document.querySelector('[data-lang-toggle]')?.addEventListener('click', () => {
-        const nextLocale = currentLocale === 'en' ? 'zh-HK' : 'en';
-        setLocale(nextLocale, { rerenderOnly: true });
+      langToggle?.addEventListener('click', () => {
+        const next = currentLocale === 'en' ? 'zh-HK' : 'en';
+        setLocale(next, { rerenderOnly: true });
+      });
+
+      // Token 按鈕：輸入／刪除個人 token（只存本機，不會提交到 GitHub）
+      tokenBtn?.addEventListener('click', () => {
+        const existing = getAuthToken() || '';
+        const t = prompt('Paste your GitHub token (stored locally). Leave blank to remove.\n本機儲存，不會上傳到伺服器。', existing);
+        if (t === null) return;
+        const trimmed = t.trim();
+        if (trimmed){
+          try { setAuthTokenLocal(trimmed); alert('Saved locally. 將使用較高 API 配額。'); } catch { alert('Failed to save locally.'); }
+        } else {
+          setAuthTokenLocal('');
+          try { sessionStorage.removeItem('GITHUB_PAT_SESSION'); } catch {}
+          alert('Token removed.');
+        }
+        // 重新載入數據（如果之前 hit rate limit，現在可再試）
+        dataLoaded = false; cachedResults = [];
+        showLoading(); loadWeeklyStars();
       });
 
       init();
