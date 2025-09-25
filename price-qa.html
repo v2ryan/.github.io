@@ -25,12 +25,14 @@
   <button id="clearBtn" onclick="clearQuery()" class="dim">Clear</button>
 </div>
 <div id="status">Loading data…</div>
+<div id="summary" style="margin-top:.5rem;font-size:.9rem;color:#222;background:#eef6ff;padding:.6rem .75rem;border:1px solid #c3e1ff;border-radius:6px;display:none"></div>
 <pre id="result">(No results yet)</pre>
 
 <script>
 let rows = [];
 let loaded = false;
 let lastQuery = '';
+const BRAND_MAP = { '1.6':'NULUX (manual)', '1.67':'NULUX (manual)' };// edit as needed
 
 const questionEl = document.getElementById('question');
 const statusEl = document.getElementById('status');
@@ -61,6 +63,34 @@ function formatRow(r){
   const star = r.starred ? '*' : '';
   return `${r.series||''} ${r.subseries||''} ${r.index||''} - ${r.coating||''}${star}: HK$${r.price_hkd} /片${r.overseas ? ' (海外訂鏡)' : ''}〔${r.source_file} p.${r.page}，生效日 ${r.effective_date || '未知'}〕`;
 }
+function summarize(indexToken, matched){
+  if(!indexToken) return '';
+  const brand = BRAND_MAP[indexToken] || 'UNKNOWN BRAND';
+  // group by coating label
+  const byCoating = new Map();
+  matched.filter(r=>r.index===indexToken).forEach(r=>{
+    const key = r.coating;
+    const arr = byCoating.get(key) || [];
+    arr.push(r);
+    byCoating.set(key, arr);
+  });
+  const rowsSumm = [...byCoating.entries()].map(([coating, list])=>{
+    const prices = list.map(x=>x.price_hkd);
+    prices.sort((a,b)=>a-b);
+    const min = prices[0];
+    const max = prices[prices.length-1];
+    const starCount = list.filter(x=>x.starred).length;
+    const starFlag = starCount ? ` *${starCount}`: '';
+    return { coating, min, max, count: list.length, starFlag };
+  }).sort((a,b)=>a.min-b.min);
+  if(!rowsSumm.length) return '';
+  const lines = rowsSumm.map(r=>{
+    const range = r.min===r.max ? r.min : `${r.min}-${r.max}`;
+    return `${r.coating.padEnd(12,' ')} HK$${range}${r.starFlag}`;
+  });
+  return `Summary for ${brand} index ${indexToken} (prices per piece)\n` + lines.join('\n');
+}
+
 function search(){
   if(!loaded){ statusEl.textContent='Data not yet loaded…'; return; }
   const q=questionEl.value;
@@ -80,7 +110,16 @@ function search(){
   let status = `Matched ${matched.length} / ${rows.length} records`;
   if(skippedTokens.length) status += ` (ignored: ${skippedTokens.join(', ')})`;
   statusEl.textContent = status;
-  if(matched.length===0){ resultEl.textContent='No matching data'; return; }
+  if(matched.length===0){ resultEl.textContent='No matching data'; summary.style.display='none'; return; }
+  // try to detect first numeric token as index for summary
+  const firstIndexTok = usedTokens.find(t=>/^\d+(?:\.\d+)?$/.test(t));
+  const summaryHtml = summarize(firstIndexTok, matched);
+  if(summaryHtml){
+    summary.textContent = summaryHtml;
+    summary.style.display='block';
+  } else {
+    summary.style.display='none';
+  }
   const tokensLower=usedTokens.map(t=>t.toLowerCase());
   resultEl.innerHTML = matched.map(r=>highlight(formatRow(r), tokensLower)).join('\n');
 }
