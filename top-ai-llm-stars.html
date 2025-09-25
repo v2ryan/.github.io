@@ -118,6 +118,10 @@
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
       </div>
+      <div style="margin-bottom: 24px; display: flex; gap: 12px; align-items: center;">
+        <input id="topicInput" type="text" placeholder="Enter topic (e.g. llm, ai, agent)" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text); font-size: 1rem; width: 260px;" />
+        <button id="searchBtn" style="padding: 8px 18px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-size: 1rem;">Search</button>
+      </div>
 
       <header>
         <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -218,7 +222,7 @@
     },
   };
 
-  const keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
+  let keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
   const maxRows = 5;
 
   const langToggle = document.querySelector('[data-lang-toggle]');
@@ -399,57 +403,50 @@
 
   let lastApiErrorText = '';
 
-  async function loadWeeklyStars(){
-    // 自動擴闊時間窗：7 → 14 → 30 天
-    const dayWindows = [7, 14, 30];
-    const minStars = 20; // 你可改為 5 以增加命中率
-
+  async function loadWeeklyStars(topic = null){
+    // Use 30 days window for monthly search
+    const days = 30;
+    const minStars = 5;
     const results = new Map();
+    const now = new Date();
+    const since = new Date(now); since.setDate(since.getDate() - days);
+    const sinceIso = since.toISOString().slice(0,10);
 
-    for (const days of dayWindows){
-      const now = new Date();
-      const since = new Date(now); since.setDate(since.getDate() - days);
-      const sinceIso = since.toISOString().slice(0,10);
+    let searchKeywords = topic ? [topic] : keywords;
+    let queries = searchKeywords.map(k => `created:>=${sinceIso}+stars:>=${minStars}+(${k}) in:name,description,readme`);
 
-      const queries = [
-        `created:>=${sinceIso}+stars:>=${minStars}+(llm) in:name,description,readme`,
-        `created:>=${sinceIso}+stars:>=${minStars}+(ai agent) in:name,description,readme`,
-      ];
-
-      results.clear();
-      // 優先用 token，失敗時自動用匿名再試
-      for (const q of queries){
+    results.clear();
+    for (const q of queries){
+      try{
+        const repos = await fetchQuery(q, {useAuth:true});
+        repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
+      }catch(eAuth){
+        console.warn('Auth search failed:', eAuth);
+        lastApiErrorText = eAuth.message || String(eAuth);
         try{
-          const repos = await fetchQuery(q, {useAuth:true});
+          const repos = await fetchQuery(q, {useAuth:false});
           repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
-        }catch(eAuth){
-          console.warn('Auth search failed:', eAuth);
-          lastApiErrorText = eAuth.message || String(eAuth);
-          try{
-            const repos = await fetchQuery(q, {useAuth:false});
-            repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
-          }catch(eAnon){
-            console.warn('Anon search also failed:', eAnon);
-            lastApiErrorText = eAnon.message || String(eAnon);
-          }
+        }catch(eAnon){
+          console.warn('Anon search also failed:', eAnon);
+          lastApiErrorText = eAnon.message || String(eAnon);
         }
       }
+    }
 
-      const arr = Array.from(results.values())
-        .filter(repoIsRelevant)
-        .sort((a,b) => b.stargazers_count - a.stargazers_count);
+    const arr = Array.from(results.values())
+      .filter(repoIsRelevant)
+      .sort((a,b) => b.stargazers_count - a.stargazers_count);
 
-      if (arr.length){
-        cachedResults = arr.slice(0, maxRows);
-        break; // 已有結果，停止擴窗
-      }
+    if (arr.length){
+      cachedResults = arr.slice(0, maxRows);
+    } else {
+      cachedResults = [];
     }
 
     dataLoaded = true;
     if (!cachedResults.length){
       showError('noResults');
       if (lastApiErrorText){
-        // 額外把 API 錯誤顯示出嚟，方便你判斷（如 401/403）
         const extra = document.createElement('div');
         extra.className = 'loading-state';
         extra.innerHTML = `<span aria-hidden="true">🪪</span><span>${lastApiErrorText}</span>`;
@@ -495,6 +492,26 @@
 
     await loadWeeklyStars();
     renderMetaDates();
+
+    // Add topic search event
+    const topicInput = document.getElementById('topicInput');
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn && topicInput) {
+      searchBtn.addEventListener('click', async () => {
+        const topic = topicInput.value.trim();
+        showLoading();
+        await loadWeeklyStars(topic || null);
+        renderMetaDates();
+      });
+      topicInput.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+          const topic = topicInput.value.trim();
+          showLoading();
+          await loadWeeklyStars(topic || null);
+          renderMetaDates();
+        }
+      });
+    }
   }
 
   langToggle?.addEventListener('click', () => {
