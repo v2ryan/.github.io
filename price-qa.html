@@ -23,22 +23,51 @@
   <input id="question" placeholder="輸入關鍵字 (例: 1.6 NULUX 藍光 海外)" size="50" />
   <button id="searchBtn" onclick="search()">Search</button>
   <button id="clearBtn" onclick="clearQuery()" class="dim">Clear</button>
+  <button id="configBtn" type="button" title="設定/編輯鏡片類型名稱" style="background:#eef;border:1px solid #ccd;">⚙</button>
 </div>
 <div id="status">Loading data…</div>
 <div id="summary" style="margin-top:.5rem;font-size:.9rem;color:#222;background:#eef6ff;padding:.6rem .75rem;border:1px solid #c3e1ff;border-radius:6px;display:none"></div>
 <pre id="result">(No results yet)</pre>
 
+<dialog id="configDialog" style="max-width:520px;width:95%;border:1px solid #aac;background:#fff;padding:1rem;border-radius:10px;">
+  <form method="dialog" style="margin:0;display:flex;flex-direction:column;gap:.75rem;">
+    <h3 style="margin:.2rem 0 .2rem;font-size:1.05rem;">鏡片 coating 對應設定 (variant → 名稱)</h3>
+    <p style="margin:0;font-size:.7rem;line-height:1.35;color:#444;">
+      左列自動偵測的 <code>variant1..N</code> 可以在此改成實際名稱（例如 UV CONTROL / FULL CONTROL / CLEAR / SENSITY2 ...）。
+      只儲存在本機瀏覽器（localStorage）。關閉視窗後自動重新整理結果。
+    </p>
+    <div id="mappingFields" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.55rem;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+      <label style="font-size:.65rem;color:#333;display:flex;align-items:center;gap:.3rem;">
+        <input type="checkbox" id="applyAllIndexes" checked /> 套用到所有折射率 (index)
+      </label>
+      <div style="display:flex;gap:.5rem;">
+        <button type="button" id="resetMapping" style="background:#fee;border:1px solid #f99;">重置</button>
+        <button value="cancel" style="background:#eee;">關閉</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
 <script>
 let rows = [];
 let loaded = false;
 let lastQuery = '';
-const BRAND_MAP = { '1.6':'NULUX (manual)', '1.67':'NULUX (manual)' };// edit as needed
+const BRAND_MAP = { '1.6':'NULUX', '1.67':'NULUX' }; // 可自行調整
+const DEFAULT_VARIANT_LABELS = ['UV CONTROL','FULL CONTROL','CLEAR','SENSITY2','SENSITY2 SHINE','POLARIZED'];
+const STORAGE_KEY_MAPPING = 'priceQaVariantMappingV1';
+let variantMapping = loadVariantMapping();
 
 const questionEl = document.getElementById('question');
 const statusEl = document.getElementById('status');
 const resultEl = document.getElementById('result');
 const searchBtn = document.getElementById('searchBtn');
 const clearBtn = document.getElementById('clearBtn');
+const configBtn = document.getElementById('configBtn');
+const configDialog = document.getElementById('configDialog');
+const mappingFields = document.getElementById('mappingFields');
+const applyAllIndexesEl = document.getElementById('applyAllIndexes');
+const resetMappingBtn = document.getElementById('resetMapping');
 
 // Load data
 fetch('prices.json', { cache: 'no-store' })
@@ -61,15 +90,52 @@ function matchRow(row, tokens){
 }
 function formatRow(r){
   const star = r.starred ? '*' : '';
-  return `${r.series||''} ${r.subseries||''} ${r.index||''} - ${r.coating||''}${star}: HK$${r.price_hkd} /片${r.overseas ? ' (海外訂鏡)' : ''}〔${r.source_file} p.${r.page}，生效日 ${r.effective_date || '未知'}〕`;
+  const mapped = mapVariantName(r.index, r.coating);
+  return `${r.series||''} ${r.subseries||''} ${r.index||''} - ${mapped}${star}: HK$${r.price_hkd} /片${r.overseas ? ' (海外訂鏡)' : ''}〔${r.source_file} p.${r.page}，生效日 ${r.effective_date || '未知'}〕`;
 }
+function loadVariantMapping(){
+  try { const raw = localStorage.getItem(STORAGE_KEY_MAPPING); if(!raw) return { '*': DEFAULT_VARIANT_LABELS.slice() }; const obj = JSON.parse(raw); if(!obj['*']) obj['*']=DEFAULT_VARIANT_LABELS.slice(); return obj; } catch(e){ return { '*': DEFAULT_VARIANT_LABELS.slice() }; }
+}
+function saveVariantMapping(){ localStorage.setItem(STORAGE_KEY_MAPPING, JSON.stringify(variantMapping)); }
+function getLabelsForIndex(index){ return (variantMapping[index] && variantMapping[index].length)? variantMapping[index] : variantMapping['*']; }
+function mapVariantName(index, coating){ const m = coating.match(/^variant(\d+)$/); if(!m) return coating; const labels = getLabelsForIndex(index); const idx = parseInt(m[1])-1; return labels[idx] || coating; }
+function openConfig(){
+  // 找出最大的 variant 數量
+  const maxVar = Math.max(...rows.map(r=>{ const m=r.coating.match(/^variant(\d+)$/); return m? parseInt(m[1]):1; }), 6);
+  mappingFields.innerHTML='';
+  const labels = getLabelsForIndex('*');
+  for(let i=1;i<=maxVar;i++){
+    const wrap=document.createElement('label');
+    wrap.style.display='flex';wrap.style.flexDirection='column';wrap.style.fontSize='.6rem';
+    wrap.textContent=`variant${i}`;
+    const input=document.createElement('input');
+    input.style.padding='.35rem';input.style.fontSize='.75rem';
+    input.value= labels[i-1] || `Coating ${i}`;
+    input.dataset.variantIndex=String(i-1);
+    wrap.appendChild(input);
+    mappingFields.appendChild(wrap);
+  }
+  if(configDialog.showModal) configDialog.showModal(); else configDialog.style.display='block';
+}
+configBtn.addEventListener('click', openConfig);
+resetMappingBtn.addEventListener('click', ()=>{ variantMapping={ '*': DEFAULT_VARIANT_LABELS.slice() }; saveVariantMapping(); search(); });
+configDialog.addEventListener('close', ()=>{
+  const inputs = mappingFields.querySelectorAll('input[data-variant-index]');
+  const arr=[]; inputs.forEach(inp=>{ const i=parseInt(inp.dataset.variantIndex||'0'); arr[i]= inp.value.trim() || `Coating ${i+1}`; });
+  if(applyAllIndexesEl.checked) variantMapping['*']=arr; else {
+    const idxTok = (lastQuery.split(/\s+/).find(t=>/^\d+(?:\.\d+)?$/.test(t))) || '*';
+    variantMapping[idxTok]=arr;
+  }
+  saveVariantMapping();
+  search();
+});
 function summarize(indexToken, matched){
   if(!indexToken) return '';
   const brand = BRAND_MAP[indexToken] || 'UNKNOWN BRAND';
   // group by coating label
   const byCoating = new Map();
   matched.filter(r=>r.index===indexToken).forEach(r=>{
-    const key = r.coating;
+    const key = mapVariantName(r.index, r.coating);
     const arr = byCoating.get(key) || [];
     arr.push(r);
     byCoating.set(key, arr);
@@ -88,7 +154,7 @@ function summarize(indexToken, matched){
     const range = r.min===r.max ? r.min : `${r.min}-${r.max}`;
     return `${r.coating.padEnd(12,' ')} HK$${range}${r.starFlag}`;
   });
-  return `Summary for ${brand} index ${indexToken} (prices per piece)\n` + lines.join('\n');
+  return `${brand} ${indexToken} 摘要 (每片)\n` + lines.join('\n');
 }
 
 function search(){
