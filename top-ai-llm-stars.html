@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Top LLM &amp; AI GitHub Stars (Weekly)</title>
+  <title>Top LLM &amp; AI GitHub Stars (Monthly)</title>
     <style>
       :root {
         color-scheme: dark;
@@ -91,11 +91,20 @@
       h1{ margin:0; font-size:clamp(2rem,4.8vw,2.6rem); font-weight:700; }
       .lead{ margin:0; font-size:1rem; color:var(--text-soft); line-height:1.6; max-width:680px; }
 
-      .snapshot-meta{ display:flex; flex-wrap:wrap; gap:12px; margin:clamp(16px,3vw,24px) 0; font-size:.86rem; color:rgba(148,163,184,.85); }
+      .snapshot-meta{ display:flex; flex-wrap:wrap; gap:12px; margin:clamp(16px,3vw,24px) 0; font-size:.86rem; color:rgba(148,163,184,.85); align-items:center; }
       .snapshot-meta span{
         display:inline-flex; align-items:center; gap:6px; background:rgba(15,23,42,.68);
         border-radius:999px; padding:6px 12px; border:1px solid rgba(148,163,184,.24);
       }
+      .snapshot-meta select, .snapshot-meta button.export-btn { background:rgba(15,23,42,.68); color:var(--text); border:1px solid rgba(148,163,184,.24); border-radius:999px; padding:6px 12px; font:inherit; font-size:.75rem; cursor:pointer; }
+      .snapshot-meta button.export-btn:hover, .snapshot-meta select:hover { border-color:rgba(56,189,248,.55); }
+      .mode-badge{ background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid rgba(56,189,248,.4)!important; color:var(--accent); font-weight:600; }
+      .delta{ font-size:.7rem; margin-left:6px; font-weight:600; }
+      .delta.pos{ color:#10b981; }
+      .delta.neg{ color:#f87171; }
+      .hot-topics{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 16px 0; }
+      .hot-topics .hot-btn{ background:rgba(56,189,248,.14); border:1px solid rgba(56,189,248,.35); color:var(--accent); padding:6px 14px; border-radius:999px; font-size:.7rem; cursor:pointer; font-weight:600; letter-spacing:.05em; }
+      .hot-topics .hot-btn:hover{ background:rgba(56,189,248,.24); }
 
       table{ width:100%; border-collapse:collapse; background:rgba(15,23,42,.7); border-radius:22px; overflow:hidden; border:1px solid rgba(148,163,184,.26); }
       thead{ background:rgba(15,23,42,.9); }
@@ -156,6 +165,7 @@
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
         <button type="button" class="chip-btn" id="translateDynBtn" title="Toggle dynamic description translation (試驗)">翻譯</button>
+        <button type="button" class="chip-btn" id="modeBadge" title="Toggle mode: auto → live → static">Mode: auto</button>
       </div>
       <div class="saved-topics" aria-label="Saved topics section">
         <div class="st-header">
@@ -165,18 +175,11 @@
         </div>
         <div id="topicChips" class="topic-chips" aria-live="polite"></div>
       </div>
+      <div class="hot-topics" aria-label="Hot topics quick access" id="hotTopicsBar"></div>
       <div class="filters" aria-label="Search & filters">
         <div class="field" style="flex:2 1 180px;">
           <label for="topicInput">Topic / Keyword</label>
           <input id="topicInput" type="text" placeholder="e.g. llm, ai, agent, python" />
-        </div>
-        <div class="field">
-          <label for="startDate">Start Date</label>
-          <input id="startDate" type="date" />
-        </div>
-        <div class="field">
-          <label for="endDate">End Date</label>
-          <input id="endDate" type="date" />
         </div>
         <div class="field" style="width:90px;">
           <label for="minStars">Min Stars</label>
@@ -211,9 +214,17 @@
           what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.
         </p>
         <div class="snapshot-meta" aria-live="polite">
-          <span data-week-range>Rolling 7-day window</span>
+          <span data-week-range>Rolling 30-day window</span>
           <span data-i18n="metaSource">Source: GitHub Search API</span>
           <span data-last-updated>Last refreshed: —</span>
+          
+          <span id="queriesSaved" title="Estimated GitHub API searches avoided.">Queries saved: —</span>
+          <label style="display:inline-flex; align-items:center; gap:6px;">
+            <span style="font-size:.7rem; opacity:.7;">Snapshot:</span>
+            <select id="snapshotSelect"><option value="">latest</option></select>
+          </label>
+          <button class="export-btn" id="exportJson" title="Export current rows as JSON">Export JSON</button>
+          <button class="export-btn" id="exportCsv" title="Export current rows as CSV">Export CSV</button>
         </div>
       </header>
 
@@ -238,10 +249,9 @@
       </table>
 
       <p class="footnote" data-i18n="footnote">
-        Data refreshes automatically on page load using the public GitHub Search API with a rolling 7-day window. Star
-        counts reflect each repository's total stars since creation during that window and are recalculated daily. If the
-        API rate limit is reached, try again in a few minutes or supply a personal access token in the query string with
-        <code>?token=&lt;your-token&gt;</code>.
+        Data refreshes automatically on page load using the public GitHub Search API with a rolling 30-day window (or pre-generated static snapshots). Star
+        counts reflect each repository's total stars. If the API rate limit is reached, try again later or supply a personal access token in the query string with
+        <code>?token=&lt;your-token&gt;</code>. Use the mode toggle to force live or static.
       </p>
 
       <noscript>
@@ -251,6 +261,7 @@
 
 <script>
   /* ===== i18n strings ===== */
+  // Added monthly mode, snapshot history, export, star delta, queries saved, hot topics
   const LOCALE_STORAGE_KEY = 'ideaHubLocale';
   const DEFAULT_LOCALE = 'en';
   const SUPPORTED_LOCALES = ['en', 'zh-HK'];
@@ -258,13 +269,13 @@
 
   const translations = {
     en: {
-      pageTitle: 'Top LLM & AI GitHub Stars (Weekly)',
+  pageTitle: 'Top LLM & AI GitHub Stars (Monthly)',
       toggleAria: 'Switch to Traditional Chinese',
       breadcrumbHome: '← Back to Idea Hub',
-      breadcrumbCurrent: 'Weekly snapshot',
-      heroTitle: 'Top LLM & AI GitHub Stars',
+      breadcrumbCurrent: 'Monthly snapshot',
+      heroTitle: 'Top LLM & AI GitHub Stars (30 Day)',
       heroLead:
-        'A curated snapshot of the fastest-growing AI and LLM repositories on GitHub this week. Use it to catch up on what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.',
+        'A curated snapshot of the fastest-growing AI and LLM repositories on GitHub over the last 30 days. Use it to catch up on what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.',
       metaSource: 'Source: GitHub Search API',
       metaUpdatedPrefix: 'Last refreshed: ',
       thRepository: 'Repository',
@@ -275,16 +286,16 @@
       genericError: 'Something went wrong. Please try again later.',
       noDescription: 'No description provided.',
       footnote:
-        "Data refreshes automatically on page load using the public GitHub Search API with a rolling 7-day window. Star counts reflect each repository's total stars since creation during that window and are recalculated daily. If the API rate limit is reached, try again in a few minutes or supply a personal access token in the query string with <code>?token=&lt;your-token&gt;</code>.",
+        "Data refreshes automatically (live) or via static pre-generated snapshots using a rolling 30-day window. If the API rate limit is reached, supply a token with <code>?token=&lt;your-token&gt;</code>.",
     },
     'zh-HK': {
       pageTitle: '每週 LLM 與 AI GitHub 星標排行榜',
       toggleAria: '切換至英文',
       breadcrumbHome: '← 返回 Idea Hub',
-      breadcrumbCurrent: '每週快照',
-      heroTitle: '每週 LLM 與 AI GitHub 星標排行榜',
+      breadcrumbCurrent: '30 日快照',
+      heroTitle: '30 日 LLM 與 AI GitHub 星標排行榜',
       heroLead:
-        '每週整理 GitHub 上成長最快的 AI 與 LLM 儲存庫，用來追蹤社群焦點、評估新工具，或為你的專案找靈感。',
+        '整理過去 30 日內成長最快的 AI 與 LLM 儲存庫，用來追蹤社群焦點、評估新工具，或為你的專案找靈感。',
       metaSource: '資料來源：GitHub Search API',
       metaUpdatedPrefix: '最後更新：',
       thRepository: '儲存庫',
@@ -295,12 +306,16 @@
       genericError: '載入時發生問題，請稍後再試。',
       noDescription: '沒有提供描述。',
       footnote:
-        '重新整理頁面時會透過 GitHub Search API 自動更新，採用滾動 7 日視窗。星標數為儲存庫在該時段的累計總數，每日重新計算。若遇到 API 限制，可稍後再試，或於網址加上 <code>?token=&lt;your-token&gt;</code> 使用個人存取權杖。',
+        '頁面會即時或透過預先產生的靜態快照更新，採 30 日滾動視窗。若遇 API 限制，可於網址加上 <code>?token=&lt;your-token&gt;</code> 使用個人存取權杖。',
     },
   };
 
   let keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
   let maxRows = 5; // user adjustable
+  const HOT_TOPICS = ['llm','agent','rag','tts','voice'];
+  let forceMode = 'auto'; // auto | live | static
+  let previousStarsMap = {}; // from latest.json previous_stars
+  let queriesSavedEstimate = 0;
 
   const langToggle = document.querySelector('[data-lang-toggle]');
   const tokenBtn   = document.getElementById('tokenBtn');
@@ -512,36 +527,24 @@
 
   function getFilterValues(){
     const topic = (document.getElementById('topicInput')?.value || '').trim();
-    const start = (document.getElementById('startDate')?.value || '').trim();
-    const end = (document.getElementById('endDate')?.value || '').trim();
     const minStarsVal = parseInt(document.getElementById('minStars')?.value || '1', 10) || 0;
     const maxRowsSel = parseInt(document.getElementById('maxRowsSel')?.value || '5', 10) || 5;
-    return { topic, start, end, minStarsVal, maxRowsSel };
+    return { topic, minStarsVal, maxRowsSel };
   }
 
-  function normalizeDateInput(value){
-    if(!value) return null; // expect yyyy-mm-dd
-    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
-  }
+  function normalizeDateInput(value){ return null; }
 
   async function loadWeeklyStars(topicOverride = null){
-    const { topic, start, end, minStarsVal, maxRowsSel } = getFilterValues();
+    const { topic, minStarsVal, maxRowsSel } = getFilterValues();
     maxRows = maxRowsSel;
     const minStars = minStarsVal < 0 ? 0 : minStarsVal;
 
     // Determine date window (default: last 30 days)
     const today = new Date();
-    const endDate = normalizeDateInput(end) || today.toISOString().slice(0,10);
-    let startDate = normalizeDateInput(start);
-    if(!startDate){
-      const tmp = new Date(endDate + 'T00:00:00Z');
-      tmp.setDate(tmp.getDate() - 30);
-      startDate = tmp.toISOString().slice(0,10);
-    }
-    // Guard for reversed dates
-    if (startDate > endDate){
-      const t = startDate; startDate = endDate; /* swap */ startDate = t;
-    }
+    const endDate = today.toISOString().slice(0,10);
+    const tmp = new Date(endDate + 'T00:00:00Z');
+    tmp.setDate(tmp.getDate() - 30);
+    const startDate = tmp.toISOString().slice(0,10);
 
     const chosenTopic = topicOverride !== null ? topicOverride : topic;
     const results = new Map();
@@ -558,16 +561,19 @@
     });
 
     results.clear();
+    const executed = new Set();
     for (const q of queries){
       try{
         const repos = await fetchQuery(q, {useAuth:true});
         repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
+        if(!executed.has(q)){ queriesSavedEstimate++; executed.add(q);} // approximate unique query count
       }catch(eAuth){
         console.warn('Auth search failed:', eAuth);
         lastApiErrorText = eAuth.message || String(eAuth);
         try{
           const repos = await fetchQuery(q, {useAuth:false});
           repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
+          if(!executed.has(q)){ queriesSavedEstimate++; executed.add(q);} 
         }catch(eAnon){
           console.warn('Anon search also failed:', eAnon);
           lastApiErrorText = eAnon.message || String(eAnon);
@@ -599,9 +605,11 @@
       return; }
 
     resultsBody.innerHTML = '';
-    cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+  cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+  applyStarDelta();
     applyDynamicTranslation();
       applyDynamicTranslation();
+    updateQueriesSaved();
   }
 
   /* ===== init & events ===== */
@@ -637,13 +645,19 @@
     const staticLoaded = await tryLoadStaticIfNoToken();
     if(!staticLoaded){
       await loadWeeklyStars();
+      // attempt to fetch previous snapshot map silently
+      try{
+        const res = await fetch('data/latest.json',{cache:'no-store'});
+        if(res.ok){ const p = await res.json(); previousStarsMap = p.previous_stars || {}; applyStarDelta(); }
+      }catch{}
+      updateModeBadge('live');
     }
     renderMetaDates();
 
     // Add topic search event
     const topicInput = document.getElementById('topicInput');
     const searchBtn = document.getElementById('searchBtn');
-    const resetBtn = document.getElementById('resetBtn');
+  const resetBtn = document.getElementById('resetBtn');
   const translateDynBtn = document.getElementById('translateDynBtn');
   if (searchBtn) searchBtn.addEventListener('click', async () => { showLoading(); await loadWeeklyStars(); });
     if (topicInput) topicInput.addEventListener('keydown', async e => { if(e.key==='Enter'){ showLoading(); await loadWeeklyStars(); }});
@@ -651,8 +665,6 @@
   if (strict) strict.addEventListener('change', async () => { showLoading(); await loadWeeklyStars(); });
     if (resetBtn) resetBtn.addEventListener('click', async () => {
       (document.getElementById('topicInput')||{}).value='';
-      (document.getElementById('startDate')||{}).value='';
-      (document.getElementById('endDate')||{}).value='';
       (document.getElementById('minStars')||{}).value='1';
       (document.getElementById('maxRowsSel')||{}).value='5';
       showLoading(); await loadWeeklyStars();
@@ -738,7 +750,8 @@
 
   // Static snapshot fallback
   async function tryLoadStaticIfNoToken(){
-    if (getAuthToken()) return false;
+    if (forceMode === 'live') return false;
+    if (getAuthToken() && forceMode !== 'static') return false;
     const topic = (document.getElementById('topicInput')?.value||'').trim();
     if (topic) return false; // user wants live search
     try{
@@ -746,6 +759,7 @@
       if(!res.ok) return false;
       const payload = await res.json();
       cachedResults = (payload.repos||[]).slice(0, maxRows);
+      previousStarsMap = payload.previous_stars || {};
       if(!cachedResults.length){ return false; }
       resultsBody.innerHTML='';
       cachedResults.forEach(r=>resultsBody.appendChild(createRow(r)));
@@ -753,12 +767,134 @@
       if (stamp && payload.generated_at){
         stamp.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(payload.generated_at))} (static)`;
       }
+      updateModeBadge('static');
+      applyStarDelta();
       return true;
     }catch(e){
       console.warn('Static snapshot load failed', e);
       return false;
     }
   }
+
+  function updateModeBadge(mode){
+    const el = document.getElementById('modeBadge');
+    if(!el) return; el.textContent = `Mode: ${mode}`;
+  }
+
+  function applyStarDelta(){
+    // Add delta next to badge if previous exists
+    document.querySelectorAll('[data-results] tr').forEach(tr => {
+      const link = tr.querySelector('.repo a');
+      const starsTd = tr.querySelector('td:last-child .stars-badge');
+      if(!link || !starsTd) return;
+  const fullName = link.textContent.trim();
+      const currentStars = parseInt(starsTd.textContent,10) || 0;
+      const prev = previousStarsMap[fullName];
+      if(prev && prev !== currentStars){
+        const delta = currentStars - prev;
+        const span = document.createElement('span');
+        span.className = 'delta ' + (delta>0?'pos':'neg');
+        span.textContent = (delta>0?'+':'') + delta;
+        starsTd.appendChild(span);
+      }
+    });
+  }
+
+  function exportJSON(){
+    const data = JSON.stringify(cachedResults, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    download(url, 'stars-export.json');
+  }
+  function exportCSV(){
+    if(!cachedResults.length){ alert('No data'); return; }
+    const header = ['full_name','html_url','description','stargazers_count','language'];
+    const rows = cachedResults.map(r=> header.map(h => JSON.stringify((r[h]||'').toString().replace(/"/g,'"'))).join(','));
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    download(url, 'stars-export.csv');
+  }
+  function download(url, filename){ const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 5000); }
+
+  function updateQueriesSaved(){
+    const el = document.getElementById('queriesSaved'); if(!el) return;
+    el.textContent = `Queries saved: ${queriesSavedEstimate}`;
+  }
+
+  async function loadSnapshotList(){
+    try{
+      const res = await fetch('data/snapshots/index.json',{cache:'no-store'});
+      if(!res.ok) return;
+      const list = await res.json();
+      const sel = document.getElementById('snapshotSelect');
+      if(!sel) return;
+      list.slice().reverse().forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f; opt.textContent = f.replace('.json',''); sel.appendChild(opt);
+      });
+    }catch(e){ console.warn('snapshot index fail', e); }
+  }
+
+  async function loadSnapshotFile(name){
+    if(!name){ showLoading(); await loadWeeklyStars(); return; }
+    try{
+      const res = await fetch('data/snapshots/'+name, {cache:'no-store'});
+      if(!res.ok) throw new Error(res.statusText);
+      const data = await res.json();
+      resultsBody.innerHTML='';
+      cachedResults = data.slice(0,maxRows);
+  cachedResults.forEach(r=>resultsBody.appendChild(createRow(r)));
+      updateModeBadge('static');
+  applyStarDelta();
+    }catch(e){ alert('Failed to load snapshot'); }
+  }
+
+  function renderHotTopics(){
+    const bar = document.getElementById('hotTopicsBar'); if(!bar) return;
+    bar.innerHTML = '';
+    HOT_TOPICS.forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'hot-btn'; btn.textContent = t;
+      btn.addEventListener('click', async () => {
+        const input = document.getElementById('topicInput'); if(input) input.value = t;
+        showLoading(); await loadWeeklyStars(t);
+      });
+      bar.appendChild(btn);
+    });
+  }
+
+  // Mode toggle via clicking mode badge
+  document.addEventListener('click', async (e)=>{
+    const target = e.target; if(!(target instanceof HTMLElement)) return;
+    if(target.id === 'modeBadge'){
+      forceMode = forceMode === 'auto' ? 'live' : forceMode === 'live' ? 'static' : 'auto';
+      updateModeBadge(forceMode);
+      showLoading();
+      if(forceMode === 'static'){
+        const loaded = await tryLoadStaticIfNoToken();
+        if(!loaded) showErrorLine('No static snapshot available.');
+      } else {
+        await loadWeeklyStars();
+      }
+    }
+  });
+
+  document.addEventListener('change', async (e)=>{
+    const target = e.target; if(!(target instanceof HTMLElement)) return;
+    if(target.id === 'snapshotSelect'){
+      const val = target.value; await loadSnapshotFile(val);
+    }
+  });
+
+  document.addEventListener('click', (e)=>{
+    const target = e.target; if(!(target instanceof HTMLElement)) return;
+    if(target.id === 'exportJson'){ exportJSON(); }
+    if(target.id === 'exportCsv'){ exportCSV(); }
+  });
+
+  renderHotTopics();
+  loadSnapshotList();
 
   langToggle?.addEventListener('click', () => {
     const next = currentLocale === 'en' ? 'zh-HK' : 'en';

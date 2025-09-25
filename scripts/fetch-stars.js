@@ -68,14 +68,34 @@ async function run(){
     .sort((a,b)=>b.stargazers_count-a.stargazers_count)
     .slice(0,80);
 
+  // Determine previous snapshot (for star delta)
   const outDir = path.join(process.cwd(), 'data');
   const snapDir = path.join(outDir,'snapshots');
   fs.mkdirSync(outDir,{recursive:true});
   fs.mkdirSync(snapDir,{recursive:true});
 
-  const latestPayload = { generated_at: now.toISOString(), window_days: days, keywords: topics, count: repos.length, repos };
+  let previousStars = {};
+  try {
+    const files = fs.readdirSync(snapDir)
+      .filter(f=>/\d{4}-\d{2}-\d{2}\.json$/.test(f) && f!== today+'.json')
+      .sort();
+    if(files.length){
+      const prevFile = files[files.length-1];
+      const prevData = JSON.parse(fs.readFileSync(path.join(snapDir, prevFile),'utf8'));
+      prevData.forEach(r=>{ previousStars[r.full_name]=r.stargazers_count; });
+    }
+  }catch(e){ console.warn('Previous snapshot read failed', e.message); }
+
+  const latestPayload = { generated_at: now.toISOString(), window_days: days, keywords: topics, count: repos.length, repos, previous_stars: previousStars };
   fs.writeFileSync(path.join(outDir,'latest.json'), JSON.stringify(latestPayload,null,2));
   fs.writeFileSync(path.join(snapDir, today+'.json'), JSON.stringify(repos,null,2));
+  // Update index.json listing snapshots
+  try {
+    const index = fs.readdirSync(snapDir)
+      .filter(f=>/\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .sort();
+    fs.writeFileSync(path.join(snapDir, 'index.json'), JSON.stringify(index, null, 2));
+  }catch(e){ console.warn('Index write failed', e.message); }
   console.log('Wrote', repos.length, 'repos');
 }
 
