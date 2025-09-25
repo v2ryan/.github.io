@@ -204,28 +204,15 @@
         </div>
       </div>
 
-      <header>
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="index.html" data-i18n="breadcrumbHome">← Back to Idea Hub</a>
-          <span data-i18n="breadcrumbCurrent">Weekly snapshot</span>
-        </nav>
-        <h1 data-i18n="heroTitle">Top LLM &amp; AI GitHub Stars</h1>
-        <p class="lead" data-i18n="heroLead">
-          A curated snapshot of the fastest-growing AI and LLM repositories on GitHub this week. Use it to catch up on
-          what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.
-        </p>
-        <div class="snapshot-meta" aria-live="polite">
-          <span data-week-range>Rolling 30-day window</span>
-          <span data-i18n="metaSource">Source: GitHub Search API</span>
-          <span data-last-updated>Last refreshed: —</span>
-          
-          <span id="queriesSaved" title="Estimated GitHub API searches avoided.">Queries saved: —</span>
-          <label style="display:inline-flex; align-items:center; gap:6px;">
-            <span style="font-size:.7rem; opacity:.7;">Snapshot:</span>
+      <header style="margin:4px 0 14px 0;">
+        <h1 data-i18n="heroTitle" style="margin:0 0 6px 0; font-size:1.9rem;">Top LLM &amp; AI GitHub Stars</h1>
+        <div class="snapshot-meta" style="gap:8px; padding:2px 0;">
+          <label style="display:inline-flex; align-items:center; gap:4px;">
+            <span style="font-size:.65rem; opacity:.6;">Snapshot</span>
             <select id="snapshotSelect"><option value="">latest</option></select>
           </label>
-          <button class="export-btn" id="exportJson" title="Export current rows as JSON">Export JSON</button>
-          <button class="export-btn" id="exportCsv" title="Export current rows as CSV">Export CSV</button>
+          <button class="export-btn" id="exportJson" title="Export visible rows as JSON">JSON</button>
+          <button class="export-btn" id="exportCsv" title="Export visible rows as CSV">CSV</button>
         </div>
       </header>
 
@@ -249,11 +236,7 @@
         </tbody>
       </table>
 
-      <p class="footnote" data-i18n="footnote">
-        Data refreshes automatically on page load using the public GitHub Search API with a rolling 30-day window (or pre-generated static snapshots). Star
-        counts reflect each repository's total stars. If the API rate limit is reached, try again later or supply a personal access token in the query string with
-        <code>?token=&lt;your-token&gt;</code>. Use the mode toggle to force live or static.
-      </p>
+      <p class="footnote" data-i18n="footnote" style="display:none;"></p>
 
       <noscript>
         <p class="footnote">Enable JavaScript to load the latest weekly LLM and AI repositories from GitHub.</p>
@@ -272,13 +255,12 @@
     en: {
   pageTitle: 'Top LLM & AI GitHub Stars (Monthly)',
       toggleAria: 'Switch to Traditional Chinese',
-      breadcrumbHome: '← Back to Idea Hub',
-      breadcrumbCurrent: 'Monthly snapshot',
-      heroTitle: 'Top LLM & AI GitHub Stars (30 Day)',
-      heroLead:
-        'A curated snapshot of the fastest-growing AI and LLM repositories on GitHub over the last 30 days. Use it to catch up on what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.',
-      metaSource: 'Source: GitHub Search API',
-      metaUpdatedPrefix: 'Last refreshed: ',
+      breadcrumbHome: '',
+      breadcrumbCurrent: '',
+      heroTitle: 'Top LLM & AI GitHub Stars',
+      heroLead: '',
+      metaSource: '',
+      metaUpdatedPrefix: '',
       thRepository: 'Repository',
       thHighlights: 'Highlights',
       thStars: 'Stars (since launch)',
@@ -292,13 +274,12 @@
     'zh-HK': {
       pageTitle: '每週 LLM 與 AI GitHub 星標排行榜',
       toggleAria: '切換至英文',
-      breadcrumbHome: '← 返回 Idea Hub',
-      breadcrumbCurrent: '30 日快照',
+      breadcrumbHome: '',
+      breadcrumbCurrent: '',
       heroTitle: '30 日 LLM 與 AI GitHub 星標排行榜',
-      heroLead:
-        '整理過去 30 日內成長最快的 AI 與 LLM 儲存庫，用來追蹤社群焦點、評估新工具，或為你的專案找靈感。',
-      metaSource: '資料來源：GitHub Search API',
-      metaUpdatedPrefix: '最後更新：',
+      heroLead: '',
+      metaSource: '',
+      metaUpdatedPrefix: '',
       thRepository: '儲存庫',
       thHighlights: '重點',
       thStars: '星標（累計）',
@@ -402,18 +383,7 @@
   function formatTag(label){
     return label.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase());
   }
-  function renderMetaDates(){
-    const now = new Date();
-    const since = new Date(now); since.setDate(since.getDate() - 7);
-    if (weekRangeLabel){
-      const from = formatDate(since, { day:'numeric', month:'short' });
-      const to   = formatDate(now,   { day:'numeric', month:'short', year:'numeric' });
-      weekRangeLabel.textContent = `${from} – ${to}`;
-    }
-    if (lastUpdatedLabel){
-      lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(), { day:'numeric', month:'short', year:'numeric' })}`;
-    }
-  }
+  function renderMetaDates(){}
 
   /* ===== UI states ===== */
   function showLoading(){
@@ -481,9 +451,10 @@
   function getGeminiKey(){ try { return localStorage.getItem(GEMINI_KEY_STORAGE) || ''; } catch { return ''; } }
   function setGeminiKey(v){ try { if(v) localStorage.setItem(GEMINI_KEY_STORAGE, v); else localStorage.removeItem(GEMINI_KEY_STORAGE);}catch{} }
   async function translateDescriptionsGemini(){
-    if(currentLocale !== 'zh-HK') return;
+    if(currentLocale !== 'zh-HK'){ alert('請先切換語言到 繁 (ZH-HK) 再啟用翻譯'); translateDynamic=false; return; }
     const key = getGeminiKey();
     if(!key){ alert('請先設定 Gemini API Key'); return; }
+    const btn = document.getElementById('translateDynBtn');
     const rows = Array.from(document.querySelectorAll('[data-results] tr'));
     const toTranslate = rows.map(r => {
       const td = r.querySelector('td:nth-child(2)');
@@ -494,6 +465,7 @@
       return td;
     }).filter(Boolean);
     if(!toTranslate.length){ return; }
+    if(btn){ btn.textContent='翻譯中…'; btn.disabled=true; }
     for(const td of toTranslate){
       const original = td.dataset.orig || td.textContent || '';
       if(!original.trim()){ td.dataset.aiTranslated='1'; continue; }
@@ -515,14 +487,17 @@
       await new Promise(r=>setTimeout(r,400));
       if(!translateDynamic) break; // user toggled off mid-way
     }
+    if(btn){ btn.textContent = translateDynamic ? '翻譯AI(開)' : '翻譯AI'; btn.disabled=false; }
   }
   function applyDynamicTranslation(){
     if(!translateDynamic){ // restore
       document.querySelectorAll('[data-results] tr td:nth-child(2)').forEach(td => {
         if(td.dataset.orig) td.textContent = td.dataset.orig;
       });
+      const b=document.getElementById('translateDynBtn'); if(b){ b.textContent='翻譯AI'; b.disabled=false; }
       return;
     }
+    const b=document.getElementById('translateDynBtn'); if(b){ b.textContent='翻譯AI(開)'; }
     translateDescriptionsGemini();
   }
 
