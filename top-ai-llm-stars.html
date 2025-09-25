@@ -168,289 +168,360 @@
       </noscript>
     </main>
 
-    <script>
-      /* ===== i18n strings ===== */
-      const LOCALE_STORAGE_KEY = 'ideaHubLocale';
-      const DEFAULT_LOCALE = 'en';
-      const SUPPORTED_LOCALES = ['en', 'zh-HK'];
-      const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
+<script>
+  /* ===== i18n strings ===== */
+  const LOCALE_STORAGE_KEY = 'ideaHubLocale';
+  const DEFAULT_LOCALE = 'en';
+  const SUPPORTED_LOCALES = ['en', 'zh-HK'];
+  const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
 
-      const translations = {
-        en: {
-          pageTitle: 'Top LLM & AI GitHub Stars (Weekly)',
-          toggleAria: 'Switch to Traditional Chinese',
-          breadcrumbHome: '← Back to Idea Hub',
-          breadcrumbCurrent: 'Weekly snapshot',
-          heroTitle: 'Top LLM & AI GitHub Stars',
-          heroLead:
-            'A curated snapshot of the fastest-growing AI and LLM repositories on GitHub this week. Use it to catch up on what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.',
-          metaSource: 'Source: GitHub Search API',
-          metaUpdatedPrefix: 'Last refreshed: ',
-          thRepository: 'Repository',
-          thHighlights: 'Highlights',
-          thStars: 'Stars (since launch)',
-          loading: 'Fetching live repositories…',
-          noResults: 'No repositories matched the filters this week. Check back soon!',
-          genericError: 'Something went wrong. Please try again later.',
-          noDescription: 'No description provided.',
-          footnote:
-            "Data refreshes automatically on page load using the public GitHub Search API with a rolling 7-day window. Star counts reflect each repository's total stars since creation during that window and are recalculated daily. If the API rate limit is reached, try again in a few minutes or supply a personal access token in the query string with <code>?token=&lt;your-token&gt;</code>.",
-        },
-        'zh-HK': {
-          pageTitle: '每週 LLM 與 AI GitHub 星標排行榜',
-          toggleAria: '切換至英文',
-          breadcrumbHome: '← 返回 Idea Hub',
-          breadcrumbCurrent: '每週快照',
-          heroTitle: '每週 LLM 與 AI GitHub 星標排行榜',
-          heroLead:
-            '每週整理 GitHub 上成長最快的 AI 與 LLM 儲存庫，用來追蹤社群焦點、評估新工具，或為你的專案找靈感。',
-          metaSource: '資料來源：GitHub Search API',
-          metaUpdatedPrefix: '最後更新：',
-          thRepository: '儲存庫',
-          thHighlights: '重點',
-          thStars: '星標（累計）',
-          loading: '正在擷取最新儲存庫…',
-          noResults: '本週沒有符合條件的儲存庫，稍後再來看看！',
-          genericError: '載入時發生問題，請稍後再試。',
-          noDescription: '沒有提供描述。',
-          footnote:
-            '重新整理頁面時會透過 GitHub Search API 自動更新，採用滾動 7 日視窗。星標數為儲存庫在該時段的累計總數，每日重新計算。若遇到 API 限制，可稍後再試，或於網址加上 <code>?token=&lt;your-token&gt;</code> 使用個人存取權杖。',
-        },
-      };
+  const translations = {
+    en: {
+      pageTitle: 'Top LLM & AI GitHub Stars (Weekly)',
+      toggleAria: 'Switch to Traditional Chinese',
+      breadcrumbHome: '← Back to Idea Hub',
+      breadcrumbCurrent: 'Weekly snapshot',
+      heroTitle: 'Top LLM & AI GitHub Stars',
+      heroLead:
+        'A curated snapshot of the fastest-growing AI and LLM repositories on GitHub this week. Use it to catch up on what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.',
+      metaSource: 'Source: GitHub Search API',
+      metaUpdatedPrefix: 'Last refreshed: ',
+      thRepository: 'Repository',
+      thHighlights: 'Highlights',
+      thStars: 'Stars (since launch)',
+      loading: 'Fetching live repositories…',
+      noResults: 'No repositories matched the filters this week. Check back soon!',
+      genericError: 'Something went wrong. Please try again later.',
+      noDescription: 'No description provided.',
+      footnote:
+        "Data refreshes automatically on page load using the public GitHub Search API with a rolling 7-day window. Star counts reflect each repository's total stars since creation during that window and are recalculated daily. If the API rate limit is reached, try again in a few minutes or supply a personal access token in the query string with <code>?token=&lt;your-token&gt;</code>.",
+    },
+    'zh-HK': {
+      pageTitle: '每週 LLM 與 AI GitHub 星標排行榜',
+      toggleAria: '切換至英文',
+      breadcrumbHome: '← 返回 Idea Hub',
+      breadcrumbCurrent: '每週快照',
+      heroTitle: '每週 LLM 與 AI GitHub 星標排行榜',
+      heroLead:
+        '每週整理 GitHub 上成長最快的 AI 與 LLM 儲存庫，用來追蹤社群焦點、評估新工具，或為你的專案找靈感。',
+      metaSource: '資料來源：GitHub Search API',
+      metaUpdatedPrefix: '最後更新：',
+      thRepository: '儲存庫',
+      thHighlights: '重點',
+      thStars: '星標（累計）',
+      loading: '正在擷取最新儲存庫…',
+      noResults: '本週沒有符合條件的儲存庫，稍後再來看看！',
+      genericError: '載入時發生問題，請稍後再試。',
+      noDescription: '沒有提供描述。',
+      footnote:
+        '重新整理頁面時會透過 GitHub Search API 自動更新，採用滾動 7 日視窗。星標數為儲存庫在該時段的累計總數，每日重新計算。若遇到 API 限制，可稍後再試，或於網址加上 <code>?token=&lt;your-token&gt;</code> 使用個人存取權杖。',
+    },
+  };
 
-      const keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
-      const maxRows = 5;
+  const keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
+  const maxRows = 5;
 
-      const langToggle = document.querySelector('[data-lang-toggle]');
-      const tokenBtn = document.getElementById('tokenBtn');
-      const resultsBody = document.querySelector('[data-results]');
-      const weekRangeLabel = document.querySelector('[data-week-range]');
-      const lastUpdatedLabel = document.querySelector('[data-last-updated]');
+  const langToggle = document.querySelector('[data-lang-toggle]');
+  const tokenBtn   = document.getElementById('tokenBtn');
+  const resultsBody = document.querySelector('[data-results]');
+  const weekRangeLabel = document.querySelector('[data-week-range]');
+  const lastUpdatedLabel = document.querySelector('[data-last-updated]');
 
-      let currentLocale = DEFAULT_LOCALE;
-      let cachedResults = [];
-      let dataLoaded = false;
+  let currentLocale = DEFAULT_LOCALE;
+  let cachedResults = [];
+  let dataLoaded = false;
 
-      /* ===== Token helpers (安全處理，不硬編) ===== */
-      const TOKEN_KEYS = ['GITHUB_PAT_SESSION', 'GITHUB_PAT_LOCAL'];
+  /* ===== Token helpers ===== */
+  const TOKEN_KEYS = ['GITHUB_PAT_SESSION', 'GITHUB_PAT_LOCAL'];
 
-      // 1) 若 URL 有 ?token=...，存到 sessionStorage，並清走 URL
-      (function captureTokenFromURL(){
-        const params = new URLSearchParams(location.search);
-        const t = params.get('token');
-        if (t) {
-          try { sessionStorage.setItem(TOKEN_KEYS[0], t); } catch {}
-          // 立即移除 URL 上的 token 以免外洩
-          const clean = location.pathname + location.hash;
-          history.replaceState({}, '', clean);
+  // 捕捉 ?token=...（存 sessionStorage，再清 URL）
+  (function captureTokenFromURL(){
+    const params = new URLSearchParams(location.search);
+    const t = params.get('token');
+    if (t) {
+      try { sessionStorage.setItem(TOKEN_KEYS[0], t.trim()); } catch {}
+      const clean = location.pathname + location.hash;
+      history.replaceState({}, '', clean);
+    }
+  })();
+
+  function getAuthToken(){
+    return sessionStorage.getItem(TOKEN_KEYS[0]) || localStorage.getItem(TOKEN_KEYS[1]) || null;
+  }
+  function setAuthTokenLocal(t){
+    if (t) localStorage.setItem(TOKEN_KEYS[1], t.trim());
+    else   localStorage.removeItem(TOKEN_KEYS[1]);
+  }
+
+  async function validateToken(){
+    const token = getAuthToken();
+    if (!token) return { ok: false, status: 0, message: 'no token' };
+
+    try{
+      const res = await fetch('https://api.github.com/rate_limit', {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          Authorization: `Bearer ${token}`,
         }
-      })();
+      });
+      const body = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, message: body.message || 'OK' };
+    }catch(e){
+      return { ok: false, status: -1, message: String(e) };
+    }
+  }
 
-      function getAuthToken(){
-        return sessionStorage.getItem(TOKEN_KEYS[0]) || localStorage.getItem(TOKEN_KEYS[1]) || null;
-      }
-      function setAuthTokenLocal(t){
-        if (t) { localStorage.setItem(TOKEN_KEYS[1], t); }
-        else   { localStorage.removeItem(TOKEN_KEYS[1]); }
-      }
+  /* ===== i18n render ===== */
+  function getStoredLocale(){
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
+  }
+  function persistLocale(locale){ localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
+  function applyLocaleToDocument(locale){ document.documentElement.lang = localeFallbacks[locale] || 'en'; }
+  function updateToggleVisual(locale){
+    langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
+    langToggle?.querySelectorAll('span').forEach((span) => {
+      span.dataset.active = span.dataset.langCode === locale ? 'true' : 'false';
+    });
+  }
+  function renderStaticCopy(){
+    Object.entries(translations[currentLocale]).forEach(([key, value]) => {
+      document.querySelectorAll(`[data-i18n="${key}"]`).forEach((node) => {
+        if (key === 'footnote') node.innerHTML = value; else node.textContent = value;
+      });
+    });
+  }
+  function formatDate(date, options = {}){
+    return new Intl.DateTimeFormat(localeFallbacks[currentLocale] || 'en',
+      { day:'numeric', month:'short', year:'numeric', ...options }).format(date);
+  }
+  function formatCompact(n){
+    return new Intl.NumberFormat(localeFallbacks[currentLocale] || 'en',
+      { notation:'compact', maximumFractionDigits:1 }).format(n);
+  }
+  function formatTag(label){
+    return label.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase());
+  }
+  function renderMetaDates(){
+    const now = new Date();
+    const since = new Date(now); since.setDate(since.getDate() - 7);
+    if (weekRangeLabel){
+      const from = formatDate(since, { day:'numeric', month:'short' });
+      const to   = formatDate(now,   { day:'numeric', month:'short', year:'numeric' });
+      weekRangeLabel.textContent = `${from} – ${to}`;
+    }
+    if (lastUpdatedLabel){
+      lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(), { day:'numeric', month:'short', year:'numeric' })}`;
+    }
+  }
 
-      /* ===== i18n render ===== */
-      function getStoredLocale(){
-        const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-        return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
-      }
-      function persistLocale(locale){ localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
-      function applyLocaleToDocument(locale){ document.documentElement.lang = localeFallbacks[locale] || 'en'; }
-      function updateToggleVisual(locale){
-        langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
-        langToggle?.querySelectorAll('span').forEach((span) => {
-          span.dataset.active = (span.dataset.langCode === locale) ? 'true' : 'false';
-        });
-      }
-      function renderStaticCopy(){
-        Object.entries(translations[currentLocale]).forEach(([key, value]) => {
-          document.querySelectorAll(`[data-i18n="${key}"]`).forEach((node) => {
-            if (key === 'footnote') node.innerHTML = value; else node.textContent = value;
-          });
-        });
-      }
-      function formatDate(date, options = {}){
-        return new Intl.DateTimeFormat(localeFallbacks[currentLocale] || 'en',
-          { day:'numeric', month:'short', year:'numeric', ...options }).format(date);
-      }
-      function formatCompact(n){
-        return new Intl.NumberFormat(localeFallbacks[currentLocale] || 'en',
-          { notation:'compact', maximumFractionDigits:1 }).format(n);
-      }
-      function formatTag(label){
-        return label.replace(/[-_]/g,' ').replace(/\b\w/g, m => m.toUpperCase());
-      }
-      function renderMetaDates(){
-        const now = new Date();
-        const since = new Date(now); since.setDate(since.getDate() - 7);
-        if (weekRangeLabel){
-          const from = formatDate(since, { day:'numeric', month:'short' });
-          const to = formatDate(now,   { day:'numeric', month:'short', year:'numeric' });
-          weekRangeLabel.textContent = `${from} – ${to}`;
-        }
-        if (lastUpdatedLabel){
-          lastUpdatedLabel.textContent = `${translations[currentLocale].metaUpdatedPrefix}${formatDate(new Date(), { day:'numeric', month:'short', year:'numeric' })}`;
-        }
-      }
+  /* ===== UI states ===== */
+  function showLoading(){
+    resultsBody.innerHTML = `
+      <tr><td colspan="3">
+        <div class="loading-state" role="status">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>${translations[currentLocale].loading}</span>
+        </div>
+      </td></tr>`;
+  }
+  function showErrorLine(text){
+    resultsBody.innerHTML = `
+      <tr><td colspan="3">
+        <div class="loading-state"><span aria-hidden="true">⚠️</span><span>${text}</span></div>
+      </td></tr>`;
+  }
+  function showError(messageKey){
+    const msg = (messageKey === 'noResults') ? translations[currentLocale].noResults : translations[currentLocale].genericError;
+    showErrorLine(msg);
+  }
 
-      /* ===== UI states ===== */
-      function showLoading(){
-        resultsBody.innerHTML = `
-          <tr><td colspan="3">
-            <div class="loading-state" role="status">
-              <span class="spinner" aria-hidden="true"></span>
-              <span>${translations[currentLocale].loading}</span>
-            </div>
-          </td></tr>`;
-      }
-      function showError(messageKey){
-        const msg = (messageKey === 'noResults') ? translations[currentLocale].noResults : translations[currentLocale].genericError;
-        resultsBody.innerHTML = `
-          <tr><td colspan="3">
-            <div class="loading-state"><span aria-hidden="true">⚠️</span><span>${msg}</span></div>
-          </td></tr>`;
-      }
+  /* ===== GitHub search ===== */
+  function repoIsRelevant(repo){
+    const haystack = [repo.name, repo.full_name, repo.description || '', ...(repo.topics || [])]
+      .join(' ').toLowerCase();
+    return keywords.some(k => haystack.includes(k));
+  }
 
-      /* ===== GitHub search ===== */
-      function repoIsRelevant(repo){
-        const haystack = [repo.name, repo.full_name, repo.description || '', ...(repo.topics || [])].join(' ').toLowerCase();
-        return keywords.some(k => haystack.includes(k));
-      }
+  function createRow(repo){
+    const tr = document.createElement('tr');
 
-      function createRow(repo){
-        const tr = document.createElement('tr');
+    const repoCell = document.createElement('td');
+    repoCell.dataset.label = translations[currentLocale].thRepository;
+    repoCell.innerHTML = `
+      <div class="repo">
+        <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
+        <div class="tags"></div>
+      </div>`;
+    const tags = repoCell.querySelector('.tags');
+    const tagSet = new Set();
+    (repo.topics || []).forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
+    if (!tagSet.size){
+      const fallback = repo.language ? [repo.language] : [];
+      [...fallback, 'AI', 'LLM'].forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
+    }
+    tagSet.forEach(t => { const s = document.createElement('span'); s.className='tag-chip'; s.textContent=t; tags.appendChild(s); });
 
-        const repoCell = document.createElement('td');
-        repoCell.dataset.label = translations[currentLocale].thRepository;
-        repoCell.innerHTML = `
-          <div class="repo">
-            <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
-            <div class="tags"></div>
-          </div>`;
-        const tags = repoCell.querySelector('.tags');
-        const tagSet = new Set();
-        (repo.topics || []).forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
-        if (!tagSet.size){
-          const fallback = repo.language ? [repo.language] : [];
-          [...fallback, 'AI', 'LLM'].forEach(t => { if (tagSet.size < 3) tagSet.add(formatTag(t)); });
-        }
-        tagSet.forEach(t => { const s = document.createElement('span'); s.className='tag-chip'; s.textContent=t; tags.appendChild(s); });
+    const hi = document.createElement('td');
+    hi.dataset.label = translations[currentLocale].thHighlights;
+    hi.textContent = repo.description ? repo.description.trim() : translations[currentLocale].noDescription;
 
-        const hi = document.createElement('td');
-        hi.dataset.label = translations[currentLocale].thHighlights;
-        hi.textContent = repo.description ? repo.description.trim() : translations[currentLocale].noDescription;
+    const stars = document.createElement('td');
+    stars.dataset.label = translations[currentLocale].thStars;
+    stars.textContent = `+${formatCompact(repo.stargazers_count)}`;
 
-        const stars = document.createElement('td');
-        stars.dataset.label = translations[currentLocale].thStars;
-        stars.textContent = `+${formatCompact(repo.stargazers_count)}`;
+    tr.append(repoCell, hi, stars);
+    return tr;
+  }
 
-        tr.append(repoCell, hi, stars);
-        return tr;
-      }
+  async function fetchQuery(query, {useAuth=true} = {}){
+    const params = new URLSearchParams({ q: query, sort: 'stars', order: 'desc', per_page: '20' });
+    const headers = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const token = getAuthToken();
+    if (useAuth && token) headers.Authorization = `Bearer ${token}`;
 
-      async function fetchQuery(query){
-        const params = new URLSearchParams({ q: query, sort: 'stars', order: 'desc', per_page: '20' });
-        const headers = { Accept: 'application/vnd.github+json' };
-        const token = getAuthToken();
-        if (token) headers.Authorization = `Bearer ${token}`;
-        const res = await fetch(`https://api.github.com/search/repositories?${params}`, { headers });
-        if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
-        const payload = await res.json();
-        return payload.items || [];
-      }
+    const res = await fetch(`https://api.github.com/search/repositories?${params}`, { headers });
+    let body = null;
+    try { body = await res.json(); } catch {}
 
-      let currentQueries = [];
-      async function loadWeeklyStars(){
-        const now = new Date(); const since = new Date(now); since.setDate(since.getDate() - 7);
-        const sinceIso = since.toISOString().slice(0,10);
+    if (!res.ok){
+      const message = (body && (body.message || JSON.stringify(body))) || res.statusText || 'Unknown error';
+      const err = new Error(`GitHub API error ${res.status}: ${message}`);
+      err.status = res.status; err.payload = body;
+      throw err;
+    }
+    return (body && body.items) || [];
+  }
 
-        // 你可以按需要調整條件（星數 / 關鍵字）
-        currentQueries = [
-          `created:>=${sinceIso}+stars:>=20+llm+in:name,description,readme`,
-          `created:>=${sinceIso}+stars:>=20+ai+agent+in:name,description,readme`,
-        ];
+  let lastApiErrorText = '';
 
-        const results = new Map();
-        for (const q of currentQueries){
+  async function loadWeeklyStars(){
+    // 自動擴闊時間窗：7 → 14 → 30 天
+    const dayWindows = [7, 14, 30];
+    const minStars = 20; // 你可改為 5 以增加命中率
+
+    const results = new Map();
+
+    for (const days of dayWindows){
+      const now = new Date();
+      const since = new Date(now); since.setDate(since.getDate() - days);
+      const sinceIso = since.toISOString().slice(0,10);
+
+      const queries = [
+        `created:>=${sinceIso}+stars:>=${minStars}+(llm) in:name,description,readme`,
+        `created:>=${sinceIso}+stars:>=${minStars}+(ai agent) in:name,description,readme`,
+      ];
+
+      results.clear();
+      // 優先用 token，失敗時自動用匿名再試
+      for (const q of queries){
+        try{
+          const repos = await fetchQuery(q, {useAuth:true});
+          repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
+        }catch(eAuth){
+          console.warn('Auth search failed:', eAuth);
+          lastApiErrorText = eAuth.message || String(eAuth);
           try{
-            const repos = await fetchQuery(q);
+            const repos = await fetchQuery(q, {useAuth:false});
             repos.forEach(r => { if (!results.has(r.id)) results.set(r.id, r); });
-          }catch(e){
-            console.error(e);
-            dataLoaded = true;
-            showError('genericError');
-            return;
-          }
-        }
-
-        cachedResults = Array.from(results.values())
-          .filter(repoIsRelevant)
-          .sort((a,b) => b.stargazers_count - a.stargazers_count)
-          .slice(0, maxRows);
-
-        dataLoaded = true;
-        if (!cachedResults.length) showError('noResults'); else {
-          resultsBody.innerHTML = '';
-          cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
-        }
-      }
-
-      /* ===== init & events ===== */
-      function setLocale(locale, { rerenderOnly=false }={}){
-        currentLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
-        persistLocale(currentLocale);
-        applyLocaleToDocument(currentLocale);
-        updateToggleVisual(currentLocale);
-        renderStaticCopy();
-        document.title = translations[currentLocale].pageTitle;
-        renderMetaDates();
-        if (rerenderOnly){
-          if (cachedResults.length){
-            resultsBody.innerHTML = '';
-            cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
-          } else {
-            showLoading();
+          }catch(eAnon){
+            console.warn('Anon search also failed:', eAnon);
+            lastApiErrorText = eAnon.message || String(eAnon);
           }
         }
       }
 
-      async function init(){
-        currentLocale = getStoredLocale();
-        setLocale(currentLocale);
+      const arr = Array.from(results.values())
+        .filter(repoIsRelevant)
+        .sort((a,b) => b.stargazers_count - a.stargazers_count);
+
+      if (arr.length){
+        cachedResults = arr.slice(0, maxRows);
+        break; // 已有結果，停止擴窗
+      }
+    }
+
+    dataLoaded = true;
+    if (!cachedResults.length){
+      showError('noResults');
+      if (lastApiErrorText){
+        // 額外把 API 錯誤顯示出嚟，方便你判斷（如 401/403）
+        const extra = document.createElement('div');
+        extra.className = 'loading-state';
+        extra.innerHTML = `<span aria-hidden="true">🪪</span><span>${lastApiErrorText}</span>`;
+        const row = document.createElement('tr'); const td = document.createElement('td');
+        td.colSpan = 3; td.appendChild(extra); row.appendChild(td); resultsBody.appendChild(row);
+      }
+      return;
+    }
+
+    resultsBody.innerHTML = '';
+    cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+  }
+
+  /* ===== init & events ===== */
+  function setLocale(locale, { rerenderOnly=false }={}){
+    currentLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
+    persistLocale(currentLocale);
+    applyLocaleToDocument(currentLocale);
+    updateToggleVisual(currentLocale);
+    renderStaticCopy();
+    document.title = translations[currentLocale].pageTitle;
+    renderMetaDates();
+    if (rerenderOnly){
+      if (cachedResults.length){
+        resultsBody.innerHTML = '';
+        cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
+      } else {
         showLoading();
-        await loadWeeklyStars();
-        renderMetaDates();
       }
+    }
+  }
 
-      langToggle?.addEventListener('click', () => {
-        const next = currentLocale === 'en' ? 'zh-HK' : 'en';
-        setLocale(next, { rerenderOnly: true });
-      });
+  async function init(){
+    currentLocale = getStoredLocale();
+    setLocale(currentLocale);
+    showLoading();
 
-      // Token 按鈕：輸入／刪除個人 token（只存本機，不會提交到 GitHub）
-      tokenBtn?.addEventListener('click', () => {
-        const existing = getAuthToken() || '';
-        const t = prompt('Paste your GitHub token (stored locally). Leave blank to remove.\n本機儲存，不會上傳到伺服器。', existing);
-        if (t === null) return;
-        const trimmed = t.trim();
-        if (trimmed){
-          try { setAuthTokenLocal(trimmed); alert('Saved locally. 將使用較高 API 配額。'); } catch { alert('Failed to save locally.'); }
-        } else {
-          setAuthTokenLocal('');
-          try { sessionStorage.removeItem('GITHUB_PAT_SESSION'); } catch {}
-          alert('Token removed.');
-        }
-        // 重新載入數據（如果之前 hit rate limit，現在可再試）
-        dataLoaded = false; cachedResults = [];
-        showLoading(); loadWeeklyStars();
-      });
+    // 顯示 token 狀態（可自行用 console 查看）
+    const v = await validateToken();
+    if (!v.ok && v.status) {
+      console.warn('Token invalid:', v.status, v.message);
+    }
 
-      init();
-    </script>
+    await loadWeeklyStars();
+    renderMetaDates();
+  }
+
+  langToggle?.addEventListener('click', () => {
+    const next = currentLocale === 'en' ? 'zh-HK' : 'en';
+    setLocale(next, { rerenderOnly: true });
+  });
+
+  tokenBtn?.addEventListener('click', async () => {
+    const existing = getAuthToken() || '';
+    const t = prompt('Paste your GitHub token (stored locally). Leave blank to remove.\n本機儲存，不會上傳到伺服器。', existing);
+    if (t === null) return;
+    const trimmed = t.trim();
+    if (trimmed){
+      setAuthTokenLocal(trimmed);
+      alert('Saved locally. 將使用較高 API 配額。');
+    } else {
+      setAuthTokenLocal('');
+      try { sessionStorage.removeItem('GITHUB_PAT_SESSION'); } catch {}
+      alert('Token removed.');
+    }
+    // 即時重試
+    dataLoaded = false; cachedResults = [];
+    showLoading(); await loadWeeklyStars(); renderMetaDates();
+  });
+
+  init();
+</script>
+
   </body>
 </html>
