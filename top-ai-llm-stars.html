@@ -49,6 +49,8 @@
       .filters button.secondary { padding:9px 14px; border:1px solid var(--border); background:rgba(15,23,42,.5); color:var(--text-soft); border-radius:8px; cursor:pointer; }
       .filters button.action:hover { background:var(--accent-strong); }
       .filters button.secondary:hover { color:var(--text); }
+  .filters .inline-row { display:flex; align-items:center; gap:8px; }
+  mark.match { background:rgba(250,204,21,.25); color:var(--accent-strong); padding:0 2px; border-radius:3px; }
 
       header { display: flex; flex-direction: column; gap: 12px; margin-bottom: clamp(24px, 4vw, 36px); }
 
@@ -171,6 +173,10 @@
         <div class="field" style="flex:0 0 auto; gap:8px;">
           <button id="searchBtn" class="action">Search</button>
           <button id="resetBtn" class="secondary" title="Reset filters">Reset</button>
+          <div class="inline-row" style="margin-top:4px;">
+            <input type="checkbox" id="strictMatch" />
+            <label for="strictMatch" style="font-size:.65rem; letter-spacing:.08em; opacity:.65; cursor:pointer;">Name+Desc only</label>
+          </div>
         </div>
       </div>
 
@@ -405,9 +411,13 @@
 
     const repoCell = document.createElement('td');
     repoCell.dataset.label = translations[currentLocale].thRepository;
+    // highlight term if applicable
+    const term = (document.getElementById('topicInput')?.value || '').trim();
+    const safeTerm = term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const nameDisplay = term ? repo.full_name.replace(new RegExp(safeTerm,'ig'), m => `<mark class="match">${m}</mark>`) : repo.full_name;
     repoCell.innerHTML = `
       <div class="repo">
-        <a href="${repo.html_url}" target="_blank" rel="noopener">${repo.full_name}</a>
+        <a href="${repo.html_url}" target="_blank" rel="noopener">${nameDisplay}</a>
         <div class="tags"></div>
       </div>`;
     const tags = repoCell.querySelector('.tags');
@@ -544,8 +554,15 @@
       }
     }
 
-    const arr = Array.from(results.values())
+    let arr = Array.from(results.values())
       .sort((a,b) => b.stargazers_count - a.stargazers_count);
+
+    // strict client-side filter if requested
+    const strict = document.getElementById('strictMatch')?.checked;
+    if (strict && chosenTopic){
+      const termLower = chosenTopic.toLowerCase();
+      arr = arr.filter(r => (r.name && r.name.toLowerCase().includes(termLower)) || (r.description && r.description.toLowerCase().includes(termLower)) || (Array.isArray(r.topics) && r.topics.some(t => t.toLowerCase().includes(termLower))));
+    }
 
     if (arr.length){
       cachedResults = arr.slice(0, maxRows);
@@ -604,8 +621,10 @@
     const searchBtn = document.getElementById('searchBtn');
     const resetBtn = document.getElementById('resetBtn');
   const translateDynBtn = document.getElementById('translateDynBtn');
-    if (searchBtn) searchBtn.addEventListener('click', async () => { showLoading(); await loadWeeklyStars(); });
+  if (searchBtn) searchBtn.addEventListener('click', async () => { showLoading(); await loadWeeklyStars(); });
     if (topicInput) topicInput.addEventListener('keydown', async e => { if(e.key==='Enter'){ showLoading(); await loadWeeklyStars(); }});
+  const strict = document.getElementById('strictMatch');
+  if (strict) strict.addEventListener('change', async () => { showLoading(); await loadWeeklyStars(); });
     if (resetBtn) resetBtn.addEventListener('click', async () => {
       (document.getElementById('topicInput')||{}).value='';
       (document.getElementById('startDate')||{}).value='';
