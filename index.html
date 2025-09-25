@@ -296,6 +296,25 @@
             { id: 'source',  text: { en: 'Live GitHub Search', 'zh-HK': '即時 GitHub 搜尋' } },
           ],
         },
+        {
+          id: 'price-qa',
+          icon: '💲',
+          href: 'price-qa.html',
+          copy: {
+            en: {
+              title: 'Price Q&A (Static JSON)',
+              summary: 'Search lens pricing locally in your browser from a generated prices.json. Multi-keyword AND + overseas/local filters.',
+            },
+            'zh-HK': {
+              title: '價目快速查詢 (靜態 JSON)',
+              summary: '以瀏覽器本地搜尋 prices.json 價目資料，支援多關鍵字 AND、海外/本地 篩選。',
+            },
+          },
+          badges: [
+            { id: 'static', text: { en: 'Static', 'zh-HK': '靜態' } },
+            { id: 'nobackend', text: { en: 'No backend', 'zh-HK': '免伺服器' } },
+          ],
+        },
       ];
 
       const ideaGrid = document.getElementById('ideaGrid');
