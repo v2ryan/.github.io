@@ -1,461 +1,209 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>貪食蛇 Mini Game</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family: "Noto Sans TC", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      --bg-dark: #0b1120;
-      --bg-panel: rgba(15, 23, 42, 0.78);
-      --accent: #38bdf8;
-      --accent-strong: #22d3ee;
-      --snake: #f59e0b;
-      --snake-head: #f97316;
-      --food: #22c55e;
-    }
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Idea Hub</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-base: #070b16;
+        --bg-panel: rgba(15, 23, 42, 0.82);
+        --accent: #38bdf8;
+        --accent-strong: #22d3ee;
+        --text: #e2e8f0;
+        --text-soft: rgba(226, 232, 240, 0.72);
+        font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(16px, 4vw, 40px);
-      background:
-        radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
-        radial-gradient(circle at 88% 12%, rgba(129, 140, 248, 0.18), transparent 62%),
-        linear-gradient(135deg, #020617 0%, #0f172a 60%, #1e293b 100%);
-      color: #f8fafc;
-    }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 48px);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
+          radial-gradient(circle at 88% 12%, rgba(129, 140, 248, 0.16), transparent 62%),
+          linear-gradient(140deg, #020617 0%, #0f172a 60%, #1e293b 100%);
+        color: var(--text);
+      }
 
-    main {
-      width: min(420px, 100%);
-      background: var(--bg-panel);
-      border-radius: 28px;
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      box-shadow: 0 28px 60px rgba(2, 6, 23, 0.45);
-      padding: clamp(20px, 5vw, 32px);
-      backdrop-filter: blur(14px);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(1.8rem, 5.5vw, 2.4rem);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-align: center;
-    }
-
-    .subtitle {
-      margin: 8px 0 20px;
-      text-align: center;
-      font-size: 0.95rem;
-      color: rgba(226, 232, 240, 0.75);
-    }
-
-    .scoreboard {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      padding: 12px 16px;
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.65);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      margin-bottom: 18px;
-      font-size: 0.95rem;
-    }
-
-    .scoreboard span {
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: var(--accent);
-    }
-
-    canvas {
-      display: block;
-      width: min(90vw, 360px);
-      max-width: 100%;
-      height: auto;
-      margin: 0 auto;
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      background: radial-gradient(circle at 20% 20%, rgba(148, 163, 184, 0.06), transparent 70%),
-                  radial-gradient(circle at 80% 80%, rgba(148, 163, 184, 0.04), transparent 75%),
-                  #0f172a;
-      image-rendering: pixelated;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin: 18px 0;
-      flex-wrap: wrap;
-    }
-
-    button {
-      appearance: none;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 18px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: #0b1120;
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
-      box-shadow: 0 12px 20px rgba(34, 211, 238, 0.28);
-      touch-action: manipulation;
-    }
-
-    button.secondary {
-      background: rgba(148, 163, 184, 0.2);
-      color: #e2e8f0;
-      box-shadow: none;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-    }
-
-    button:focus-visible {
-      outline: 3px solid rgba(34, 211, 238, 0.6);
-      outline-offset: 2px;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-    }
-
-    .status {
-      text-align: center;
-      font-size: 0.9rem;
-      color: rgba(226, 232, 240, 0.75);
-      min-height: 1.6em;
-    }
-
-    .instructions {
-      margin: 20px 0 0;
-      padding: 16px;
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(59, 130, 246, 0.18);
-      font-size: 0.85rem;
-      line-height: 1.6;
-      color: rgba(226, 232, 240, 0.75);
-    }
-
-    .touch-controls {
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, 48px);
-      justify-content: center;
-      gap: 8px;
-      user-select: none;
-    }
-
-    .touch-controls button {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      padding: 0;
-      box-shadow: none;
-      background: rgba(56, 189, 248, 0.22);
-      color: var(--accent-strong);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-    }
-
-    .touch-controls button:active {
-      transform: scale(0.96);
-    }
-
-    @media (max-width: 420px) {
       main {
+        width: min(960px, 100%);
+        background: var(--bg-panel);
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 28px 60px rgba(2, 6, 23, 0.45);
+        padding: clamp(24px, 4vw, 42px);
+        backdrop-filter: blur(16px);
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: clamp(24px, 5vw, 40px);
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 2.75rem);
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .lead {
+        margin: 0 auto;
+        max-width: 580px;
+        font-size: clamp(1rem, 2.6vw, 1.08rem);
+        color: var(--text-soft);
+        line-height: 1.6;
+      }
+
+      .idea-grid {
+        display: grid;
+        gap: clamp(16px, 3vw, 24px);
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .idea-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: clamp(20px, 3vw, 26px);
         border-radius: 22px;
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       }
 
-      .scoreboard {
-        font-size: 0.9rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>貪食蛇 Mini Game</h1>
-    <p class="subtitle">吃掉能量球、成為最長的蛇！用鍵盤或觸控方向鍵操作。</p>
-
-    <section class="scoreboard" aria-live="polite">
-      <div>分數：<span id="score">0</span></div>
-      <div>最佳紀錄：<span id="high-score">0</span></div>
-    </section>
-
-    <canvas id="game-board" width="360" height="360" role="img" aria-label="貪食蛇遊戲棋盤"></canvas>
-
-    <div class="controls">
-      <button id="start-button" type="button">開始遊戲</button>
-      <button id="reset-button" class="secondary" type="button">清除最佳紀錄</button>
-    </div>
-
-    <p id="status" class="status" aria-live="polite">準備好就按「開始遊戲」吧！</p>
-
-    <div class="touch-controls" aria-hidden="true">
-      <button type="button" data-direction="up" aria-label="向上">▲</button>
-      <span></span>
-      <button type="button" data-direction="right" aria-label="向右">▶</button>
-      <button type="button" data-direction="left" aria-label="向左">◀</button>
-      <span></span>
-      <button type="button" data-direction="down" aria-label="向下">▼</button>
-    </div>
-
-    <aside class="instructions">
-      <strong>玩法提示：</strong>
-      <ul>
-        <li>方向鍵或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 控制蛇的移動。</li>
-        <li>吃到能量球會加分並讓蛇變長。</li>
-        <li>撞到牆壁或自己的身體就會遊戲結束。</li>
-        <li>最佳紀錄會儲存在瀏覽器的本機儲存中。</li>
-      </ul>
-    </aside>
-  </main>
-
-  <script>
-    (function () {
-      const canvas = document.getElementById('game-board');
-      const ctx = canvas.getContext('2d');
-      const scoreEl = document.getElementById('score');
-      const highScoreEl = document.getElementById('high-score');
-      const statusEl = document.getElementById('status');
-      const startButton = document.getElementById('start-button');
-      const resetButton = document.getElementById('reset-button');
-      const controlButtons = document.querySelectorAll('[data-direction]');
-
-      const tileSize = 20;
-      const tiles = canvas.width / tileSize;
-      const highScoreKey = 'snakeHighScore';
-
-      let snake = [];
-      let food = { x: 0, y: 0 };
-      let velocity = { x: 0, y: 0 };
-      let nextVelocity = { x: 0, y: 0 };
-      let score = 0;
-      let highScore = Number(localStorage.getItem(highScoreKey)) || 0;
-      let gameInterval = null;
-      let tickSpeed = 130;
-
-      highScoreEl.textContent = highScore;
-
-      function startGame(initialDirection) {
-        if (gameInterval) {
-          clearInterval(gameInterval);
-        }
-        resetGame(initialDirection);
-        statusEl.textContent = '遊戲開始，祝你好運！';
-        gameInterval = setInterval(step, tickSpeed);
+      .idea-card:hover,
+      .idea-card:focus-visible {
+        transform: translateY(-4px);
+        border-color: rgba(56, 189, 248, 0.52);
+        box-shadow: 0 18px 32px rgba(8, 47, 73, 0.4);
+        outline: none;
       }
 
-      function resetGame(initialDirection) {
-        snake = [{ x: Math.floor(tiles / 2), y: Math.floor(tiles / 2) }];
-        const direction = initialDirection ? { ...initialDirection } : { x: 1, y: 0 };
-        velocity = { x: 0, y: 0 };
-        nextVelocity = direction;
-        score = 0;
-        tickSpeed = 130;
-        updateScore();
-        placeFood();
-        render();
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
 
-      function updateScore() {
-        scoreEl.textContent = score;
-        highScoreEl.textContent = highScore;
+      .idea-icon {
+        flex-shrink: 0;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        background: rgba(56, 189, 248, 0.16);
+        border: 1px solid rgba(56, 189, 248, 0.35);
       }
 
-      function placeFood() {
-        let newFood;
-        do {
-          newFood = {
-            x: Math.floor(Math.random() * tiles),
-            y: Math.floor(Math.random() * tiles)
-          };
-        } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
-        food = newFood;
+      .idea-card h2 {
+        margin: 0;
+        font-size: 1.18rem;
+        font-weight: 600;
       }
 
-      function step() {
-        if (!snake.length) {
-          return;
-        }
-        velocity = nextVelocity;
-        const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
-
-        if (velocity.x === 0 && velocity.y === 0) {
-          return;
-        }
-
-        if (isCollision(head)) {
-          endGame();
-          return;
-        }
-
-        snake.unshift(head);
-
-        if (head.x === food.x && head.y === food.y) {
-          score += 1;
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem(highScoreKey, String(highScore));
-            statusEl.textContent = '太棒了！創下新紀錄！';
-          }
-          updateScore();
-          placeFood();
-          speedUp();
-        } else {
-          snake.pop();
-        }
-
-        render();
+      .idea-card p {
+        margin: 0;
+        color: var(--text-soft);
+        line-height: 1.5;
+        font-size: 0.98rem;
       }
 
-      function isCollision(position) {
-        const hitWall = position.x < 0 || position.y < 0 || position.x >= tiles || position.y >= tiles;
-        const hitSelf = snake.some(segment => segment.x === position.x && segment.y === position.y);
-        return hitWall || hitSelf;
+      .meta {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.78rem;
+        color: rgba(148, 163, 184, 0.8);
       }
 
-      function endGame() {
-        clearInterval(gameInterval);
-        gameInterval = null;
-        statusEl.textContent = `遊戲結束！本次得分：${score}。按「開始遊戲」再挑戰一次。`;
+      .meta span {
+        color: var(--accent);
+        font-weight: 600;
       }
 
-      function speedUp() {
-        if (tickSpeed > 70 && score % 5 === 0) {
-          tickSpeed -= 5;
-          clearInterval(gameInterval);
-          gameInterval = setInterval(step, tickSpeed);
+      .meta li {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        background: rgba(15, 23, 42, 0.72);
+        border-radius: 999px;
+        padding: 6px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+      }
+
+      .cta-note {
+        margin-top: clamp(24px, 4vw, 32px);
+        padding: clamp(18px, 3vw, 24px);
+        border-radius: 18px;
+        border: 1px dashed rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.6);
+        font-size: 0.92rem;
+        color: var(--text-soft);
+        line-height: 1.6;
+      }
+
+      .cta-note strong {
+        color: var(--text);
+      }
+
+      @media (max-width: 600px) {
+        .idea-card {
+          padding: 18px;
         }
       }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Idea Hub</h1>
+        <p class="lead">
+          Collect and grow your creative experiments here. Drop in a new card each time inspiration strikes,
+          and link out to deep-dive pages that can evolve over time.
+        </p>
+      </header>
 
-      function drawRoundedRect(context, x, y, width, height, radius) {
-        const r = Math.min(radius, width / 2, height / 2);
-        context.beginPath();
-        context.moveTo(x + r, y);
-        context.lineTo(x + width - r, y);
-        context.quadraticCurveTo(x + width, y, x + width, y + r);
-        context.lineTo(x + width, y + height - r);
-        context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-        context.lineTo(x + r, y + height);
-        context.quadraticCurveTo(x, y + height, x, y + height - r);
-        context.lineTo(x, y + r);
-        context.quadraticCurveTo(x, y, x + r, y);
-        context.closePath();
-        context.fill();
-      }
+      <section class="idea-grid" aria-label="Available ideas">
+        <a class="idea-card" href="top-ai-llm-stars.html">
+          <div class="card-header">
+            <span class="idea-icon" aria-hidden="true">🌟</span>
+            <h2>Top LLM &amp; AI GitHub Stars (Weekly)</h2>
+          </div>
+          <p>
+            Discover the hottest open-source LLM and AI projects on GitHub this week. See what the community is
+            starring and follow links to explore, contribute, or learn from the repos.
+          </p>
+          <ul class="meta">
+            <li><span>Focus:</span> LLM, Agents, Infrastructure</li>
+            <li><span>Updated:</span> Weekly snapshot</li>
+          </ul>
+        </a>
+      </section>
 
-      function render() {
-        ctx.fillStyle = '#0b1220';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = 'rgba(51, 65, 85, 0.35)';
-        ctx.lineWidth = 1;
-        for (let i = 1; i < tiles; i += 1) {
-          ctx.beginPath();
-          ctx.moveTo(i * tileSize + 0.5, 0);
-          ctx.lineTo(i * tileSize + 0.5, canvas.height);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(0, i * tileSize + 0.5);
-          ctx.lineTo(canvas.width, i * tileSize + 0.5);
-          ctx.stroke();
-        }
-
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.18)';
-        ctx.shadowColor = 'rgba(34, 197, 94, 0.35)';
-        ctx.shadowBlur = 12;
-        drawRoundedRect(ctx, food.x * tileSize + 4, food.y * tileSize + 4, tileSize - 8, tileSize - 8, 6);
-        ctx.shadowBlur = 0;
-
-        snake.forEach((segment, index) => {
-          ctx.fillStyle = index === 0 ? 'var(--snake-head)' : 'var(--snake)';
-          drawRoundedRect(ctx, segment.x * tileSize + 2, segment.y * tileSize + 2, tileSize - 4, tileSize - 4, 6);
-        });
-      }
-
-      function queueDirection(direction) {
-        const directionMap = {
-          up: { x: 0, y: -1 },
-          down: { x: 0, y: 1 },
-          left: { x: -1, y: 0 },
-          right: { x: 1, y: 0 }
-        };
-        const desired = directionMap[direction];
-        if (!desired) {
-          return;
-        }
-
-        const isMoving = velocity.x !== 0 || velocity.y !== 0;
-        const isOpposite = desired.x === -velocity.x && desired.y === -velocity.y;
-        if (isMoving && isOpposite) {
-          return;
-        }
-
-        nextVelocity = { ...desired };
-
-        if (!gameInterval) {
-          startGame({ ...desired });
-        }
-      }
-
-      function handleKeydown(event) {
-        const key = event.key.toLowerCase();
-        if (["arrowup", "w"].includes(key)) {
-          event.preventDefault();
-          queueDirection('up');
-        } else if (["arrowdown", "s"].includes(key)) {
-          event.preventDefault();
-          queueDirection('down');
-        } else if (["arrowleft", "a"].includes(key)) {
-          event.preventDefault();
-          queueDirection('left');
-        } else if (["arrowright", "d"].includes(key)) {
-          event.preventDefault();
-          queueDirection('right');
-        } else if (key === ' ') {
-          event.preventDefault();
-          if (!gameInterval) {
-            startGame();
-          }
-        }
-      }
-
-      function handleControlPress(event) {
-        const direction = event.currentTarget.dataset.direction;
-        queueDirection(direction);
-      }
-
-      function resetHighScore() {
-        localStorage.removeItem(highScoreKey);
-        highScore = 0;
-        updateScore();
-        statusEl.textContent = '最佳紀錄已清除。';
-      }
-
-      startButton.addEventListener('click', startGame);
-      resetButton.addEventListener('click', resetHighScore);
-      window.addEventListener('keydown', handleKeydown);
-      controlButtons.forEach(button => {
-        button.addEventListener('click', handleControlPress);
-      });
-
-      render();
-    })();
-  </script>
-</body>
+      <aside class="cta-note">
+        <strong>Add a new idea:</strong> Duplicate a card, update the text, and point the link to a fresh page. This grid
+        expands automatically, so you can keep stacking new experiments without touching the layout.
+      </aside>
+    </main>
+  </body>
 </html>

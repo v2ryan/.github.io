@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Top LLM &amp; AI GitHub Stars (Weekly)</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-base: #070b16;
+        --bg-panel: rgba(15, 23, 42, 0.86);
+        --accent: #38bdf8;
+        --accent-strong: #22d3ee;
+        --text: #e2e8f0;
+        --text-soft: rgba(226, 232, 240, 0.75);
+        --border: rgba(148, 163, 184, 0.28);
+        font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 48px);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
+          radial-gradient(circle at 88% 12%, rgba(129, 140, 248, 0.16), transparent 62%),
+          linear-gradient(140deg, #020617 0%, #0f172a 60%, #1e293b 100%);
+        color: var(--text);
+      }
+
+      main {
+        width: min(920px, 100%);
+        background: var(--bg-panel);
+        border-radius: 28px;
+        border: 1px solid var(--border);
+        box-shadow: 0 28px 60px rgba(2, 6, 23, 0.45);
+        padding: clamp(24px, 4vw, 44px);
+        backdrop-filter: blur(18px);
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: clamp(24px, 4vw, 36px);
+      }
+
+      .breadcrumb {
+        font-size: 0.85rem;
+        color: var(--text-soft);
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .breadcrumb a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4.8vw, 2.6rem);
+        font-weight: 700;
+      }
+
+      .lead {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--text-soft);
+        line-height: 1.6;
+        max-width: 680px;
+      }
+
+      .snapshot-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: clamp(16px, 3vw, 24px) 0;
+        font-size: 0.86rem;
+        color: rgba(148, 163, 184, 0.85);
+      }
+
+      .snapshot-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(15, 23, 42, 0.68);
+        border-radius: 999px;
+        padding: 6px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(15, 23, 42, 0.7);
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+      }
+
+      thead {
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      th,
+      td {
+        padding: clamp(14px, 2.8vw, 18px);
+        text-align: left;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      th {
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.8);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr:hover {
+        background: rgba(30, 64, 175, 0.18);
+      }
+
+      .repo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .repo a {
+        color: var(--accent);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .repo a:hover {
+        text-decoration: underline;
+      }
+
+      .tags {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: rgba(148, 163, 184, 0.85);
+      }
+
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.14);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: var(--accent);
+      }
+
+      .footnote {
+        margin-top: clamp(22px, 4vw, 32px);
+        font-size: 0.85rem;
+        color: rgba(148, 163, 184, 0.85);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 720px) {
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
+          display: block;
+        }
+
+        thead {
+          display: none;
+        }
+
+        tbody tr {
+          border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+          padding: 18px 0;
+        }
+
+        tbody tr:last-child {
+          border-bottom: none;
+        }
+
+        td {
+          border: none;
+          padding: 6px 0;
+        }
+
+        td::before {
+          content: attr(data-label);
+          display: block;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          color: rgba(148, 163, 184, 0.72);
+          margin-bottom: 4px;
+          letter-spacing: 0.08em;
+        }
+
+        .repo {
+          gap: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">← Back to Idea Hub</a>
+          <span>Weekly snapshot</span>
+        </nav>
+        <h1>Top LLM &amp; AI GitHub Stars</h1>
+        <p class="lead">
+          A curated snapshot of the fastest-growing AI and LLM repositories on GitHub this week. Use it to catch up on
+          what the community is excited about, evaluate emerging tooling, or find inspiration for your own experiments.
+        </p>
+        <div class="snapshot-meta">
+          <span>Week of 25&nbsp;March&nbsp;2024</span>
+          <span>Source: GitHub Trending &amp; Star history</span>
+          <span>Focus: AI agents, LLM infra, research</span>
+        </div>
+      </header>
+
+      <table role="table">
+        <thead>
+          <tr>
+            <th scope="col">Repository</th>
+            <th scope="col">Highlights</th>
+            <th scope="col">Stars this week</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Repository">
+              <div class="repo">
+                <a href="https://github.com/langchain-ai/langgraph" target="_blank" rel="noopener">langchain-ai/langgraph</a>
+                <div class="tags">
+                  <span class="tag-chip">Agents</span>
+                  <span class="tag-chip">Workflow</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Highlights">
+              LangGraph adds graph-based orchestration and state management for LangChain workflows, unlocking long-running
+              agents with tool memory.
+            </td>
+            <td data-label="Stars this week">+2.4k</td>
+          </tr>
+          <tr>
+            <td data-label="Repository">
+              <div class="repo">
+                <a href="https://github.com/meta-llama/llama-recipes" target="_blank" rel="noopener">meta-llama/llama-recipes</a>
+                <div class="tags">
+                  <span class="tag-chip">Llama 3</span>
+                  <span class="tag-chip">Fine-tuning</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Highlights">
+              Official examples for Llama 3, including instruction tuning, evaluation, and hardware guidance for rapid
+              experimentation.
+            </td>
+            <td data-label="Stars this week">+1.9k</td>
+          </tr>
+          <tr>
+            <td data-label="Repository">
+              <div class="repo">
+                <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener">ollama/ollama</a>
+                <div class="tags">
+                  <span class="tag-chip">Local inference</span>
+                  <span class="tag-chip">Deployment</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Highlights">
+              Run open models locally with a single command, now featuring accelerated GPU builds and native Mistral/Llama
+              support.
+            </td>
+            <td data-label="Stars this week">+1.5k</td>
+          </tr>
+          <tr>
+            <td data-label="Repository">
+              <div class="repo">
+                <a href="https://github.com/microsoft/autogen" target="_blank" rel="noopener">microsoft/autogen</a>
+                <div class="tags">
+                  <span class="tag-chip">Multi-agent</span>
+                  <span class="tag-chip">Automation</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Highlights">
+              Multi-agent framework with conversational orchestration, now shipping new tools for real-time monitoring and
+              human-in-the-loop review.
+            </td>
+            <td data-label="Stars this week">+1.2k</td>
+          </tr>
+          <tr>
+            <td data-label="Repository">
+              <div class="repo">
+                <a href="https://github.com/openai/swarm" target="_blank" rel="noopener">openai/swarm</a>
+                <div class="tags">
+                  <span class="tag-chip">Agent runtime</span>
+                  <span class="tag-chip">Experimental</span>
+                </div>
+              </div>
+            </td>
+            <td data-label="Highlights">
+              Experimental lightweight agent runtime for routing tasks across specialized GPT-based workers with shared
+              context.
+            </td>
+            <td data-label="Stars this week">+980</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="footnote">
+        Numbers are approximate star gains gathered from public trending dashboards and community tracking for the stated
+        week. Refresh this page with the latest repos and data to keep the hub current.
+      </p>
+    </main>
+  </body>
+</html>
