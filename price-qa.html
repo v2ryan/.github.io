@@ -48,9 +48,42 @@ function norm(s){ return (s||'').toLowerCase().trim(); }
 function tokenize(q){ return norm(q).split(/\s+/).filter(t => t); }
 function clearQuery(){ questionEl.value=''; resultEl.textContent='(No results)'; statusEl.textContent = loaded ? `Loaded ${rows.length} records` : 'Not loaded'; clearBtn.classList.add('dim'); lastQuery=''; }
 function highlight(line, tokens){ let out=line; tokens.forEach(t=>{ const re=new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')','ig'); out = out.replace(re,'<mark>$1</mark>'); }); return out; }
-function matchRow(row, tokens){ const combined=[row.series,row.subseries,row.index,row.coating,row.source_file,row.effective_date].map(v=>norm(v)).join(' '); return tokens.every(tok=>{ if(tok==='海外'||tok==='overseas') return !!row.overseas; if(tok==='本地'||tok==='local') return !row.overseas; if(/^\d+(?:\.\d+)?$/.test(tok)) return norm(row.index)===tok; return combined.includes(tok); }); }
-function formatRow(r){ return `${r.series||''} ${r.subseries||''} ${r.index||''} - ${r.coating||''}: HK$${r.price_hkd} /片${r.overseas ? ' (海外訂鏡)' : ''}〔${r.source_file} p.${r.page}，生效日 ${r.effective_date || '未知'}〕`; }
-function search(){ if(!loaded){ statusEl.textContent='Data not yet loaded…'; return; } const q=questionEl.value; const tokens=tokenize(q); lastQuery=q; clearBtn.classList.toggle('dim', !q.trim()); if(tokens.length===0){ resultEl.innerHTML='(Enter keywords to search)'; statusEl.textContent=`Loaded ${rows.length} records`; return; } const matched=rows.filter(r=>matchRow(r,tokens)); statusEl.textContent=`Matched ${matched.length} / ${rows.length} records`; if(matched.length===0){ resultEl.textContent='No matching data'; return; } const tokensLower=tokens.map(t=>t.toLowerCase()); resultEl.innerHTML = matched.map(r=>highlight(formatRow(r), tokensLower)).join('\n'); }
+function matchRow(row, tokens){
+  const combined=[row.series,row.subseries,row.index,row.coating,row.source_file,row.effective_date].map(v=>norm(v)).join(' ');
+  return tokens.every(tok=>{
+    if(tok==='海外'||tok==='overseas') return !!row.overseas;
+    if(tok==='本地'||tok==='local') return !row.overseas;
+    if(/^\d+(?:\.\d+)?$/.test(tok)) return norm(row.index)===tok;
+    return combined.includes(tok);
+  });
+}
+function formatRow(r){
+  const star = r.starred ? '*' : '';
+  return `${r.series||''} ${r.subseries||''} ${r.index||''} - ${r.coating||''}${star}: HK$${r.price_hkd} /片${r.overseas ? ' (海外訂鏡)' : ''}〔${r.source_file} p.${r.page}，生效日 ${r.effective_date || '未知'}〕`;
+}
+function search(){
+  if(!loaded){ statusEl.textContent='Data not yet loaded…'; return; }
+  const q=questionEl.value;
+  const tokens=tokenize(q);
+  lastQuery=q;
+  clearBtn.classList.toggle('dim', !q.trim());
+  if(tokens.length===0){ resultEl.innerHTML='(Enter keywords to search)'; statusEl.textContent=`Loaded ${rows.length} records`; return; }
+  // Determine which free-text tokens actually appear anywhere (excluding numeric/index & special filters)
+  const universeText = rows.slice(0,4000).map(r=>[r.series,r.subseries,r.index,r.coating,r.source_file,r.effective_date].join(' ').toLowerCase()).join(' ');
+  const effectiveTokens=[]; const skippedTokens=[];
+  tokens.forEach(t=>{
+    if(t==='海外'||t==='overseas'||t==='本地'||t==='local'||/^\d+(?:\.\d+)?$/.test(t)) { effectiveTokens.push(t); return; }
+    if(universeText.includes(t)) effectiveTokens.push(t); else skippedTokens.push(t);
+  });
+  const usedTokens = effectiveTokens.length? effectiveTokens : tokens.filter(t=>/^\d+(?:\.\d+)?$/.test(t));
+  const matched=rows.filter(r=>matchRow(r, usedTokens));
+  let status = `Matched ${matched.length} / ${rows.length} records`;
+  if(skippedTokens.length) status += ` (ignored: ${skippedTokens.join(', ')})`;
+  statusEl.textContent = status;
+  if(matched.length===0){ resultEl.textContent='No matching data'; return; }
+  const tokensLower=usedTokens.map(t=>t.toLowerCase());
+  resultEl.innerHTML = matched.map(r=>highlight(formatRow(r), tokensLower)).join('\n');
+}
 questionEl.addEventListener('keydown', e => { if(e.key==='Enter'){ search(); } });
 </script>
 <footer>
