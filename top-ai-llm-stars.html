@@ -39,6 +39,17 @@
         position: relative;
       }
 
+      .filters {
+        display:flex; flex-wrap:wrap; gap:12px; margin: 8px 0 28px 0; align-items:flex-end;
+      }
+      .filters .field { display:flex; flex-direction:column; gap:6px; }
+      .filters label { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; opacity:.7; }
+      .filters input, .filters select { background:rgba(15,23,42,.7); color:var(--text); border:1px solid var(--border); padding:8px 10px; border-radius:8px; font:inherit; }
+      .filters button.action { padding:9px 16px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; }
+      .filters button.secondary { padding:9px 14px; border:1px solid var(--border); background:rgba(15,23,42,.5); color:var(--text-soft); border-radius:8px; cursor:pointer; }
+      .filters button.action:hover { background:var(--accent-strong); }
+      .filters button.secondary:hover { color:var(--text); }
+
       header { display: flex; flex-direction: column; gap: 12px; margin-bottom: clamp(24px, 4vw, 36px); }
 
       /* top bar */
@@ -118,9 +129,35 @@
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
       </div>
-      <div style="margin-bottom: 24px; display: flex; gap: 12px; align-items: center;">
-        <input id="topicInput" type="text" placeholder="Enter topic (e.g. llm, ai, agent)" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text); font-size: 1rem; width: 260px;" />
-        <button id="searchBtn" style="padding: 8px 18px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-size: 1rem;">Search</button>
+      <div class="filters" aria-label="Search & filters">
+        <div class="field" style="flex:2 1 180px;">
+          <label for="topicInput">Topic / Keyword</label>
+          <input id="topicInput" type="text" placeholder="e.g. llm, ai, agent, python" />
+        </div>
+        <div class="field">
+          <label for="startDate">Start Date</label>
+          <input id="startDate" type="date" />
+        </div>
+        <div class="field">
+          <label for="endDate">End Date</label>
+          <input id="endDate" type="date" />
+        </div>
+        <div class="field" style="width:90px;">
+          <label for="minStars">Min Stars</label>
+          <input id="minStars" type="number" min="0" value="1" />
+        </div>
+        <div class="field" style="width:110px;">
+          <label for="maxRowsSel">Max Rows</label>
+          <select id="maxRowsSel">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+        <div class="field" style="flex:0 0 auto; gap:8px;">
+          <button id="searchBtn" class="action">Search</button>
+          <button id="resetBtn" class="secondary" title="Reset filters">Reset</button>
+        </div>
       </div>
 
       <header>
@@ -223,7 +260,7 @@
   };
 
   let keywords = ['llm', 'language model', 'agent', 'agents', 'langchain', 'rag', 'vector', 'transformer', 'ai'];
-  const maxRows = 5;
+  let maxRows = 5; // user adjustable
 
   const langToggle = document.querySelector('[data-lang-toggle]');
   const tokenBtn   = document.getElementById('tokenBtn');
@@ -403,17 +440,52 @@
 
   let lastApiErrorText = '';
 
-  async function loadWeeklyStars(topic = null){
-    // Use 30 days window for monthly search
-  const days = 30;
-  const minStars = 1;
-    const results = new Map();
-    const now = new Date();
-    const since = new Date(now); since.setDate(since.getDate() - days);
-    const sinceIso = since.toISOString().slice(0,10);
+  function getFilterValues(){
+    const topic = (document.getElementById('topicInput')?.value || '').trim();
+    const start = (document.getElementById('startDate')?.value || '').trim();
+    const end = (document.getElementById('endDate')?.value || '').trim();
+    const minStarsVal = parseInt(document.getElementById('minStars')?.value || '1', 10) || 0;
+    const maxRowsSel = parseInt(document.getElementById('maxRowsSel')?.value || '5', 10) || 5;
+    return { topic, start, end, minStarsVal, maxRowsSel };
+  }
 
-    let searchKeywords = topic ? [topic] : keywords;
-    let queries = searchKeywords.map(k => `created:>=${sinceIso}+stars:>=${minStars}+(${k}) in:name,description,readme`);
+  function normalizeDateInput(value){
+    if(!value) return null; // expect yyyy-mm-dd
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+  }
+
+  async function loadWeeklyStars(topicOverride = null){
+    const { topic, start, end, minStarsVal, maxRowsSel } = getFilterValues();
+    maxRows = maxRowsSel;
+    const minStars = minStarsVal < 0 ? 0 : minStarsVal;
+
+    // Determine date window (default: last 30 days)
+    const today = new Date();
+    const endDate = normalizeDateInput(end) || today.toISOString().slice(0,10);
+    let startDate = normalizeDateInput(start);
+    if(!startDate){
+      const tmp = new Date(endDate + 'T00:00:00Z');
+      tmp.setDate(tmp.getDate() - 30);
+      startDate = tmp.toISOString().slice(0,10);
+    }
+    // Guard for reversed dates
+    if (startDate > endDate){
+      const t = startDate; startDate = endDate; /* swap */ startDate = t;
+    }
+
+    const chosenTopic = topicOverride !== null ? topicOverride : topic;
+    const results = new Map();
+    let searchKeywords = chosenTopic ? [chosenTopic] : keywords;
+    // Use explicit range for created
+    // Build queries: topic created:startDate..endDate stars:>=minStars
+    let queries = searchKeywords.map(k => {
+      let parts = [];
+      if(k) parts.push(k);
+      parts.push(`created:${startDate}..${endDate}`);
+      if (minStars > 0) parts.push(`stars:>=${minStars}`);
+      parts.push('in:name,description,readme');
+      return parts.join(' ');
+    });
 
     results.clear();
     for (const q of queries){
@@ -444,16 +516,10 @@
 
     dataLoaded = true;
     if (!cachedResults.length){
-      showError('noResults');
-      if (lastApiErrorText){
-        const extra = document.createElement('div');
-        extra.className = 'loading-state';
-        extra.innerHTML = `<span aria-hidden="true">🪪</span><span>${lastApiErrorText}</span>`;
-        const row = document.createElement('tr'); const td = document.createElement('td');
-        td.colSpan = 3; td.appendChild(extra); row.appendChild(td); resultsBody.appendChild(row);
-      }
-      return;
-    }
+      let reason = 'No repositories for this filter.';
+      if (lastApiErrorText) reason += ` API: ${lastApiErrorText}`;
+      showErrorLine(reason + ' Try broadening the topic, widening the date range, or lowering min stars.');
+      return; }
 
     resultsBody.innerHTML = '';
     cachedResults.forEach(r => resultsBody.appendChild(createRow(r)));
@@ -489,28 +555,23 @@
       console.warn('Token invalid:', v.status, v.message);
     }
 
-    await loadWeeklyStars();
+  await loadWeeklyStars();
     renderMetaDates();
 
     // Add topic search event
     const topicInput = document.getElementById('topicInput');
     const searchBtn = document.getElementById('searchBtn');
-    if (searchBtn && topicInput) {
-      searchBtn.addEventListener('click', async () => {
-        const topic = topicInput.value.trim();
-        showLoading();
-        await loadWeeklyStars(topic || null);
-        renderMetaDates();
-      });
-      topicInput.addEventListener('keydown', async (e) => {
-        if (e.key === 'Enter') {
-          const topic = topicInput.value.trim();
-          showLoading();
-          await loadWeeklyStars(topic || null);
-          renderMetaDates();
-        }
-      });
-    }
+    const resetBtn = document.getElementById('resetBtn');
+    if (searchBtn) searchBtn.addEventListener('click', async () => { showLoading(); await loadWeeklyStars(); });
+    if (topicInput) topicInput.addEventListener('keydown', async e => { if(e.key==='Enter'){ showLoading(); await loadWeeklyStars(); }});
+    if (resetBtn) resetBtn.addEventListener('click', async () => {
+      (document.getElementById('topicInput')||{}).value='';
+      (document.getElementById('startDate')||{}).value='';
+      (document.getElementById('endDate')||{}).value='';
+      (document.getElementById('minStars')||{}).value='1';
+      (document.getElementById('maxRowsSel')||{}).value='5';
+      showLoading(); await loadWeeklyStars();
+    });
   }
 
   langToggle?.addEventListener('click', () => {
