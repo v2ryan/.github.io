@@ -52,6 +52,18 @@
   .filters .inline-row { display:flex; align-items:center; gap:8px; }
   mark.match { background:rgba(250,204,21,.25); color:var(--accent-strong); padding:0 2px; border-radius:3px; }
 
+  /* Saved topics UI */
+  .saved-topics{ margin:-4px 0 24px 0; display:flex; flex-direction:column; gap:10px; }
+  .saved-topics .st-header{ display:flex; align-items:center; gap:10px; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; opacity:.75; }
+  .saved-topics .mini-btn{ background:rgba(15,23,42,.55); color:var(--text-soft); border:1px solid var(--border); padding:4px 10px; border-radius:6px; font-size:.65rem; cursor:pointer; font-weight:600; }
+  .saved-topics .mini-btn:hover{ color:var(--text); border-color:rgba(148,163,184,.45); }
+  .saved-topics .mini-btn.danger:hover{ border-color:#f87171; color:#f87171; }
+  .topic-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .topic-chip{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:rgba(56,189,248,.14); color:var(--accent); border:1px solid rgba(56,189,248,.35); border-radius:999px; font-size:.75rem; cursor:pointer; position:relative; }
+  .topic-chip:hover{ background:rgba(56,189,248,.22); }
+  .topic-chip button{ all:unset; cursor:pointer; font-size:.85em; line-height:1; padding:2px 4px; border-radius:6px; background:rgba(15,23,42,.4); color:var(--accent-strong); }
+  .topic-chip button:hover{ background:rgba(239,68,68,.85); color:#fff; }
+
       header { display: flex; flex-direction: column; gap: 12px; margin-bottom: clamp(24px, 4vw, 36px); }
 
       /* top bar */
@@ -144,6 +156,14 @@
         </button>
         <button type="button" class="chip-btn" data-kind="api" id="tokenBtn" title="Set GitHub API Token">API</button>
         <button type="button" class="chip-btn" id="translateDynBtn" title="Toggle dynamic description translation (試驗)">翻譯</button>
+      </div>
+      <div class="saved-topics" aria-label="Saved topics section">
+        <div class="st-header">
+          <span>Saved Topics</span>
+          <button id="addTopicBtn" class="mini-btn" title="Save current topic">+ Save</button>
+          <button id="clearTopicsBtn" class="mini-btn danger" title="Remove all saved topics">Clear</button>
+        </div>
+        <div id="topicChips" class="topic-chips" aria-live="polite"></div>
       </div>
       <div class="filters" aria-label="Search & filters">
         <div class="field" style="flex:2 1 180px;">
@@ -292,6 +312,7 @@
   let cachedResults = [];
   let dataLoaded = false;
   let translateDynamic = false; // experimental zh-HK toggle
+  const SAVED_TOPICS_KEY = 'savedTopicsV1';
 
   /* ===== Token helpers ===== */
   const TOKEN_KEYS = ['GITHUB_PAT_SESSION', 'GITHUB_PAT_LOCAL'];
@@ -646,6 +667,70 @@
         }
       });
     }
+
+    /* ===== Saved topics logic ===== */
+    const topicChips = document.getElementById('topicChips');
+    function loadSavedTopics(){
+      try { return JSON.parse(localStorage.getItem(SAVED_TOPICS_KEY) || '[]'); } catch { return []; }
+    }
+    function persistTopics(list){ localStorage.setItem(SAVED_TOPICS_KEY, JSON.stringify(list)); }
+    function renderSavedTopics(){
+      if(!topicChips) return;
+      const list = loadSavedTopics();
+      topicChips.innerHTML = '';
+      if(!list.length){
+        const empty = document.createElement('div');
+        empty.style.opacity = '.5'; empty.style.fontSize = '.7rem';
+        empty.textContent = 'No saved topics';
+        topicChips.appendChild(empty); return;
+      }
+      list.forEach(t => {
+        const chip = document.createElement('span');
+        chip.className = 'topic-chip';
+        chip.dataset.topic = t;
+        chip.innerHTML = `<span class="label">${t}</span><button type="button" aria-label="Delete ${t}" data-del>&times;</button>`;
+        topicChips.appendChild(chip);
+      });
+    }
+    function addTopic(t){
+      t = (t||'').trim(); if(!t) return;
+      let list = loadSavedTopics();
+      if(!list.includes(t)){
+        list.unshift(t);
+        if(list.length > 30) list = list.slice(0,30); // cap
+        persistTopics(list); renderSavedTopics();
+      }
+    }
+    function removeTopic(t){
+      let list = loadSavedTopics().filter(x => x !== t); persistTopics(list); renderSavedTopics();
+    }
+
+    const addTopicBtn = document.getElementById('addTopicBtn');
+    const clearTopicsBtn = document.getElementById('clearTopicsBtn');
+    addTopicBtn?.addEventListener('click', () => {
+      const val = (document.getElementById('topicInput')?.value || '').trim();
+      addTopic(val);
+    });
+    clearTopicsBtn?.addEventListener('click', () => {
+      if(confirm('Clear all saved topics?')){ persistTopics([]); renderSavedTopics(); }
+    });
+    topicChips?.addEventListener('click', async (e) => {
+      const target = e.target;
+      if(!(target instanceof HTMLElement)) return;
+      const chip = target.closest('.topic-chip');
+      if(!chip) return;
+      const topic = chip.dataset.topic;
+      if(target.hasAttribute('data-del')){
+        removeTopic(topic);
+        return;
+      } else {
+        const input = document.getElementById('topicInput');
+        if(input){ input.value = topic; }
+        showLoading(); await loadWeeklyStars(topic);
+      }
+    });
+
+    renderSavedTopics();
   }
 
   langToggle?.addEventListener('click', () => {
