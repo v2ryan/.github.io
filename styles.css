@@ -1143,3 +1143,1039 @@ html {
     background: #2980b9;
 }
 
+
+
+/* Subpage Styles */
+.page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 120px 0 80px;
+    text-align: center;
+}
+
+.page-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+/* Member Area Styles */
+.member-content {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.content-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    color: white;
+}
+
+.content-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.resource-list {
+    list-style: none;
+    padding: 0;
+}
+
+.resource-list li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.resource-list li:last-child {
+    border-bottom: none;
+}
+
+.resource-list i {
+    color: #e74c3c;
+    width: 20px;
+}
+
+.steps-section {
+    margin-top: 1.5rem;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(45deg, #f1c40f, #f39c12);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.step-content h5 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.benefits-list {
+    margin-top: 1.5rem;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.benefit-item i {
+    color: #27ae60;
+    font-size: 1.2rem;
+}
+
+.login-section {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.login-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.login-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.login-help {
+    text-align: center;
+    margin-top: 1rem;
+    color: #666;
+}
+
+.login-help a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+/* Practice Page Styles */
+.practice-content {
+    padding: 80px 0;
+    background: white;
+}
+
+.practice-levels {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.level-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.level-badge.beginner {
+    background: #d4edda;
+    color: #155724;
+}
+
+.level-badge.intermediate {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.level-badge.advanced {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.level-badge.expert {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.joseki-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.joseki-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.endgame-features {
+    margin: 1rem 0;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.feature-item i {
+    color: #3498db;
+}
+
+.game-collection h4 {
+    margin: 1rem 0 0.5rem 0;
+    color: #2c3e50;
+}
+
+.game-categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.category h5 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.category ul {
+    list-style: none;
+    padding: 0;
+}
+
+.category li {
+    padding: 0.2rem 0;
+    color: #666;
+}
+
+.practice-tools {
+    background: #f8f9fa;
+    padding: 3rem;
+    border-radius: 15px;
+    margin: 3rem 0;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.tool-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tool-card i {
+    font-size: 2rem;
+    color: #3498db;
+    margin-bottom: 1rem;
+}
+
+.tool-card h4 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.recommended-sites {
+    margin-top: 3rem;
+}
+
+.sites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.site-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f0f0f0;
+}
+
+.site-card h4 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.external-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #3498db;
+    text-decoration: none;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.external-link:hover {
+    color: #2980b9;
+}
+
+/* Platform Page Styles */
+.platform-content {
+    padding: 80px 0;
+    background: #f8f9fa;
+}
+
+.platform-intro {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.platforms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.platform-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.platform-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.platform-card.featured {
+    border: 2px solid #f1c40f;
+}
+
+.platform-header {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.platform-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.platform-info h4 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.platform-badge {
+    background: #f1c40f;
+    color: #2c3e50;
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.platform-info {
+    padding: 0 2rem 2rem;
+}
+
+.platform-features {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.feature i {
+    color: #3498db;
+}
+
+.game-modes {
+    margin: 4rem 0;
+}
+
+.modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.mode-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.mode-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+}
+
+.time-options {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.time-badge {
+    background: #ecf0f1;
+    color: #2c3e50;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.multi-features {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.feature-tag {
+    background: #3498db;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.platform-tips {
+    margin: 4rem 0;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.tip-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.tip-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.community-section {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.community-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.community-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.community-btn.facebook {
+    background: #1877f2;
+    color: white;
+}
+
+.community-btn.telegram {
+    background: #0088cc;
+    color: white;
+}
+
+.community-btn.discord {
+    background: #5865f2;
+    color: white;
+}
+
+.community-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Software Page Styles */
+.software-content {
+    padding: 80px 0;
+    background: white;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.category-card {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.category-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #1abc9c, #16a085);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+}
+
+.software-list {
+    margin: 4rem 0;
+}
+
+.software-section {
+    margin-bottom: 3rem;
+}
+
+.software-section h4 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.software-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.software-card {
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.software-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.software-card.featured {
+    border: 2px solid #f1c40f;
+    background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+}
+
+.software-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.software-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.software-info h5 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.software-badge {
+    padding: 0.2rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.software-badge.free {
+    background: #d4edda;
+    color: #155724;
+}
+
+.software-badge.paid {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.software-features {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.software-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.software-actions .btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.8rem 1rem;
+}
+
+.installation-guide {
+    background: #f8f9fa;
+    padding: 3rem;
+    border-radius: 15px;
+    margin: 3rem 0;
+}
+
+.guide-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.guide-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.guide-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.support-section {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.support-options {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.support-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.support-btn:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .content-card {
+        padding: 2rem;
+    }
+
+    .game-categories {
+        grid-template-columns: 1fr;
+    }
+
+    .platforms-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .platform-header {
+        padding: 1.5rem;
+    }
+
+    .platform-info {
+        padding: 0 1.5rem 1.5rem;
+    }
+
+    .platform-features {
+        justify-content: center;
+    }
+
+    .modes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .community-links {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .community-btn {
+        width: 200px;
+        justify-content: center;
+    }
+
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .software-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .software-actions {
+        flex-direction: column;
+    }
+
+    .guide-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .tools-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .sites-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .support-options {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .support-btn {
+        width: 200px;
+        justify-content: center;
+    }
+
+    /* Better spacing for mobile */
+    .member-content,
+    .practice-content,
+    .platform-content,
+    .software-content {
+        padding: 60px 0;
+    }
+
+    .page-header {
+        padding: 100px 0 60px;
+    }
+
+    .login-section {
+        padding: 2rem;
+        margin: 0 1rem;
+    }
+
+    .practice-tools,
+    .installation-guide,
+    .community-section,
+    .support-section {
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-card,
+    .platform-card,
+    .software-card {
+        padding: 1.5rem;
+    }
+
+    .card-icon,
+    .platform-icon,
+    .category-icon,
+    .mode-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .step {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .benefit-item {
+        justify-content: center;
+    }
+
+    .time-options,
+    .multi-features,
+    .software-features {
+        justify-content: center;
+    }
+
+    .platform-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .platform-badge {
+        position: static;
+        margin-top: 1rem;
+    }
+
+    .software-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
+
+
+/* Enhanced Mobile Table Styles */
+@media (max-width: 768px) {
+    .activities-table {
+        font-size: 0.85rem;
+        table-layout: fixed;
+        width: 100%;
+    }
+    
+    .activities-table th,
+    .activities-table td {
+        padding: 0.6rem 0.4rem;
+        vertical-align: top;
+    }
+    
+    .activities-table th:first-child,
+    .activities-table td:first-child {
+        width: 28%;
+        min-width: 90px;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+    
+    .activities-table th:nth-child(2),
+    .activities-table td:nth-child(2) {
+        width: 52%;
+        white-space: normal;
+        word-wrap: break-word;
+        font-size: 0.85rem;
+    }
+    
+    .activities-table th:last-child,
+    .activities-table td:last-child {
+        width: 20%;
+        min-width: 60px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        white-space: nowrap;
+        display: inline-block;
+    }
+}
+
+@media (max-width: 480px) {
+    .activities-table {
+        font-size: 0.75rem;
+    }
+    
+    .activities-table th,
+    .activities-table td {
+        padding: 0.5rem 0.3rem;
+    }
+    
+    .activities-table th:first-child,
+    .activities-table td:first-child {
+        width: 32%;
+        min-width: 85px;
+        font-size: 0.7rem;
+        line-height: 1.2;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+    
+    .activities-table th:nth-child(2),
+    .activities-table td:nth-child(2) {
+        width: 48%;
+        font-size: 0.75rem;
+    }
+    
+    .activities-table th:last-child,
+    .activities-table td:last-child {
+        width: 20%;
+        min-width: 50px;
+    }
+    
+    .status-badge {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 8px;
+    }
+}
+
+/* Force single line for date cells - stronger rules */
+.activities-table td:first-child,
+.activities-table th:first-child {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: keep-all !important;
+    hyphens: none !important;
+}
+
