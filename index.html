@@ -1,490 +1,440 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港圍棋文化學會 | Hong Kong Go Culture Association</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Navigation Header -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <i class="fas fa-chess-board"></i>
-                <span>香港圍棋文化學會</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">主頁</a></li>
-                <li><a href="#about" class="nav-link">本會資料</a></li>
-                <li><a href="#activities" class="nav-link">本會動向</a></li>
-                <li><a href="#go-intro" class="nav-link">圍棋簡介</a></li>
-                <li><a href="#news" class="nav-link">棋聞棋事</a></li>
-                <li><a href="#classes" class="nav-link">課程資料</a></li>
-                <li><a href="#resources" class="nav-link">圍棋資源</a></li>
-                <li><a href="#contact" class="nav-link">聯絡我們</a></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Idea Hub</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-base: #070b16;
+        --bg-panel: rgba(15, 23, 42, 0.84);
+        --accent: #38bdf8;
+        --accent-strong: #22d3ee;
+        --text: #e2e8f0;
+        --text-soft: rgba(226, 232, 240, 0.75);
+        --border: rgba(148, 163, 184, 0.25);
+        font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      }
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">香港圍棋文化學會</h1>
-            <p class="hero-subtitle">以弈導善，由心出發</p>
-            <p class="hero-description">弘揚圍棋文化，培育棋道精神</p>
-            <div class="hero-buttons">
-                <a href="#classes" class="btn btn-primary">立即報名</a>
-                <a href="#about" class="btn btn-secondary">了解更多</a>
-            </div>
-        </div>
-        <div class="hero-visual">
-            <div class="go-board-visual">
-                <div class="go-stone black"></div>
-                <div class="go-stone white"></div>
-                <div class="go-stone black"></div>
-            </div>
-        </div>
-    </section>
+      * { box-sizing: border-box; }
 
-    <!-- Latest News Section -->
-    <section class="latest-news">
-        <div class="container">
-            <h2 class="section-title">最新消息</h2>
-            <div class="news-grid">
-                <div class="news-card highlight">
-                    <div class="news-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h3>搬遷啟示</h3>
-                    <p>我們搬家了！新地址為觀塘興業街15號中美中心A座3樓B1室。地點更方便，更有桌遊體驗及預約服務，請多多支持！</p>
-                </div>
-                <div class="news-card">
-                    <div class="news-icon">
-                        <i class="fas fa-laptop"></i>
-                    </div>
-                    <h3>抗疫網課</h3>
-                    <p>本會團隊推出全新之圍棋教學模式——「網絡圍棋教練」，讓閣下能安在家中，都能夠繼續踏上棋神之路。</p>
-                </div>
-                <div class="news-card">
-                    <div class="news-icon">
-                        <i class="fas fa-gift"></i>
-                    </div>
-                    <h3>免費試堂</h3>
-                    <p>承蒙各位支持，本會將繼續秉持「以棋育人」的精神弘揚棋道！本會決定延續「免費試堂」的傳統。</p>
-                </div>
-                <div class="news-card">
-                    <div class="news-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <h3>上門教學</h3>
-                    <p>時間彈性，價格相宜，安坐家中，省時免勞。</p>
-                </div>
-                <div class="news-card">
-                    <div class="news-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h3>棋譜解說</h3>
-                    <p>只需按步驟將棋譜傳送至本會，資深導師會負責為你深入淺出地解說。</p>
-                </div>
-                <div class="news-card">
-                    <div class="news-icon">
-                        <i class="fab fa-facebook"></i>
-                    </div>
-                    <h3>免費交流</h3>
-                    <p>本會已設立Facebook Group（臉書群組）並會不定期更新，讓各位圍棋愛好者在互聯網上作圍棋交流。</p>
-                </div>
-            </div>
-        </div>
-    </section>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(20px, 6vw, 52px);
+        background:
+          radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
+          radial-gradient(circle at 88% 12%, rgba(129, 140, 248, 0.16), transparent 62%),
+          linear-gradient(140deg, #020617 0%, #0f172a 60%, #1e293b 100%);
+        color: var(--text);
+      }
 
-    <!-- About Section -->
-    <section id="about" class="about">
-        <div class="container">
-            <h2 class="section-title">本會資料</h2>
-            <div class="about-grid">
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>關於我們</h3>
-                    <p>零八年暑假，一群鍾情於圍棋文化的青年人身體力行，創立本會，務求讓更多人認識箇中樂趣及對弈之道。創會十餘年，我們熱切追求一個團結、有情、進取的香港圍棋界，一個習弈之士感到自豪之地。</p>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <h3>宗旨</h3>
-                    <p>本會一直秉持「以弈導善，由心出發」的宗旨弘揚棋道。以不斷改進的圍棋教育方法，務求學員無論在棋力和心智上都有顯著的成長。這裡是一個由老師、學員及家長們組成的大家庭。</p>
-                </div>
-                <div class="about-card">
-                    <div class="about-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <h3>特色</h3>
-                    <p>經過本會多年實驗，制定出專業的「混合式等級分評核制」。此評核制參照古代十番棋、現代各網絡圍棋升降段標準及職業棋士等級分制度而制定，務求令棋力的評核更精準。</p>
-                </div>
-            </div>
-        </div>
-    </section>
+      main {
+        width: min(1020px, 100%);
+        background: var(--bg-panel);
+        border-radius: 28px;
+        border: 1px solid var(--border);
+        box-shadow: 0 28px 60px rgba(2, 6, 23, 0.45);
+        padding: clamp(24px, 5vw, 48px);
+        backdrop-filter: blur(18px);
+        position: relative;
+      }
 
-    <!-- Activities Section -->
-    <section id="activities" class="activities">
-        <div class="container">
-            <h2 class="section-title">本會動向</h2>
-            <p class="section-description">我們定期會舉辦一些圍棋活動、聚會、交流及比賽。以下為我們最近舉辦過的活動：</p>
-            <div class="activities-table-container">
-                <table class="activities-table">
-                    <thead>
-                        <tr>
-                            <th>日期</th>
-                            <th>活動項目</th>
-                            <th>狀態</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>2023年04月10日</td>
-                            <td>主辦 - 棋會盃圍棋交流賽2023 高級組</td>
-                            <td><span class="status completed">已完成</span></td>
-                        </tr>
-                        <tr>
-                            <td>2023年04月05日</td>
-                            <td>主辦 - 棋會盃圍棋交流賽2023 中級組</td>
-                            <td><span class="status completed">已完成</span></td>
-                        </tr>
-                        <tr>
-                            <td>2023年01月02日</td>
-                            <td>主辦 - 棋會盃圍棋交流賽2023 初級組</td>
-                            <td><span class="status completed">已完成</span></td>
-                        </tr>
-                        <tr>
-                            <td>2022年10月22日</td>
-                            <td>告示 - 棋會搬遷至觀塘興業街15號中美中心</td>
-                            <td><span class="status announcement">公告</span></td>
-                        </tr>
-                        <tr>
-                            <td>2022年07月17日</td>
-                            <td>合辦 - 在「香港圍棋教育學院」進行「一碁一會」</td>
-                            <td><span class="status completed">已完成</span></td>
-                        </tr>
-                        <tr>
-                            <td>2021年11月14日</td>
-                            <td>合辦 - 在「文房」開辦第二期圍棋沙龍</td>
-                            <td><span class="status completed">已完成</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
+      .top-bar {
+        position: absolute;
+        top: clamp(16px, 3vw, 24px);
+        right: clamp(16px, 3vw, 24px);
+      }
 
-    <!-- Go Introduction Section -->
-    <section id="go-intro" class="go-intro">
-        <div class="container">
-            <h2 class="section-title">圍棋簡介</h2>
-            <div class="go-intro-grid">
-                <div class="go-intro-card">
-                    <div class="go-intro-icon">
-                        <i class="fas fa-history"></i>
-                    </div>
-                    <h3>歷史</h3>
-                    <p>圍棋源自中國，相傳由「堯造圍棋，教子丹朱」，距今有著數千年的歷史文化。古代四藝「琴、棋、書、畫」當中，「棋」就是指圍棋。</p>
-                </div>
-                <div class="go-intro-card">
-                    <div class="go-intro-icon">
-                        <i class="fas fa-puzzle-piece"></i>
-                    </div>
-                    <h3>特色</h3>
-                    <p>有別於其他棋類，圍棋規則簡單易明，著子不受特定之步法所拘束。由於棋盤上任何一點均是可著手之處，學員之發揮空間更廣。</p>
-                </div>
-                <div class="go-intro-card">
-                    <div class="go-intro-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <h3>魅力</h3>
-                    <p>自古至今，圍棋的魅力依然沒有退減。三國名將曹操、孫策、關羽等皆是圍棋愛好者。甚至東傳日本後，戰國時代之名將如織田信長、豐臣秀吉、德川家康等亦為熱愛圍棋之士。</p>
-                </div>
-            </div>
-            
-            <div class="benefits-section">
-                <h3>學習圍棋的益處</h3>
-                <div class="benefits-grid">
-                    <div class="benefit-item">
-                        <i class="fas fa-brain"></i>
-                        <span>鍛煉邏輯思維 - 強化推理能力</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>提高逆境智商 - 加強自信心</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-memory"></i>
-                        <span>增強記憶能力 - 提高學習能力</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-handshake"></i>
-                        <span>學習禮儀文化 - 有助於人際關係</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+      .lang-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(15, 23, 42, 0.72);
+        color: inherit;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+      }
+      .lang-toggle:hover,
+      .lang-toggle:focus-visible {
+        border-color: rgba(56, 189, 248, 0.6);
+        color: var(--accent-strong);
+        outline: none;
+      }
+      .lang-toggle span[data-active="true"] { opacity: 1; }
+      .lang-toggle span[data-lang-code] {
+        opacity: 0.55;
+        transition: opacity 0.18s ease;
+      }
 
-    <!-- News Section -->
-    <section id="news" class="news">
-        <div class="container">
-            <h2 class="section-title">棋聞棋事</h2>
-            <div class="news-categories">
-                <div class="news-category">
-                    <div class="category-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h3>棋士簡介</h3>
-                    <p>介紹知名棋士的生平和成就</p>
-                </div>
-                <div class="news-category">
-                    <div class="category-icon">
-                        <i class="fas fa-newspaper"></i>
-                    </div>
-                    <h3>新聞摘要</h3>
-                    <p>最新的圍棋界新聞和動態</p>
-                </div>
-                <div class="news-category">
-                    <div class="category-icon">
-                        <i class="fas fa-trophy"></i>
-                    </div>
-                    <h3>焦點賽事</h3>
-                    <p>重要比賽和賽事的報導</p>
-                </div>
-            </div>
-        </div>
-    </section>
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        margin-bottom: clamp(24px, 5vw, 40px);
+      }
+      .eyebrow {
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.32em;
+        font-size: 0.76rem;
+        color: var(--accent);
+        font-weight: 600;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2.1rem, 5vw, 2.8rem);
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+      .lead {
+        margin: 0;
+        max-width: 620px;
+        color: var(--text-soft);
+        font-size: clamp(1rem, 2.8vw, 1.08rem);
+        line-height: 1.6;
+      }
 
-    <!-- Classes Section -->
-    <section id="classes" class="classes">
-        <div class="container">
-            <h2 class="section-title">課程資料</h2>
-            <div class="classes-intro">
-                <h3>觀塘兒童及成人圍棋興趣班</h3>
-                <p>不論年齡性別，只要對圍棋有興趣者，我們樂意提供指導</p>
-            </div>
-            
-            <div class="schedule-container">
-                <h4>課程時間表</h4>
-                <div class="schedule-table-container">
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>節數</th>
-                                <th>星期六</th>
-                                <th>星期日</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>第一節</td>
-                                <td>10:00 - 11:20</td>
-                                <td>10:00 - 11:20</td>
-                            </tr>
-                            <tr>
-                                <td>第二節</td>
-                                <td>11:30 - 12:50</td>
-                                <td>11:30 - 12:50</td>
-                            </tr>
-                            <tr>
-                                <td>第三節</td>
-                                <td>13:30 - 14:50</td>
-                                <td>13:30 - 14:50</td>
-                            </tr>
-                            <tr>
-                                <td>第四節</td>
-                                <td>15:00 - 16:20</td>
-                                <td>15:00 - 16:20</td>
-                            </tr>
-                            <tr>
-                                <td>第五節</td>
-                                <td>16:30 - 17:50</td>
-                                <td>16:30 - 17:50</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      .idea-grid {
+        display: grid;
+        gap: clamp(18px, 4vw, 26px);
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+      .idea-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: clamp(22px, 4vw, 28px);
+        border-radius: 22px;
+        text-decoration: none;
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        color: inherit;
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      }
+      .idea-card:hover,
+      .idea-card:focus-visible {
+        transform: translateY(-4px);
+        border-color: rgba(56, 189, 248, 0.5);
+        box-shadow: 0 18px 34px rgba(8, 47, 73, 0.4);
+        outline: none;
+      }
 
-            <div class="course-levels">
-                <h4>課程階段</h4>
-                <div class="levels-grid">
-                    <div class="level-card">
-                        <h5>入門班</h5>
-                        <p>適合從未接觸圍棋者</p>
-                        <span class="level-target">目標：25級</span>
-                    </div>
-                    <div class="level-card">
-                        <h5>初階班</h5>
-                        <p>適合完成入門班訓練者</p>
-                        <span class="level-target">目標：15級</span>
-                    </div>
-                    <div class="level-card">
-                        <h5>進階班</h5>
-                        <p>適合棋力達至15級者</p>
-                        <span class="level-target">目標：9級</span>
-                    </div>
-                    <div class="level-card">
-                        <h5>高階班</h5>
-                        <p>適合棋力達至9級者</p>
-                        <span class="level-target">目標：1級</span>
-                    </div>
-                    <div class="level-card">
-                        <h5>研習班</h5>
-                        <p>適合棋力達至1級者</p>
-                        <span class="level-target">目標：6段</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+      .card-header {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .idea-icon {
+        flex-shrink: 0;
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        font-size: 1.5rem;
+        background: rgba(56, 189, 248, 0.18);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+      }
+      .card-text h2 {
+        margin: 0;
+        font-size: 1.16rem;
+        font-weight: 600;
+      }
+      .card-text p {
+        margin: 8px 0 0;
+        color: var(--text-soft);
+        font-size: 0.98rem;
+        line-height: 1.55;
+      }
 
-    <!-- Resources Section -->
-    <section id="resources" class="resources">
-        <div class="container">
-            <h2 class="section-title">圍棋資源</h2>
-            <div class="resources-grid">
-                <div class="resource-card">
-                    <div class="resource-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>會員天地</h3>
-                    <p>棋譜下載和會員專屬資源</p>
-                    <a href="member-area.html" class="btn btn-primary">進入</a>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-icon">
-                        <i class="fas fa-laptop"></i>
-                    </div>
-                    <h3>網上圍棋練習</h3>
-                    <p>線上練習平台和棋譜資源</p>
-                    <a href="online-practice.html" class="btn btn-primary">進入</a>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-icon">
-                        <i class="fas fa-gamepad"></i>
-                    </div>
-                    <h3>網絡圍棋對戰平台</h3>
-                    <p>與其他棋友線上對弈</p>
-                    <a href="online-platform.html" class="btn btn-primary">進入</a>
-                </div>
-                <div class="resource-card">
-                    <div class="resource-icon">
-                        <i class="fas fa-download"></i>
-                    </div>
-                    <h3>圍棋相關軟件</h3>
-                    <p>實用的圍棋學習和分析軟件</p>
-                    <a href="go-software.html" class="btn btn-primary">進入</a>
-                </div>
-            </div>
-        </div>
-    </section>
+      .meta {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .meta li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.62);
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        font-size: 0.78rem;
+        color: rgba(226, 232, 240, 0.82);
+      }
+      .meta li span { color: var(--accent); font-weight: 600; }
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2 class="section-title">聯絡我們</h2>
-            <div class="contact-grid">
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>地址</h4>
-                            <p>觀塘興業街15號中美中心A座3樓B1室</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>電話</h4>
-                            <p>6597 7312 (WhatsApp / Signal 皆可)</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="contact-details">
-                            <h4>電郵</h4>
-                            <p>hkgca.info@gmail.com<br>hkgca.chiwing@gmail.com</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <h3>查詢表格</h3>
-                    <form>
-                        <div class="form-group">
-                            <input type="text" placeholder="姓名" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" placeholder="電郵地址" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="tel" placeholder="電話號碼">
-                        </div>
-                        <div class="form-group">
-                            <textarea placeholder="查詢內容" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">發送查詢</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
+      .helper {
+        margin-top: clamp(32px, 6vw, 48px);
+        padding: clamp(20px, 4vw, 26px);
+        border-radius: 20px;
+        border: 1px dashed rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.6);
+      }
+      .helper h2 { margin: 0 0 12px; font-size: 1.04rem; font-weight: 600; }
+      .helper p  { margin: 0 0 16px; color: var(--text-soft); font-size: 0.95rem; line-height: 1.6; }
+      .helper ol { margin: 0; padding-left: 22px; color: rgba(226, 232, 240, 0.86); font-size: 0.93rem; line-height: 1.55; }
+      .helper ol li + li { margin-top: 8px; }
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4>香港圍棋文化學會</h4>
-                    <p>以弈導善，由心出發</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>快速連結</h4>
-                    <ul>
-                        <li><a href="#about">關於我們</a></li>
-                        <li><a href="#classes">課程資料</a></li>
-                        <li><a href="#activities">活動動向</a></li>
-                        <li><a href="#contact">聯絡我們</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>聯絡資訊</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> 觀塘興業街15號中美中心A座3樓B1室</p>
-                    <p><i class="fas fa-phone"></i> 6597 7312</p>
-                    <p><i class="fas fa-envelope"></i> hkgca.info@gmail.com</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 香港圍棋文化學會. 版權所有.</p>
-            </div>
-        </div>
-    </footer>
+      @media (max-width: 640px) {
+        body { padding: 16px; }
+        main { padding: 20px; }
+        .top-bar {
+          position: static;
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="top-bar">
+        <button type="button" id="langToggle" class="lang-toggle" aria-label="Toggle language">
+          <span data-lang-code="en" data-active="true">EN</span>
+          <span aria-hidden="true">/</span>
+          <span data-lang-code="zh-HK">繁</span>
+        </button>
+      </div>
 
-    <script src="script.js"></script>
-</body>
+      <header>
+        <p class="eyebrow" data-i18n="eyebrow">Idea Hub</p>
+        <h1 data-i18n="headline">Choose a concept to explore</h1>
+        <p class="lead" data-i18n="intro">
+          Use these quick links to jump into prototypes, notes, or dashboards. Add new cards whenever inspiration
+          strikes—each tile is generated from the data list below.
+        </p>
+      </header>
+
+      <section class="idea-grid" id="ideaGrid" aria-live="polite"></section>
+
+      <section class="helper">
+        <h2 data-i18n="howToTitle">Add a new sublink</h2>
+        <p data-i18n="howToIntro">
+          Every card on this page is driven by a single JavaScript array. Editing that list is all you need to keep the
+          hub growing.
+        </p>
+        <ol id="howToList">
+          <li data-step-index="0">Duplicate one of the objects in the <code>ideas</code> array.</li>
+          <li data-step-index="1">Update the <code>href</code>, icon, and localized copy for English and zh-HK.</li>
+          <li data-step-index="2">Save the file—your new tile appears automatically.</li>
+        </ol>
+      </section>
+    </main>
+
+    <script>
+      const SUPPORTED_LOCALES = ['en', 'zh-HK'];
+      const DEFAULT_LOCALE = 'en';
+      const LOCALE_STORAGE_KEY = 'ideaHubLocale';
+      const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
+
+      const translations = {
+        en: {
+          toggleAria: 'Toggle language between English and Traditional Chinese (Hong Kong)',
+          eyebrow: 'Idea Hub',
+          headline: 'Choose a concept to explore',
+          intro:
+            'Use these quick links to jump into prototypes, notes, or dashboards. Add new cards whenever inspiration strikes—each tile is generated from the data list below.',
+          howToTitle: 'Add a new sublink',
+          howToIntro:
+            'Every card on this page is driven by a single JavaScript array. Editing that list is all you need to keep the hub growing.',
+          howToSteps: [
+            'Duplicate one of the objects in the ideas array.',
+            'Update the link, icon, and localized copy for English and zh-HK (missing translations fall back to English).',
+            'Save the file—your new tile appears automatically.',
+          ],
+        },
+        'zh-HK': {
+          toggleAria: '在英文與繁體中文（香港）之間切換語言',
+          eyebrow: '創意中樞',
+          headline: '揀選你想瀏覽的構想',
+          intro:
+            '用這些捷徑直接打開原型、筆記或儀錶板。只要更新下面的資料清單，就可以隨時為新點子新增卡片。',
+          howToTitle: '新增子連結',
+          howToIntro: '此頁的所有卡片都來自同一個 JavaScript 陣列，更新它就能持續擴充內容。',
+          howToSteps: [
+            '複製 ideas 陣列中的其中一個物件。',
+            '更新連結、圖示，以及英文與繁體中文（香港）的對應文案（如未填寫繁中會自動顯示英文）。',
+            '儲存檔案後，新卡片便會自動出現。',
+          ],
+        },
+      };
+
+      const ideas = [
+        {
+          id: 'top-ai-llm-stars',
+          icon: '✨',
+          href: 'top-ai-llm-stars.html',
+          copy: {
+            en: {
+              title: 'Top LLM & AI GitHub Stars',
+              summary:
+                'Track the five fastest-growing repositories from the past seven days. Data refreshes each visit using the GitHub Search API.',
+            },
+            'zh-HK': {
+              title: 'LLM 與 AI 每週 GitHub 星標前五名',
+              summary: '查看最近七天星標成長最快的五個專案，每次載入都會透過 GitHub 搜尋 API 即時更新。',
+            },
+          },
+          badges: [
+            { id: 'cadence', text: { en: 'Weekly snapshot', 'zh-HK': '每週快照' } },
+            { id: 'source',  text: { en: 'Live GitHub Search', 'zh-HK': '即時 GitHub 搜尋' } },
+          ],
+        },
+        {
+          id: 'price-qa',
+          icon: '💲',
+          href: 'price-qa.html',
+          copy: {
+            en: {
+              title: 'Price Q&A (Static JSON)',
+              summary: 'Search lens pricing locally in your browser from a generated prices.json. Multi-keyword AND + overseas/local filters.',
+            },
+            'zh-HK': {
+              title: '價目快速查詢 (靜態 JSON)',
+              summary: '以瀏覽器本地搜尋 prices.json 價目資料，支援多關鍵字 AND、海外/本地 篩選。',
+            },
+          },
+          badges: [
+            { id: 'static', text: { en: 'Static', 'zh-HK': '靜態' } },
+            { id: 'nobackend', text: { en: 'No backend', 'zh-HK': '免伺服器' } },
+          ],
+        },
+      ];
+
+      const ideaGrid = document.getElementById('ideaGrid');
+      const langToggle = document.getElementById('langToggle');
+      const eyebrowEl = document.querySelector('[data-i18n="eyebrow"]');
+      const headlineEl = document.querySelector('[data-i18n="headline"]');
+      const introEl = document.querySelector('[data-i18n="intro"]');
+      const howToTitleEl = document.querySelector('[data-i18n="howToTitle"]');
+      const howToIntroEl = document.querySelector('[data-i18n="howToIntro"]');
+      const howToListEl = document.getElementById('howToList');
+
+      let currentLocale = DEFAULT_LOCALE;
+
+      function getLocalizedCopy(copyMap, locale) {
+        if (!copyMap || typeof copyMap !== 'object') return { title: '', summary: '' };
+        return copyMap[locale] || copyMap[DEFAULT_LOCALE] || { title: '', summary: '' };
+      }
+      function getLocalizedBadgeText(badge, locale) {
+        if (!badge || !badge.text) return '';
+        return badge.text[locale] || badge.text[DEFAULT_LOCALE] || '';
+      }
+
+      function createCard(idea, locale) {
+        const link = document.createElement('a');
+        link.className = 'idea-card';
+        link.href = idea.href;
+        link.setAttribute('data-idea-id', idea.id);
+
+        const header = document.createElement('div');
+        header.className = 'card-header';
+
+        const icon = document.createElement('span');
+        icon.className = 'idea-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = idea.icon;
+
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'card-text';
+
+        const localizedCopy = getLocalizedCopy(idea.copy, locale);
+        if (localizedCopy.title) link.setAttribute('aria-label', localizedCopy.title);
+
+        const title = document.createElement('h2');
+        title.textContent = localizedCopy.title;
+
+        const summary = document.createElement('p');
+        summary.textContent = localizedCopy.summary;
+
+        textWrapper.append(title, summary);
+        header.append(icon, textWrapper);
+        link.append(header);
+
+        if (Array.isArray(idea.badges) && idea.badges.length > 0) {
+          const metaList = document.createElement('ul');
+          metaList.className = 'meta';
+          idea.badges.forEach((badge) => {
+            const item = document.createElement('li');
+            item.textContent = getLocalizedBadgeText(badge, locale);
+            metaList.appendChild(item);
+          });
+          link.append(metaList);
+        }
+
+        return link;
+      }
+
+      function renderCards(locale) {
+        ideaGrid.innerHTML = '';
+        ideas.forEach((idea) => ideaGrid.appendChild(createCard(idea, locale)));
+      }
+
+      function renderStaticCopy(locale) {
+        const copy = translations[locale] || translations[DEFAULT_LOCALE];
+        eyebrowEl.textContent = copy.eyebrow;
+        headlineEl.textContent = copy.headline;
+        introEl.textContent = copy.intro;
+        howToTitleEl.textContent = copy.howToTitle;
+        howToIntroEl.textContent = copy.howToIntro;
+
+        howToListEl.innerHTML = '';
+        copy.howToSteps.forEach((step, index) => {
+          const li = document.createElement('li');
+          li.textContent = step;
+          li.dataset.stepIndex = String(index);
+          howToListEl.appendChild(li);
+        });
+      }
+
+      function applyLocaleToDocument(locale) {
+        document.documentElement.lang = localeFallbacks[locale] || 'en';
+      }
+      function updateToggleVisual(locale) {
+        langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
+        langToggle?.querySelectorAll('[data-lang-code]').forEach((span) => {
+          span.dataset.active = span.dataset.langCode === locale ? 'true' : 'false';
+        });
+      }
+      function getStoredLocale() {
+        const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+        return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
+      }
+      function persistLocale(locale) { localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
+
+      function setLocale(locale) {
+        const nextLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
+        currentLocale = nextLocale;
+        persistLocale(nextLocale);
+        applyLocaleToDocument(nextLocale);
+        updateToggleVisual(nextLocale);
+        renderStaticCopy(nextLocale);
+        renderCards(nextLocale);
+      }
+
+      const initialLocale = getStoredLocale();
+      setLocale(initialLocale);
+
+      langToggle?.addEventListener('click', () => {
+        const nextLocale = currentLocale === 'en' ? 'zh-HK' : 'en';
+        setLocale(nextLocale);
+      });
+    </script>
+  </body>
 </html>
-
