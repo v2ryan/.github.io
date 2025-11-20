@@ -1,440 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Idea Hub</title>
-    <style>
-      :root {
-        color-scheme: dark;
-        --bg-base: #070b16;
-        --bg-panel: rgba(15, 23, 42, 0.84);
-        --accent: #38bdf8;
-        --accent-strong: #22d3ee;
-        --text: #e2e8f0;
-        --text-soft: rgba(226, 232, 240, 0.75);
-        --border: rgba(148, 163, 184, 0.25);
-        font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      }
 
-      * { box-sizing: border-box; }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貪吃蛇</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: clamp(20px, 6vw, 52px);
-        background:
-          radial-gradient(circle at 12% 18%, rgba(56, 189, 248, 0.22), transparent 60%),
-          radial-gradient(circle at 88% 12%, rgba(129, 140, 248, 0.16), transparent 62%),
-          linear-gradient(140deg, #020617 0%, #0f172a 60%, #1e293b 100%);
-        color: var(--text);
-      }
+<body>
+    <div class="game-container">
+        <div class="ui-layer">
+            <div class="score-board">
+                <div class="score-item">
+                    <span class="label">分數</span>
+                    <span class="value" id="score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="label">最高分</span>
+                    <span class="value" id="high-score">0</span>
+                </div>
+            </div>
+        </div>
 
-      main {
-        width: min(1020px, 100%);
-        background: var(--bg-panel);
-        border-radius: 28px;
-        border: 1px solid var(--border);
-        box-shadow: 0 28px 60px rgba(2, 6, 23, 0.45);
-        padding: clamp(24px, 5vw, 48px);
-        backdrop-filter: blur(18px);
-        position: relative;
-      }
+        <canvas id="game-canvas" width="600" height="600"></canvas>
 
-      .top-bar {
-        position: absolute;
-        top: clamp(16px, 3vw, 24px);
-        right: clamp(16px, 3vw, 24px);
-      }
+        <div class="overlay" id="start-screen">
+            <h1 class="title">貪吃蛇</h1>
+            <p class="subtitle">使用方向鍵或 WASD 移動</p>
+            <button class="btn-primary" id="start-btn">開始遊戲</button>
 
-      .lang-toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.3);
-        background: rgba(15, 23, 42, 0.72);
-        color: inherit;
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: 600;
-        transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
-      }
-      .lang-toggle:hover,
-      .lang-toggle:focus-visible {
-        border-color: rgba(56, 189, 248, 0.6);
-        color: var(--accent-strong);
-        outline: none;
-      }
-      .lang-toggle span[data-active="true"] { opacity: 1; }
-      .lang-toggle span[data-lang-code] {
-        opacity: 0.55;
-        transition: opacity 0.18s ease;
-      }
+            <div class="leaderboard-container">
+                <h3>排行榜</h3>
+                <ul id="leaderboard-list">
+                    <!-- Leaderboard items will be injected here -->
+                </ul>
+            </div>
+        </div>
 
-      header {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-bottom: clamp(24px, 5vw, 40px);
-      }
-      .eyebrow {
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 0.32em;
-        font-size: 0.76rem;
-        color: var(--accent);
-        font-weight: 600;
-      }
-      h1 {
-        margin: 0;
-        font-size: clamp(2.1rem, 5vw, 2.8rem);
-        font-weight: 700;
-        letter-spacing: 0.01em;
-      }
-      .lead {
-        margin: 0;
-        max-width: 620px;
-        color: var(--text-soft);
-        font-size: clamp(1rem, 2.8vw, 1.08rem);
-        line-height: 1.6;
-      }
+        <div class="overlay hidden" id="game-over-screen">
+            <h1 class="title">遊戲結束</h1>
+            <p class="subtitle">最終分數: <span id="final-score">0</span></p>
+            <div id="new-high-score-section" class="hidden">
+                <p class="new-record-text">新紀錄！</p>
+                <input type="text" id="player-name" placeholder="輸入名字" maxlength="10">
+                <button class="btn-secondary" id="save-score-btn">儲存分數</button>
+            </div>
+            <button class="btn-primary" id="restart-btn">再玩一次</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
 
-      .idea-grid {
-        display: grid;
-        gap: clamp(18px, 4vw, 26px);
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      }
-      .idea-card {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        padding: clamp(22px, 4vw, 28px);
-        border-radius: 22px;
-        text-decoration: none;
-        background: rgba(15, 23, 42, 0.72);
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        color: inherit;
-        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-      }
-      .idea-card:hover,
-      .idea-card:focus-visible {
-        transform: translateY(-4px);
-        border-color: rgba(56, 189, 248, 0.5);
-        box-shadow: 0 18px 34px rgba(8, 47, 73, 0.4);
-        outline: none;
-      }
-
-      .card-header {
-        display: flex;
-        gap: 14px;
-        align-items: flex-start;
-      }
-      .idea-icon {
-        flex-shrink: 0;
-        width: 46px;
-        height: 46px;
-        border-radius: 16px;
-        display: grid;
-        place-items: center;
-        font-size: 1.5rem;
-        background: rgba(56, 189, 248, 0.18);
-        border: 1px solid rgba(56, 189, 248, 0.35);
-      }
-      .card-text h2 {
-        margin: 0;
-        font-size: 1.16rem;
-        font-weight: 600;
-      }
-      .card-text p {
-        margin: 8px 0 0;
-        color: var(--text-soft);
-        font-size: 0.98rem;
-        line-height: 1.55;
-      }
-
-      .meta {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .meta li {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: rgba(15, 23, 42, 0.62);
-        border: 1px solid rgba(148, 163, 184, 0.24);
-        font-size: 0.78rem;
-        color: rgba(226, 232, 240, 0.82);
-      }
-      .meta li span { color: var(--accent); font-weight: 600; }
-
-      .helper {
-        margin-top: clamp(32px, 6vw, 48px);
-        padding: clamp(20px, 4vw, 26px);
-        border-radius: 20px;
-        border: 1px dashed rgba(148, 163, 184, 0.35);
-        background: rgba(15, 23, 42, 0.6);
-      }
-      .helper h2 { margin: 0 0 12px; font-size: 1.04rem; font-weight: 600; }
-      .helper p  { margin: 0 0 16px; color: var(--text-soft); font-size: 0.95rem; line-height: 1.6; }
-      .helper ol { margin: 0; padding-left: 22px; color: rgba(226, 232, 240, 0.86); font-size: 0.93rem; line-height: 1.55; }
-      .helper ol li + li { margin-top: 8px; }
-
-      @media (max-width: 640px) {
-        body { padding: 16px; }
-        main { padding: 20px; }
-        .top-bar {
-          position: static;
-          display: flex;
-          justify-content: flex-end;
-          margin-bottom: 16px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <div class="top-bar">
-        <button type="button" id="langToggle" class="lang-toggle" aria-label="Toggle language">
-          <span data-lang-code="en" data-active="true">EN</span>
-          <span aria-hidden="true">/</span>
-          <span data-lang-code="zh-HK">繁</span>
-        </button>
-      </div>
-
-      <header>
-        <p class="eyebrow" data-i18n="eyebrow">Idea Hub</p>
-        <h1 data-i18n="headline">Choose a concept to explore</h1>
-        <p class="lead" data-i18n="intro">
-          Use these quick links to jump into prototypes, notes, or dashboards. Add new cards whenever inspiration
-          strikes—each tile is generated from the data list below.
-        </p>
-      </header>
-
-      <section class="idea-grid" id="ideaGrid" aria-live="polite"></section>
-
-      <section class="helper">
-        <h2 data-i18n="howToTitle">Add a new sublink</h2>
-        <p data-i18n="howToIntro">
-          Every card on this page is driven by a single JavaScript array. Editing that list is all you need to keep the
-          hub growing.
-        </p>
-        <ol id="howToList">
-          <li data-step-index="0">Duplicate one of the objects in the <code>ideas</code> array.</li>
-          <li data-step-index="1">Update the <code>href</code>, icon, and localized copy for English and zh-HK.</li>
-          <li data-step-index="2">Save the file—your new tile appears automatically.</li>
-        </ol>
-      </section>
-    </main>
-
-    <script>
-      const SUPPORTED_LOCALES = ['en', 'zh-HK'];
-      const DEFAULT_LOCALE = 'en';
-      const LOCALE_STORAGE_KEY = 'ideaHubLocale';
-      const localeFallbacks = { en: 'en', 'zh-HK': 'zh-Hant-HK' };
-
-      const translations = {
-        en: {
-          toggleAria: 'Toggle language between English and Traditional Chinese (Hong Kong)',
-          eyebrow: 'Idea Hub',
-          headline: 'Choose a concept to explore',
-          intro:
-            'Use these quick links to jump into prototypes, notes, or dashboards. Add new cards whenever inspiration strikes—each tile is generated from the data list below.',
-          howToTitle: 'Add a new sublink',
-          howToIntro:
-            'Every card on this page is driven by a single JavaScript array. Editing that list is all you need to keep the hub growing.',
-          howToSteps: [
-            'Duplicate one of the objects in the ideas array.',
-            'Update the link, icon, and localized copy for English and zh-HK (missing translations fall back to English).',
-            'Save the file—your new tile appears automatically.',
-          ],
-        },
-        'zh-HK': {
-          toggleAria: '在英文與繁體中文（香港）之間切換語言',
-          eyebrow: '創意中樞',
-          headline: '揀選你想瀏覽的構想',
-          intro:
-            '用這些捷徑直接打開原型、筆記或儀錶板。只要更新下面的資料清單，就可以隨時為新點子新增卡片。',
-          howToTitle: '新增子連結',
-          howToIntro: '此頁的所有卡片都來自同一個 JavaScript 陣列，更新它就能持續擴充內容。',
-          howToSteps: [
-            '複製 ideas 陣列中的其中一個物件。',
-            '更新連結、圖示，以及英文與繁體中文（香港）的對應文案（如未填寫繁中會自動顯示英文）。',
-            '儲存檔案後，新卡片便會自動出現。',
-          ],
-        },
-      };
-
-      const ideas = [
-        {
-          id: 'top-ai-llm-stars',
-          icon: '✨',
-          href: 'top-ai-llm-stars.html',
-          copy: {
-            en: {
-              title: 'Top LLM & AI GitHub Stars',
-              summary:
-                'Track the five fastest-growing repositories from the past seven days. Data refreshes each visit using the GitHub Search API.',
-            },
-            'zh-HK': {
-              title: 'LLM 與 AI 每週 GitHub 星標前五名',
-              summary: '查看最近七天星標成長最快的五個專案，每次載入都會透過 GitHub 搜尋 API 即時更新。',
-            },
-          },
-          badges: [
-            { id: 'cadence', text: { en: 'Weekly snapshot', 'zh-HK': '每週快照' } },
-            { id: 'source',  text: { en: 'Live GitHub Search', 'zh-HK': '即時 GitHub 搜尋' } },
-          ],
-        },
-        {
-          id: 'price-qa',
-          icon: '💲',
-          href: 'price-qa.html',
-          copy: {
-            en: {
-              title: 'Price Q&A (Static JSON)',
-              summary: 'Search lens pricing locally in your browser from a generated prices.json. Multi-keyword AND + overseas/local filters.',
-            },
-            'zh-HK': {
-              title: '價目快速查詢 (靜態 JSON)',
-              summary: '以瀏覽器本地搜尋 prices.json 價目資料，支援多關鍵字 AND、海外/本地 篩選。',
-            },
-          },
-          badges: [
-            { id: 'static', text: { en: 'Static', 'zh-HK': '靜態' } },
-            { id: 'nobackend', text: { en: 'No backend', 'zh-HK': '免伺服器' } },
-          ],
-        },
-      ];
-
-      const ideaGrid = document.getElementById('ideaGrid');
-      const langToggle = document.getElementById('langToggle');
-      const eyebrowEl = document.querySelector('[data-i18n="eyebrow"]');
-      const headlineEl = document.querySelector('[data-i18n="headline"]');
-      const introEl = document.querySelector('[data-i18n="intro"]');
-      const howToTitleEl = document.querySelector('[data-i18n="howToTitle"]');
-      const howToIntroEl = document.querySelector('[data-i18n="howToIntro"]');
-      const howToListEl = document.getElementById('howToList');
-
-      let currentLocale = DEFAULT_LOCALE;
-
-      function getLocalizedCopy(copyMap, locale) {
-        if (!copyMap || typeof copyMap !== 'object') return { title: '', summary: '' };
-        return copyMap[locale] || copyMap[DEFAULT_LOCALE] || { title: '', summary: '' };
-      }
-      function getLocalizedBadgeText(badge, locale) {
-        if (!badge || !badge.text) return '';
-        return badge.text[locale] || badge.text[DEFAULT_LOCALE] || '';
-      }
-
-      function createCard(idea, locale) {
-        const link = document.createElement('a');
-        link.className = 'idea-card';
-        link.href = idea.href;
-        link.setAttribute('data-idea-id', idea.id);
-
-        const header = document.createElement('div');
-        header.className = 'card-header';
-
-        const icon = document.createElement('span');
-        icon.className = 'idea-icon';
-        icon.setAttribute('aria-hidden', 'true');
-        icon.textContent = idea.icon;
-
-        const textWrapper = document.createElement('div');
-        textWrapper.className = 'card-text';
-
-        const localizedCopy = getLocalizedCopy(idea.copy, locale);
-        if (localizedCopy.title) link.setAttribute('aria-label', localizedCopy.title);
-
-        const title = document.createElement('h2');
-        title.textContent = localizedCopy.title;
-
-        const summary = document.createElement('p');
-        summary.textContent = localizedCopy.summary;
-
-        textWrapper.append(title, summary);
-        header.append(icon, textWrapper);
-        link.append(header);
-
-        if (Array.isArray(idea.badges) && idea.badges.length > 0) {
-          const metaList = document.createElement('ul');
-          metaList.className = 'meta';
-          idea.badges.forEach((badge) => {
-            const item = document.createElement('li');
-            item.textContent = getLocalizedBadgeText(badge, locale);
-            metaList.appendChild(item);
-          });
-          link.append(metaList);
-        }
-
-        return link;
-      }
-
-      function renderCards(locale) {
-        ideaGrid.innerHTML = '';
-        ideas.forEach((idea) => ideaGrid.appendChild(createCard(idea, locale)));
-      }
-
-      function renderStaticCopy(locale) {
-        const copy = translations[locale] || translations[DEFAULT_LOCALE];
-        eyebrowEl.textContent = copy.eyebrow;
-        headlineEl.textContent = copy.headline;
-        introEl.textContent = copy.intro;
-        howToTitleEl.textContent = copy.howToTitle;
-        howToIntroEl.textContent = copy.howToIntro;
-
-        howToListEl.innerHTML = '';
-        copy.howToSteps.forEach((step, index) => {
-          const li = document.createElement('li');
-          li.textContent = step;
-          li.dataset.stepIndex = String(index);
-          howToListEl.appendChild(li);
-        });
-      }
-
-      function applyLocaleToDocument(locale) {
-        document.documentElement.lang = localeFallbacks[locale] || 'en';
-      }
-      function updateToggleVisual(locale) {
-        langToggle?.setAttribute('aria-label', translations[locale].toggleAria);
-        langToggle?.querySelectorAll('[data-lang-code]').forEach((span) => {
-          span.dataset.active = span.dataset.langCode === locale ? 'true' : 'false';
-        });
-      }
-      function getStoredLocale() {
-        const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-        return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_LOCALE;
-      }
-      function persistLocale(locale) { localStorage.setItem(LOCALE_STORAGE_KEY, locale); }
-
-      function setLocale(locale) {
-        const nextLocale = SUPPORTED_LOCALES.includes(locale) ? locale : DEFAULT_LOCALE;
-        currentLocale = nextLocale;
-        persistLocale(nextLocale);
-        applyLocaleToDocument(nextLocale);
-        updateToggleVisual(nextLocale);
-        renderStaticCopy(nextLocale);
-        renderCards(nextLocale);
-      }
-
-      const initialLocale = getStoredLocale();
-      setLocale(initialLocale);
-
-      langToggle?.addEventListener('click', () => {
-        const nextLocale = currentLocale === 'en' ? 'zh-HK' : 'en';
-        setLocale(nextLocale);
-      });
-    </script>
-  </body>
 </html>

@@ -1,364 +1,295 @@
-// Mobile Navigation Toggle
-const hamburger = document.querySelector('.hamburger');
-const navMenu = document.querySelector('.nav-menu');
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('high-score');
+const finalScoreElement = document.getElementById('final-score');
+const startScreen = document.getElementById('start-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
+const startBtn = document.getElementById('start-btn');
+const restartBtn = document.getElementById('restart-btn');
 
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-});
+// Leaderboard Elements
+const leaderboardList = document.getElementById('leaderboard-list');
+const newHighScoreSection = document.getElementById('new-high-score-section');
+const playerNameInput = document.getElementById('player-name');
+const saveScoreBtn = document.getElementById('save-score-btn');
 
-// Close mobile menu when clicking on a link
-document.querySelectorAll('.nav-link').forEach(n => n.addEventListener('click', () => {
-    hamburger.classList.remove('active');
-    navMenu.classList.remove('active');
-}));
+// Game Constants
+const GRID_SIZE = 20;
+const TILE_COUNT = canvas.width / GRID_SIZE;
+const GAME_SPEED = 100; // ms
 
-// Smooth scrolling for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            const offsetTop = target.offsetTop - 80; // Account for fixed navbar
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-            });
-        }
-    });
-});
+// Game State
+let score = 0;
+let highScore = 0; // Will be updated from leaderboard
+let snake = [];
+let food = { x: 0, y: 0 };
+let velocity = { x: 0, y: 0 };
+let gameLoopId = null;
+let isGameRunning = false;
+let lastRenderTime = 0;
 
-// Navbar background change on scroll
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 100) {
-        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
-    } else {
-        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+// Leaderboard Data
+let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+
+// Initialize
+updateLeaderboardUI();
+updateHighScoreDisplay();
+
+// Input Handling
+document.addEventListener('keydown', handleInput);
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', startGame);
+saveScoreBtn.addEventListener('click', saveScore);
+
+function handleInput(e) {
+    if (!isGameRunning) return;
+
+    switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            if (velocity.y !== 1) velocity = { x: 0, y: -1 };
+            break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            if (velocity.y !== -1) velocity = { x: 0, y: 1 };
+            break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            if (velocity.x !== 1) velocity = { x: -1, y: 0 };
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            if (velocity.x !== -1) velocity = { x: 1, y: 0 };
+            break;
     }
-});
+}
 
-// Intersection Observer for fade-in animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
+function startGame() {
+    // Reset State
+    snake = [
+        { x: 10, y: 10 },
+        { x: 10, y: 11 },
+        { x: 10, y: 12 }
+    ];
+    velocity = { x: 0, y: -1 }; // Start moving up
+    score = 0;
+    scoreElement.textContent = score;
+    isGameRunning = true;
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in-up');
+    // Hide Overlays
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    newHighScoreSection.classList.add('hidden'); // Ensure this is hidden
+
+    // Place initial food
+    placeFood();
+
+    // Start Loop
+    if (gameLoopId) cancelAnimationFrame(gameLoopId);
+    lastRenderTime = 0;
+    requestAnimationFrame(gameLoop);
+}
+
+function gameLoop(currentTime) {
+    if (!isGameRunning) return;
+
+    gameLoopId = requestAnimationFrame(gameLoop);
+
+    const secondsSinceLastRender = (currentTime - lastRenderTime) / 1000;
+    if (secondsSinceLastRender < GAME_SPEED / 1000) return;
+
+    lastRenderTime = currentTime;
+
+    update();
+    draw();
+}
+
+function update() {
+    // Move Snake
+    const head = { x: snake[0].x + velocity.x, y: snake[0].y + velocity.y };
+
+    // Check Collisions
+    if (isCollision(head)) {
+        gameOver();
+        return;
+    }
+
+    snake.unshift(head);
+
+    // Check Food
+    if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        scoreElement.textContent = score;
+        if (score > highScore) {
+            highScore = score;
+            highScoreElement.textContent = highScore;
         }
-    });
-}, observerOptions);
+        placeFood();
+    } else {
+        snake.pop();
+    }
+}
 
-// Observe all cards and sections for animation
-document.addEventListener('DOMContentLoaded', () => {
-    const animatedElements = document.querySelectorAll(
-        '.news-card, .about-card, .go-intro-card, .news-category, .resource-card, .level-card, .contact-info, .contact-form'
+function isCollision(position) {
+    // Wall Collision
+    if (position.x < 0 || position.x >= TILE_COUNT ||
+        position.y < 0 || position.y >= TILE_COUNT) {
+        return true;
+    }
+
+    // Self Collision
+    for (let i = 0; i < snake.length; i++) {
+        if (position.x === snake[i].x && position.y === snake[i].y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function placeFood() {
+    let validPosition = false;
+    while (!validPosition) {
+        food = {
+            x: Math.floor(Math.random() * TILE_COUNT),
+            y: Math.floor(Math.random() * TILE_COUNT)
+        };
+
+        validPosition = true;
+        // Make sure food doesn't spawn on snake
+        for (let segment of snake) {
+            if (segment.x === food.x && segment.y === food.y) {
+                validPosition = false;
+                break;
+            }
+        }
+    }
+}
+
+function gameOver() {
+    isGameRunning = false;
+    cancelAnimationFrame(gameLoopId);
+    finalScoreElement.textContent = score;
+    gameOverScreen.classList.remove('hidden');
+
+    checkLeaderboard();
+}
+
+function draw() {
+    // Clear Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Snake
+    snake.forEach((segment, index) => {
+        ctx.fillStyle = '#00ff9d';
+
+        // Head is slightly different color or just same
+        if (index === 0) {
+            ctx.fillStyle = '#ccffeb';
+            // Add glow to head
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ff9d';
+        } else {
+            ctx.shadowBlur = 0;
+        }
+
+        ctx.fillRect(
+            segment.x * GRID_SIZE,
+            segment.y * GRID_SIZE,
+            GRID_SIZE - 2,
+            GRID_SIZE - 2
+        );
+
+        ctx.shadowBlur = 0; // Reset shadow
+    });
+
+    // Draw Food
+    ctx.fillStyle = '#ff0055';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#ff0055';
+    ctx.beginPath();
+    ctx.arc(
+        food.x * GRID_SIZE + GRID_SIZE / 2,
+        food.y * GRID_SIZE + GRID_SIZE / 2,
+        GRID_SIZE / 2 - 2,
+        0,
+        Math.PI * 2
     );
-    
-    animatedElements.forEach(el => {
-        observer.observe(el);
-    });
-});
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
 
-// Form submission handler
-const contactForm = document.querySelector('.contact-form form');
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const phone = this.querySelector('input[type="tel"]').value;
-        const message = this.querySelector('textarea').value;
-        
-        // Simple validation
-        if (!name || !email || !message) {
-            alert('請填寫所有必填欄位');
-            return;
-        }
-        
-        // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('請輸入有效的電郵地址');
-            return;
-        }
-        
-        // Show success message (in a real application, you would send this to a server)
-        alert('感謝您的查詢！我們會盡快回覆您。');
-        this.reset();
+// Leaderboard Functions
+function updateHighScoreDisplay() {
+    if (leaderboard.length > 0) {
+        highScore = leaderboard[0].score;
+    } else {
+        highScore = 0;
+    }
+    highScoreElement.textContent = highScore;
+}
+
+function updateLeaderboardUI() {
+    leaderboardList.innerHTML = '';
+
+    // Sort just in case
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    // Take top 5
+    const top5 = leaderboard.slice(0, 5);
+
+    if (top5.length === 0) {
+        leaderboardList.innerHTML = '<li class="leaderboard-item" style="justify-content:center; color:rgba(255,255,255,0.3)">暫無紀錄</li>';
+        return;
+    }
+
+    top5.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.className = 'leaderboard-item';
+        li.innerHTML = `
+            <span class="rank">#${index + 1}</span>
+            <span class="name">${entry.name}</span>
+            <span class="score">${entry.score}</span>
+        `;
+        leaderboardList.appendChild(li);
     });
 }
 
-// Add loading animation for images
-document.addEventListener('DOMContentLoaded', () => {
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        img.addEventListener('load', () => {
-            img.style.opacity = '1';
-        });
-    });
-});
+function checkLeaderboard() {
+    // Check if score qualifies for top 5
+    const isHighScore = leaderboard.length < 5 || (leaderboard.length > 0 && score > leaderboard[leaderboard.length - 1].score);
 
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    const heroContent = document.querySelector('.hero-content');
-    
-    if (hero && heroContent) {
-        const rate = scrolled * -0.5;
-        heroContent.style.transform = `translateY(${rate}px)`;
+    if (isHighScore && score > 0) {
+        newHighScoreSection.classList.remove('hidden');
+        playerNameInput.value = '';
+        playerNameInput.focus();
+        restartBtn.classList.add('hidden'); // Hide restart until saved
+    } else {
+        newHighScoreSection.classList.add('hidden');
+        restartBtn.classList.remove('hidden');
     }
-});
+}
 
-// Add hover effects for cards
-document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.news-card, .about-card, .go-intro-card, .news-category, .resource-card');
-    
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-});
+function saveScore() {
+    const name = playerNameInput.value.trim() || '無名氏';
 
-// Animate Go stones in hero section
-document.addEventListener('DOMContentLoaded', () => {
-    const stones = document.querySelectorAll('.go-stone');
-    
-    stones.forEach((stone, index) => {
-        stone.addEventListener('mouseenter', () => {
-            stone.style.transform = 'scale(1.1) translateY(-5px)';
-            stone.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.4)';
-        });
-        
-        stone.addEventListener('mouseleave', () => {
-            stone.style.transform = 'scale(1) translateY(0)';
-            stone.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.3)';
-        });
-    });
-});
+    leaderboard.push({ name, score });
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 5); // Keep top 5
 
-// Add typing effect to hero title
-document.addEventListener('DOMContentLoaded', () => {
-    const heroTitle = document.querySelector('.hero-title');
-    if (heroTitle) {
-        const text = heroTitle.textContent;
-        heroTitle.textContent = '';
-        
-        let i = 0;
-        const typeWriter = () => {
-            if (i < text.length) {
-                heroTitle.textContent += text.charAt(i);
-                i++;
-                setTimeout(typeWriter, 100);
-            }
-        };
-        
-        // Start typing effect after a short delay
-        setTimeout(typeWriter, 1000);
-    }
-});
+    localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
 
-// Add scroll progress indicator
-document.addEventListener('DOMContentLoaded', () => {
-    const progressBar = document.createElement('div');
-    progressBar.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 0%;
-        height: 3px;
-        background: linear-gradient(45deg, #f1c40f, #f39c12);
-        z-index: 9999;
-        transition: width 0.3s ease;
-    `;
-    document.body.appendChild(progressBar);
-    
-    window.addEventListener('scroll', () => {
-        const scrollTop = window.pageYOffset;
-        const docHeight = document.body.scrollHeight - window.innerHeight;
-        const scrollPercent = (scrollTop / docHeight) * 100;
-        progressBar.style.width = scrollPercent + '%';
-    });
-});
+    updateLeaderboardUI();
+    updateHighScoreDisplay();
 
-// Add click ripple effect to buttons
-document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('.btn');
-    
-    buttons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.5);
-                border-radius: 50%;
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                pointer-events: none;
-            `;
-            
-            this.style.position = 'relative';
-            this.style.overflow = 'hidden';
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-    
-    // Add ripple animation keyframes
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-});
+    newHighScoreSection.classList.add('hidden');
+    restartBtn.classList.remove('hidden');
 
-// Add smooth reveal animation for tables
-document.addEventListener('DOMContentLoaded', () => {
-    const tables = document.querySelectorAll('.activities-table, .schedule-table');
-    
-    const tableObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const rows = entry.target.querySelectorAll('tr');
-                rows.forEach((row, index) => {
-                    setTimeout(() => {
-                        row.style.opacity = '1';
-                        row.style.transform = 'translateY(0)';
-                    }, index * 100);
-                });
-            }
-        });
-    }, { threshold: 0.3 });
-    
-    tables.forEach(table => {
-        const rows = table.querySelectorAll('tr');
-        rows.forEach(row => {
-            row.style.opacity = '0';
-            row.style.transform = 'translateY(20px)';
-            row.style.transition = 'all 0.5s ease';
-        });
-        tableObserver.observe(table);
-    });
-});
-
-// Add counter animation for numbers
-document.addEventListener('DOMContentLoaded', () => {
-    const animateCounter = (element, target) => {
-        let current = 0;
-        const increment = target / 100;
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
-            }
-            element.textContent = Math.floor(current);
-        }, 20);
-    };
-    
-    // You can add counters to specific elements if needed
-    // Example: animateCounter(document.querySelector('.counter'), 100);
-});
-
-// Add lazy loading for images
-document.addEventListener('DOMContentLoaded', () => {
-    const images = document.querySelectorAll('img[data-src]');
-    
-    const imageObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.classList.remove('lazy');
-                imageObserver.unobserve(img);
-            }
-        });
-    });
-    
-    images.forEach(img => imageObserver.observe(img));
-});
-
-// Add back to top button
-document.addEventListener('DOMContentLoaded', () => {
-    const backToTop = document.createElement('button');
-    backToTop.innerHTML = '<i class="fas fa-arrow-up"></i>';
-    backToTop.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(45deg, #3498db, #2980b9);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        z-index: 1000;
-        font-size: 1.2rem;
-        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-    `;
-    
-    document.body.appendChild(backToTop);
-    
-    window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
-            backToTop.style.opacity = '1';
-            backToTop.style.visibility = 'visible';
-        } else {
-            backToTop.style.opacity = '0';
-            backToTop.style.visibility = 'hidden';
-        }
-    });
-    
-    backToTop.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
-    
-    backToTop.addEventListener('mouseenter', () => {
-        backToTop.style.transform = 'scale(1.1)';
-        backToTop.style.boxShadow = '0 6px 20px rgba(52, 152, 219, 0.6)';
-    });
-    
-    backToTop.addEventListener('mouseleave', () => {
-        backToTop.style.transform = 'scale(1)';
-        backToTop.style.boxShadow = '0 4px 15px rgba(52, 152, 219, 0.4)';
-    });
-});
-
+    // Show start screen to see leaderboard
+    gameOverScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+}
