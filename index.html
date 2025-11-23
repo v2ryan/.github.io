@@ -1,58 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>貪吃蛇</title>
+    <title>貪吃蛇 - Snake Game</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <div class="game-container">
-        <div class="ui-layer">
-            <div class="score-board">
+    <div class="container">
+        <div class="game-header">
+            <h1 class="neon-title">貪吃蛇</h1>
+            <div class="score-display">
                 <div class="score-item">
-                    <span class="label">分數</span>
-                    <span class="value" id="score">0</span>
+                    <span class="score-label">分數</span>
+                    <span id="score" class="score-value">0</span>
                 </div>
                 <div class="score-item">
-                    <span class="label">最高分</span>
-                    <span class="value" id="high-score">0</span>
+                    <span class="score-label">最高分</span>
+                    <span id="highScore" class="score-value">0</span>
                 </div>
             </div>
         </div>
 
-        <canvas id="game-canvas" width="600" height="600"></canvas>
-
-        <div class="overlay" id="start-screen">
-            <h1 class="title">貪吃蛇</h1>
-            <p class="subtitle">使用方向鍵或 WASD 移動</p>
-            <button class="btn-primary" id="start-btn">開始遊戲</button>
-
-            <div class="leaderboard-container">
-                <h3>排行榜</h3>
-                <ul id="leaderboard-list">
-                    <!-- Leaderboard items will be injected here -->
-                </ul>
+        <div class="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="gameOverScreen" class="game-over-screen">
+                <h2 class="game-over-title">遊戲結束!</h2>
+                <p class="final-score">最終分數: <span id="finalScore">0</span></p>
+                <div class="name-input-container">
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        class="player-name-input" 
+                        placeholder="輸入你的名字"
+                        maxlength="20"
+                    >
+                    <button id="submitScore" class="submit-btn">提交分數</button>
+                </div>
+                <button id="restartBtn" class="restart-btn">重新開始</button>
             </div>
         </div>
 
-        <div class="overlay hidden" id="game-over-screen">
-            <h1 class="title">遊戲結束</h1>
-            <p class="subtitle">最終分數: <span id="final-score">0</span></p>
-            <div id="new-high-score-section" class="hidden">
-                <p class="new-record-text">新紀錄！</p>
-                <input type="text" id="player-name" placeholder="輸入名字" maxlength="10">
-                <button class="btn-secondary" id="save-score-btn">儲存分數</button>
+        <div class="controls-info">
+            <div class="control-item">
+                <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>
+                <span>方向鍵控制</span>
             </div>
-            <button class="btn-primary" id="restart-btn">再玩一次</button>
+            <div class="control-item">
+                <kbd>Space</kbd>
+                <span>暫停/繼續</span>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <h2 class="leaderboard-title">排行榜 🏆</h2>
+            <div id="leaderboardList" class="leaderboard-list">
+                <div class="loading">載入中...</div>
+            </div>
         </div>
     </div>
-    <script src="script.js"></script>
-</body>
 
+    <!-- Firebase SDK -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="game.js"></script>
+</body>
 </html>
