@@ -280,7 +280,9 @@
     let activeCellIndex = -1;
     let timer = null;
     const STORAGE_KEY = 'reaction_game_scores_v3_penalty'; // 更新 Key
+    const FIREBASE_DB_URL = 'https://snake-5dfac-default-rtdb.asia-southeast1.firebasedatabase.app';
     let useFirebaseLeaderboard = false;
+    let restLeaderboardTimer = null;
 
     // --- 初始化 ---
     function init() {
@@ -533,6 +535,21 @@
         });
     }
 
+    async function fetchLeaderboardViaRest(){
+        try {
+            const url = `${FIREBASE_DB_URL}/reactionScores.json?orderBy=%22avgTime%22&limitToFirst=10`;
+            const res = await fetch(url, { cache: 'no-store' });
+            if(!res.ok){ throw new Error('REST fetch failed'); }
+            const data = await res.json();
+            if(!data){ renderFirebaseLeaderboard([]); return; }
+            const rows = Object.values(data).filter(Boolean);
+            rows.sort((a,b)=>a.avgTime-b.avgTime);
+            renderFirebaseLeaderboard(rows);
+        } catch(err){
+            console.warn('REST leaderboard fetch error', err);
+        }
+    }
+
     // --- Firebase saving helpers ---
     let fbAppModule = null;
     let fbDbModule = null;
@@ -672,9 +689,13 @@
             subscribeFirebaseLeaderboard(fbDbModule);
             flushPendingSaves();
             saveStatus.textContent = 'Firebase 已連線';
+            fetchLeaderboardViaRest();
+            if(restLeaderboardTimer){ clearInterval(restLeaderboardTimer); }
+            restLeaderboardTimer = setInterval(fetchLeaderboardViaRest, 15000);
         } catch (e){
             console.warn('Firebase init failed or DB not enabled', e);
             saveStatus.textContent = 'Firebase 未啟動，僅本地保存';
+            fetchLeaderboardViaRest();
         }
     }
     function subscribeFirebaseLeaderboard(dbModule){
