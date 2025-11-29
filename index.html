@@ -3,70 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reaction Challenge - Anti-Cheat + Firebase</title>
+    <title>Reaction Challenge - Anti-Cheat</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary-color:#2ed573; --secondary-color:#ff4757; --bg-color:#f0f2f5; --text-color:#2f3542; --card-bg:#ffffff; --penalty-color:#ff6b81; }
-        body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; background-color:var(--bg-color); color:var(--text-color); display:flex; flex-direction:column; align-items:center; min-height:100vh; margin:0; padding:20px 10px; box-sizing:border-box; user-select:none; }
-        h1,h2,h3 { margin:.5em 0; text-align:center; }
-        .main-container { display:flex; flex-direction:column; align-items:center; width:100%; max-width:480px; }
-        .status-bar { margin-bottom:15px; font-size:1.3rem; font-weight:bold; color:#57606f; height:35px; display:flex; align-items:center; justify-content:center; white-space:nowrap; }
-        .grid-container { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; background-color:#dfe4ea; padding:15px; border-radius:16px; box-shadow:0 8px 16px rgba(0,0,0,0.08); width:100%; max-width:360px; aspect-ratio:1/1; margin-bottom:20px; transition:background-color .2s; }
-        .grid-container.penalty-flash { background-color:var(--penalty-color); animation:shake .4s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {10%,90%{transform:translate3d(-1px,0,0);}20%,80%{transform:translate3d(2px,0,0);}30%,50%,70%{transform:translate3d(-4px,0,0);}40%,60%{transform:translate3d(4px,0,0);} }
-        .cell { background-color:var(--card-bg); border-radius:12px; cursor:pointer; transition:transform .1s, background-color .15s; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; }
-        .cell:active { transform:scale(.92); }
-        .cell.active { background-color:var(--secondary-color); box-shadow:0 0 20px rgba(255,71,87,.7); border:2px solid #fff; }
-        .controls { width:100%; display:flex; justify-content:center; margin-bottom:20px; }
-        .btn { padding:12px 30px; font-size:1.1rem; font-weight:bold; border:none; border-radius:30px; cursor:pointer; transition:all .2s; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
-        #start-btn { background-color:var(--primary-color); color:#fff; }
-        #start-btn:hover:not(:disabled) { background-color:#26af61; transform:translateY(-2px); }
-        #start-btn:disabled { background-color:#ccc; cursor:not-allowed; transform:none; box-shadow:none; }
-        #screenshot-btn { background-color:#3742fa; color:#fff; margin-top:20px; font-size:.95rem; display:flex; align-items:center; gap:8px; justify-content:center; width:100%; max-width:300px; }
-        #screenshot-btn:hover { background-color:#2f3542; }
-        #capture-area { width:100%; box-sizing:border-box; padding:20px; background-color:var(--bg-color); border-radius:10px; }
-        .results-container { background:var(--card-bg); padding:20px; border-radius:16px; box-shadow:0 4px 12px rgba(0,0,0,0.05); width:100%; box-sizing:border-box; margin-bottom:20px; }
-        #current-result-board { display:none; }
-        .result-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f1f2f6; font-feature-settings:"tnum"; }
-        .result-item.excluded { color:#b2bec3; text-decoration:line-through; font-size:.9em; }
-        .result-item.penalty-text { color:var(--secondary-color); font-weight:bold; }
-        .average-score-box { margin-top:15px; padding:15px; background-color:#f1f2f6; border-radius:10px; text-align:center; }
-        .average-score-box strong { color:var(--secondary-color); font-size:1.5em; }
-        .average-note { font-size:.8rem; color:#747d8c; margin-top:5px; }
-        .leaderboard-list { list-style:none; padding:0; margin:0; }
-        .leaderboard-item { display:flex; justify-content:space-between; align-items:center; padding:10px 5px; border-bottom:1px solid #eee; font-size:.9rem; }
-        .rank-num { font-weight:bold; width:30px; color:#747d8c; }
-        .rank-1 .rank-num { color:#ffd32a; font-size:1.1em; }
-        .rank-2 .rank-num { color:#d2d6de; font-size:1.05em; }
-        .rank-3 .rank-num { color:#ff7f50; font-size:1.05em; }
-        .rank-time { font-weight:bold; color:var(--text-color); }
-        .rank-date { font-size:.75rem; color:#a4b0be; }
-        .footer-note { text-align:center; font-size:.8rem; color:#999; margin-top:10px; }
+        :root {
+            --primary-color: #2ed573;
+            --secondary-color: #ff4757;
+            --bg-color: #f0f2f5;
+            --text-color: #2f3542;
+            --card-bg: #ffffff;
+            --penalty-color: #ff6b81;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            user-select: none; /* 防止連點選取文字 */
+        }
+
+        h1, h2, h3 {
+            margin: 0.5em 0;
+            text-align: center;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .status-bar {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #57606f;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        /* 9宮格容器 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            background-color: #dfe4ea;
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 1 / 1;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+
+        /* 犯規時背景閃爍紅色 */
+        .grid-container.penalty-flash {
+            background-color: var(--penalty-color);
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* 單個格子 */
+        .cell {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.15s;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cell:active { transform: scale(0.92); }
+
+        .cell.active {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.7);
+            border: 2px solid #fff;
+        }
+
+        .controls {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #start-btn { background-color: var(--primary-color); color: white; }
+        #start-btn:hover { background-color: #26af61; transform: translateY(-2px); }
+        #start-btn:disabled { background-color: #ccc; cursor: not-allowed; transform: none; box-shadow: none;}
+
+        #screenshot-btn {
+            background-color: #3742fa;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+        }
+        #screenshot-btn:hover { background-color: #2f3542; }
+
+        #capture-area {
+            width: 100%;
+            box-sizing: border-box; 
+            padding: 20px;
+            background-color: var(--bg-color); 
+            border-radius: 10px;
+        }
+
+        .results-container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        #current-result-board { display: none; }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f2f6;
+            font-feature-settings: "tnum";
+        }
+
+        .result-item.excluded {
+            color: #b2bec3;
+            text-decoration: line-through;
+            font-size: 0.9em;
+        }
+
+        .result-item.penalty-text {
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .average-score-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f1f2f6;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .average-score-box strong { color: var(--secondary-color); font-size: 1.5em; }
+        .average-note { font-size: 0.8rem; color: #747d8c; margin-top: 5px; }
+
+        .leaderboard-list { list-style: none; padding: 0; margin: 0; }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .rank-num { font-weight: bold; width: 30px; color: #747d8c; }
+        .rank-1 .rank-num { color: #ffd32a; font-size: 1.1em; }
+        .rank-2 .rank-num { color: #d2d6de; font-size: 1.05em; }
+        .rank-3 .rank-num { color: #ff7f50; font-size: 1.05em; }
+
+        .rank-time { font-weight: bold; color: var(--text-color); }
+        .rank-date { font-size: 0.75rem; color: #a4b0be; }
+
     </style>
 </head>
 <body>
+
 <div class="main-container">
     <h1>⚡ 反應力挑戰 ⚡</h1>
+    
     <div class="status-bar" id="status-text">準備好了嗎？</div>
+
     <div class="grid-container" id="grid"></div>
-    <div class="controls"><button id="start-btn" class="btn" onclick="startGame()">開始測試</button></div>
+
+    <div class="controls">
+        <button id="start-btn" class="btn" onclick="startGame()">開始測試</button>
+    </div>
+    <div class="name-row" style="margin-bottom:12px;width:100%;max-width:360px;display:flex;gap:8px;">
+        <input id="player-name" placeholder="暱稱(選填)" maxlength="16" style="flex:1;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:0.95rem;">
+        <button id="save-last" class="btn" style="background:#ff9f43;white-space:nowrap;" disabled>保存成績</button>
+    </div>
+
     <div id="capture-area">
         <div id="current-result-board" class="results-container">
             <h3>本次測試結果</h3>
             <div id="result-list"></div>
             <div class="average-score-box" id="average-score"></div>
         </div>
+
         <div id="leaderboard-board" class="results-container">
-            <h3>🏆 歷史 TOP 10 (Firebase)</h3>
+            <h3>🏆 歷史 TOP 10</h3>
             <ul id="leaderboard-list" class="leaderboard-list"></ul>
         </div>
-        <div class="footer-note">Challenge your reaction speed! (Firebase)</div>
+        
+        <div style="text-align: center; font-size: 0.8rem; color: #999; margin-top: 10px;">
+            Challenge your reaction speed!
+        </div>
     </div>
-    <button id="screenshot-btn" class="btn" style="display:none;" onclick="takeScreenshot()">📸 截圖成績單 (複製到剪貼簿)</button>
+
+    <button id="screenshot-btn" class="btn" style="display: none;" onclick="takeScreenshot()">
+        📸 截圖成績單 (複製到剪貼簿)
+    </button>
 </div>
-<script type="module">
-    import { database, ref, push, set, onValue, query, orderByChild, limitToFirst } from './firebase-config.js';
-    // DOM refs
+
+<script>
+    // --- 變數與 DOM ---
     const gridContainer = document.getElementById('grid');
     const statusText = document.getElementById('status-text');
     const startBtn = document.getElementById('start-btn');
@@ -76,31 +260,373 @@
     const leaderboardList = document.getElementById('leaderboard-list');
     const screenshotBtn = document.getElementById('screenshot-btn');
     const captureArea = document.getElementById('capture-area');
-    // Game state
+
     const TOTAL_ROUNDS = 7;
-    let currentRound = 0; let reactionTimes = []; let startTime = 0; let gamePhase = 'idle'; let activeCellIndex = -1; let timer = null;
-    // Init
-    function init(){ initGrid(); subscribeLeaderboard(); }
-    function initGrid(){ gridContainer.innerHTML=''; for(let i=0;i<9;i++){ const cell=document.createElement('div'); cell.classList.add('cell'); cell.addEventListener('pointerdown',e=>{ e.preventDefault(); handleCellClick(i); }); gridContainer.appendChild(cell);} }
-    // Game flow
-    function startGame(){ currentRound=0; reactionTimes=[]; startBtn.disabled=true; startBtn.textContent='測試進行中...'; currentResultBoard.style.display='none'; screenshotBtn.style.display='none'; document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active')); nextRound(); }
-    function nextRound(){ if(currentRound>=TOTAL_ROUNDS){ endGame(); return; } currentRound++; statusText.innerHTML=`<span style='color:#747d8c'>Round ${currentRound}/${TOTAL_ROUNDS}</span> - 等待亮燈...`; gamePhase='waiting'; document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active')); const randomDelay=Math.floor(Math.random()*1700)+800; timer=setTimeout(activateRandomCell, randomDelay); }
-    function activateRandomCell(){ if(gamePhase!=='waiting') return; const cells=document.querySelectorAll('.cell'); let randomIndex; do{ randomIndex=Math.floor(Math.random()*9);} while(randomIndex===activeCellIndex && Math.random()>0.5); activeCellIndex=randomIndex; cells[randomIndex].classList.add('active'); startTime=performance.now(); gamePhase='active'; statusText.innerHTML="<span style='color: var(--secondary-color)'>🔥 快按! 🔥</span>"; }
-    function handleCellClick(index){ if(gamePhase==='waiting'){ triggerPenalty(); return; } if(gamePhase==='active' && index===activeCellIndex){ const rt=Math.round(performance.now()-startTime); recordSuccess(rt); } }
-    function triggerPenalty(){ clearTimeout(timer); gamePhase='processing'; gridContainer.classList.add('penalty-flash'); setTimeout(()=>gridContainer.classList.remove('penalty-flash'),400); reactionTimes.push(1000); statusText.innerHTML="<span style='color: var(--secondary-color)'>🚫 偷跑犯規! (+1000ms)</span>"; setTimeout(nextRound,1000); }
-    function recordSuccess(time){ gamePhase='processing'; reactionTimes.push(time); document.querySelectorAll('.cell')[activeCellIndex].classList.remove('active'); statusText.textContent=`${time} ms`; setTimeout(nextRound,400); }
-    function endGame(){ gamePhase='idle'; startBtn.disabled=false; startBtn.textContent='再次挑戰'; statusText.innerHTML='🎉 測試完成!'; showCurrentResults(); saveScoreToFirebase(); screenshotBtn.style.display='flex'; currentResultBoard.scrollIntoView({behavior:'smooth', block:'start'}); }
-    // Stats
-    function calculateTrimmedScore(times){ if(times.length<3) return {avg:0,minIdx:-1,maxIdx:-1}; const minVal=Math.min(...times), maxVal=Math.max(...times), minIdx=times.indexOf(minVal), maxIdx=times.indexOf(maxVal); const sorted=[...times].sort((a,b)=>a-b); const trimmed=sorted.slice(1,sorted.length-1); const total=trimmed.reduce((a,b)=>a+b,0); return {avg:Math.round(total/trimmed.length), minIdx, maxIdx}; }
-    function showCurrentResults(){ currentResultBoard.style.display='block'; resultList.innerHTML=''; const {avg,minIdx,maxIdx}=calculateTrimmedScore(reactionTimes); reactionTimes.forEach((time,index)=>{ const item=document.createElement('div'); item.classList.add('result-item'); const isPenalty=time===1000; const isExcluded=index===minIdx||index===maxIdx; if(isExcluded) item.classList.add('excluded'); if(isPenalty) item.classList.add('penalty-text'); let roundText=`Round ${index+1}`; if(isExcluded){ if(index===minIdx) roundText+=' (最快)'; if(index===maxIdx) roundText+=' (最慢)'; } let timeText=`${time} ms`; if(isPenalty) timeText+=' (偷跑)'; item.innerHTML=`<span>${roundText}</span><span>${timeText}</span>`; resultList.appendChild(item); }); averageScoreDiv.innerHTML=`平均反應時間<br><strong>${avg} ms</strong><div class='average-note'>(去除最快與最慢成績)</div>`; }
-    // Firebase save + leaderboard
-    function saveScoreToFirebase(){ const {avg}=calculateTrimmedScore(reactionTimes); if(!database) return; try{ const scoresRef=ref(database,'reactionScores'); const newRef=push(scoresRef); set(newRef,{avgTime:avg,timestamp:Date.now()}); }catch(e){ console.warn('Firebase save failed', e); } }
-    function subscribeLeaderboard(){ if(!database){ leaderboardList.innerHTML='<li style="text-align:center; padding:10px; color:#999;">Firebase 未啟動</li>'; return; } const scoresQuery=query(ref(database,'reactionScores'), orderByChild('avgTime'), limitToFirst(10)); onValue(scoresQuery,snap=>{ const arr=[]; snap.forEach(child=>arr.push(child.val())); arr.sort((a,b)=>a.avgTime-b.avgTime); renderLeaderboard(arr); }); }
-    function renderLeaderboard(data){ leaderboardList.innerHTML=''; if(!data||data.length===0){ leaderboardList.innerHTML='<li style="text-align:center; padding:10px; color:#999;">尚無紀錄，快來挑戰!</li>'; return; } data.forEach((score,index)=>{ const li=document.createElement('li'); li.classList.add('leaderboard-item',`rank-${index+1}`); li.innerHTML=`<div style='display:flex; align-items:center;'><span class='rank-num'>${index+1}.</span><span class='rank-time'>${score.avgTime} ms</span></div><span class='rank-date'>${formatDateTime(score.timestamp)}</span>`; leaderboardList.appendChild(li); }); }
-    function formatDateTime(ts){ const d=new Date(ts); return d.toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}); }
-    // Screenshot
-    async function takeScreenshot(){ const original=screenshotBtn.innerHTML; screenshotBtn.innerHTML='⏳ 處理中...'; screenshotBtn.disabled=true; try{ const canvas=await html2canvas(captureArea,{scale:2, backgroundColor:'#f0f2f5', useCORS:true, width:captureArea.scrollWidth, height:captureArea.scrollHeight}); canvas.toBlob(async blob=>{ if(!blob) throw new Error('Canvas Error'); if(navigator.clipboard && navigator.clipboard.write){ try{ const item=new ClipboardItem({'image/png':blob}); await navigator.clipboard.write([item]); screenshotBtn.innerHTML='✅ 已複製!'; }catch(err){ fallbackDownload(canvas); } } else { fallbackDownload(canvas); } setTimeout(()=>{ screenshotBtn.innerHTML=original; screenshotBtn.disabled=false; },3000); },'image/png'); }catch(err){ console.error('Screenshot failed:',err); screenshotBtn.innerHTML='❌ 失敗'; screenshotBtn.disabled=false; } }
-    function fallbackDownload(canvas){ const link=document.createElement('a'); link.download=`反應力成績_${Date.now()}.png`; link.href=canvas.toDataURL('image/png'); link.click(); screenshotBtn.innerHTML='✅ 已下載圖片'; }
+    let currentRound = 0;
+    let reactionTimes = [];
+    let startTime = 0;
+    
+    // 遊戲階段狀態管理
+    // 'idle': 閒置中
+    // 'waiting': 等待亮燈 (此時點擊 = 偷跑)
+    // 'active': 燈已亮 (此時點擊 = 紀錄成績)
+    // 'processing': 正在處理轉場 (防止連點)
+    let gamePhase = 'idle'; 
+    
+    let activeCellIndex = -1;
+    let timer = null;
+    const STORAGE_KEY = 'reaction_game_scores_v3_penalty'; // 更新 Key
+
+    // --- 初始化 ---
+    function init() {
+        initGrid();
+        renderLeaderboard();
+    }
+
+    function initGrid() {
+        gridContainer.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            let cell = document.createElement('div');
+            cell.classList.add('cell');
+            // 改用 pointerdown 以求最快反應
+            cell.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); 
+                handleCellClick(i);
+            });
+            gridContainer.appendChild(cell);
+        }
+    }
+
+    // --- 遊戲邏輯 ---
+    function startGame() {
+        currentRound = 0;
+        reactionTimes = [];
+        startBtn.disabled = true;
+        startBtn.textContent = "測試進行中...";
+        currentResultBoard.style.display = 'none';
+        screenshotBtn.style.display = 'none';
+        
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+        nextRound();
+    }
+
+    function nextRound() {
+        if (currentRound >= TOTAL_ROUNDS) {
+            endGame();
+            return;
+        }
+        currentRound++;
+        statusText.innerHTML = `<span style="color:#747d8c">Round ${currentRound}/${TOTAL_ROUNDS}</span> - 等待亮燈...`;
+        
+        // 進入等待階段 (偷跑偵測開始)
+        gamePhase = 'waiting';
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+
+        const randomDelay = Math.floor(Math.random() * 1700) + 800; // 0.8s - 2.5s
+        timer = setTimeout(activateRandomCell, randomDelay);
+    }
+
+    function activateRandomCell() {
+        // 如果狀態不是 waiting (可能已經因為偷跑被取消)，則不執行
+        if (gamePhase !== 'waiting') return;
+
+        const cells = document.querySelectorAll('.cell');
+        let randomIndex;
+        do { randomIndex = Math.floor(Math.random() * 9); } 
+        while (randomIndex === activeCellIndex && Math.random() > 0.5);
+        
+        activeCellIndex = randomIndex;
+        cells[randomIndex].classList.add('active');
+        
+        startTime = performance.now();
+        gamePhase = 'active'; // 進入活躍階段 (可以點擊)
+        statusText.innerHTML = `<span style="color: var(--secondary-color)">🔥 快按! 🔥</span>`;
+    }
+
+    function handleCellClick(index) {
+        // 1. 偷跑判斷 (Waiting 階段點擊任意格子)
+        if (gamePhase === 'waiting') {
+            triggerPenalty();
+            return;
+        }
+
+        // 2. 正常點擊判斷 (Active 階段點擊正確格子)
+        if (gamePhase === 'active') {
+            if (index === activeCellIndex) {
+                const endTime = performance.now();
+                const reactionTime = Math.round(endTime - startTime);
+                recordSuccess(reactionTime);
+            }
+        }
+        
+        // 如果是 Active 階段但點錯格子? 
+        // 依據通常慣例，這裡不做反應，直到點對為止。
+        // 若要更加嚴格，也可以在這裡加入懲罰，但目前題目僅要求 "預判(偷跑)" 機制。
+    }
+
+    // 觸發偷跑懲罰
+    function triggerPenalty() {
+        clearTimeout(timer); // 清除原本要亮燈的計時器
+        gamePhase = 'processing'; // 鎖定狀態防止連點
+
+        // 視覺回饋
+        gridContainer.classList.add('penalty-flash');
+        setTimeout(() => gridContainer.classList.remove('penalty-flash'), 400);
+
+        // 紀錄 1000ms
+        const penaltyTime = 1000;
+        reactionTimes.push(penaltyTime);
+        
+        statusText.innerHTML = `<span style="color: var(--secondary-color)">🚫 偷跑犯規! (+1000ms)</span>`;
+        
+        // 延遲後進入下一局
+        setTimeout(nextRound, 1000);
+    }
+
+    // 紀錄成功點擊
+    function recordSuccess(time) {
+        gamePhase = 'processing'; // 鎖定
+        reactionTimes.push(time);
+        
+        document.querySelectorAll('.cell')[activeCellIndex].classList.remove('active');
+        statusText.textContent = `${time} ms`;
+        
+        setTimeout(nextRound, 400);
+    }
+
+    function endGame() {
+        gamePhase = 'idle';
+        startBtn.disabled = false;
+        startBtn.textContent = "再次挑戰";
+        statusText.innerHTML = "🎉 測試完成!";
+        showCurrentResults();
+        saveAndUpdateLeaderboard();
+        screenshotBtn.style.display = 'flex';
+        currentResultBoard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('save-last').disabled = false;
+    }
+
+    // --- 計算邏輯: 去頭去尾平均 ---
+    function calculateTrimmedScore(times) {
+        if (times.length < 3) return { avg: 0, minIdx: -1, maxIdx: -1 };
+        
+        let minVal = Math.min(...times);
+        let maxVal = Math.max(...times);
+        
+        let minIdx = times.indexOf(minVal);
+        let maxIdx = times.indexOf(maxVal);
+
+        let sorted = [...times].sort((a, b) => a - b);
+        let trimmed = sorted.slice(1, sorted.length - 1);
+        let total = trimmed.reduce((a, b) => a + b, 0);
+        let avg = Math.round(total / trimmed.length);
+
+        return { avg, minIdx, maxIdx };
+    }
+
+    function showCurrentResults() {
+        currentResultBoard.style.display = 'block';
+        resultList.innerHTML = '';
+        
+        const { avg, minIdx, maxIdx } = calculateTrimmedScore(reactionTimes);
+
+        reactionTimes.forEach((time, index) => {
+            const item = document.createElement('div');
+            item.classList.add('result-item');
+            
+            let isPenalty = (time === 1000); // 簡單判斷是否為懲罰分數
+            
+            let isExcluded = (index === minIdx || index === maxIdx);
+            if (isExcluded) item.classList.add('excluded');
+            if (isPenalty) item.classList.add('penalty-text');
+
+            let roundText = `Round ${index + 1}`;
+            if (isExcluded) {
+                if (index === minIdx) roundText += " (最快)";
+                if (index === maxIdx) roundText += " (最慢)";
+            }
+            
+            let timeText = `${time} ms`;
+            if (isPenalty) timeText += " (偷跑)";
+
+            item.innerHTML = `<span>${roundText}</span> <span>${timeText}</span>`;
+            resultList.appendChild(item);
+        });
+
+        averageScoreDiv.innerHTML = `
+            平均反應時間<br>
+            <strong>${avg} ms</strong>
+            <div class="average-note">(去除最快與最慢成績)</div>
+        `;
+    }
+
+    // --- 排行榜 (LocalStorage) ---
+    function formatDateTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function saveAndUpdateLeaderboard() {
+        const { avg } = calculateTrimmedScore(reactionTimes);
+        
+        const newScore = { avgTime: avg, timestamp: new Date().getTime() };
+        let scores = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        scores.push(newScore);
+        scores.sort((a, b) => a.avgTime - b.avgTime);
+        scores = scores.slice(0, 10);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+        renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+        const scores = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        leaderboardList.innerHTML = '';
+        if (scores.length === 0) {
+            leaderboardList.innerHTML = '<li style="text-align:center; padding:10px; color:#999;">尚無紀錄，快來挑戰!</li>';
+            return;
+        }
+        scores.forEach((score, index) => {
+            const li = document.createElement('li');
+            li.classList.add('leaderboard-item', `rank-${index + 1}`);
+            li.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <span class="rank-num">${index + 1}.</span>
+                    <span class="rank-time">${score.avgTime} ms</span>
+                </div>
+                <span class="rank-date">${formatDateTime(score.timestamp)}</span>
+            `;
+            leaderboardList.appendChild(li);
+        });
+    }
+
+    // --- 截圖功能 ---
+    async function takeScreenshot() {
+        const originalBtnText = screenshotBtn.innerHTML;
+        screenshotBtn.innerHTML = '⏳ 處理中...';
+        screenshotBtn.disabled = true;
+
+        try {
+            const canvas = await html2canvas(captureArea, {
+                scale: 2, 
+                backgroundColor: '#f0f2f5', 
+                useCORS: true,
+                width: captureArea.scrollWidth, 
+                height: captureArea.scrollHeight
+            });
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) throw new Error('Canvas Error');
+                
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    try {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        await navigator.clipboard.write([item]);
+                        screenshotBtn.innerHTML = '✅ 已複製!';
+                    } catch (err) {
+                        fallbackDownload(canvas);
+                    }
+                } else {
+                    fallbackDownload(canvas);
+                }
+                
+                setTimeout(() => {
+                    screenshotBtn.innerHTML = originalBtnText;
+                    screenshotBtn.disabled = false;
+                }, 3000);
+
+            }, 'image/png');
+
+        } catch (err) {
+            console.error('Screenshot failed:', err);
+            screenshotBtn.innerHTML = '❌ 失敗';
+            screenshotBtn.disabled = false;
+        }
+    }
+
+    function fallbackDownload(canvas) {
+        const link = document.createElement('a');
+        link.download = `反應力成績_${new Date().getTime()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        screenshotBtn.innerHTML = '✅ 已下載圖片';
+    }
+
+    // --- Firebase Integration (added) ---
+    let firebaseDatabase = null;
+    let firebaseInitialized = false;
+    async function initFirebase(){
+        try {
+            const appModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            const dbModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+            const firebaseConfig = {
+              apiKey: "AIzaSyDLApbv6qovIYaGr9lifLLNn1Hxc288JJM",
+              authDomain: "snake-5dfac.firebaseapp.com",
+              projectId: "snake-5dfac",
+              storageBucket: "snake-5dfac.firebasestorage.app",
+              messagingSenderId: "480046494846",
+              appId: "1:480046494846:web:4ecb40f4495963dcc6b42f",
+              measurementId: "G-E51iFME9ZX",
+              databaseURL: "https://snake-5dfac-default-rtdb.asia-southeast1.firebasedatabase.app"
+            };
+            const app = appModule.initializeApp(firebaseConfig);
+            firebaseDatabase = dbModule.getDatabase(app);
+            firebaseInitialized = true;
+            subscribeFirebaseLeaderboard(dbModule);
+        } catch (e){
+            console.warn('Firebase init failed or DB not enabled', e);
+        }
+    }
+    function subscribeFirebaseLeaderboard(dbModule){
+        const { ref, query, orderByChild, limitToFirst, onValue } = dbModule;
+        if(!firebaseDatabase) return;
+        const scoresQuery = query(ref(firebaseDatabase,'reactionScores'), orderByChild('avgTime'), limitToFirst(10));
+        onValue(scoresQuery, snap => {
+            const data = [];
+            snap.forEach(child => data.push(child.val()));
+            data.sort((a,b)=>a.avgTime-b.avgTime);
+            renderFirebaseLeaderboard(data);
+        });
+    }
+    function renderFirebaseLeaderboard(rows){
+        if(!rows || rows.length===0){ return; }
+        // Replace existing list content with Firebase results (prefer Firebase over local)
+        leaderboardList.innerHTML = '';
+        rows.forEach((score,index)=>{
+            const li=document.createElement('li');
+            li.className='leaderboard-item rank-'+(index+1);
+            li.innerHTML=`<div style="display:flex; align-items:center;"><span class="rank-num">${index+1}.</span><span class="rank-time">${score.avgTime} ms</span></div><span class="rank-date">${formatDateTime(score.timestamp)}</span>`;
+            leaderboardList.appendChild(li);
+        });
+    }
+    // Override save to also push to Firebase
+    function pushFirebaseRecord(avg){
+        if(!firebaseInitialized || !firebaseDatabase) return;
+        import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(dbModule => {
+            const { ref, push, set } = dbModule;
+            try {
+                const scoresRef = ref(firebaseDatabase,'reactionScores');
+                const newRef = push(scoresRef);
+                const name = (document.getElementById('player-name').value || '匿名').trim();
+                const penalties = reactionTimes.filter(t=>t===1000).length;
+                set(newRef, { avgTime: avg, timestamp: Date.now(), name, rounds: reactionTimes, penalties });
+            } catch(err){ console.warn('Firebase save failed', err); }
+        });
+    }
+    // Wrap original saveAndUpdateLeaderboard to include firebase push
+    const originalSave = saveAndUpdateLeaderboard;
+    function saveAndUpdateLeaderboard(){
+        originalSave();
+        const { avg } = calculateTrimmedScore(reactionTimes);
+        pushFirebaseRecord(avg);
+    }
+    // Save button manual save (in case user wants after review)
+    document.getElementById('save-last').addEventListener('click', ()=>{
+        const { avg } = calculateTrimmedScore(reactionTimes);
+        pushFirebaseRecord(avg);
+        document.getElementById('save-last').disabled = true;
+        document.getElementById('save-last').textContent = '已保存';
+    });
+    initFirebase();
     init();
 </script>
 </body>
