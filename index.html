@@ -278,7 +278,7 @@
     let activeCellIndex = -1;
     let timer = null;
     const STORAGE_KEY = 'reaction_game_scores_v3_penalty'; // 更新 Key
-    const FIREBASE_DB_URL = 'https://snake-5dfac-default-rtdb.asia-southeast1.firebasedatabase.app';
+    const FIREBASE_DB_URL = 'https://react-99f60-default-rtdb.asia-southeast1.firebasedatabase.app';
     let useFirebaseLeaderboard = false;
     let restLeaderboardTimer = null;
 
@@ -533,16 +533,20 @@
 
     async function fetchLeaderboardViaRest(){
         try {
-            const url = `${FIREBASE_DB_URL}/reactionScores.json?orderBy=%22avgTime%22&limitToFirst=10`;
+            // Remove query params to avoid "Index not defined" errors; fetch all and sort client-side
+            const url = `${FIREBASE_DB_URL}/reactionScores.json`;
             const res = await fetch(url, { cache: 'no-store' });
-            if(!res.ok){ throw new Error('REST fetch failed'); }
+            if(!res.ok){ throw new Error(`HTTP ${res.status}`); }
             const data = await res.json();
             if(!data){ renderFirebaseLeaderboard([]); return; }
             const rows = Object.values(data).filter(Boolean);
             rows.sort((a,b)=>a.avgTime-b.avgTime);
-            renderFirebaseLeaderboard(rows);
+            renderFirebaseLeaderboard(rows.slice(0, 10));
         } catch(err){
             console.warn('REST leaderboard fetch error', err);
+            if(!useFirebaseLeaderboard){
+                saveStatus.textContent = '⚠ 排行榜載入失敗: ' + err.message;
+            }
         }
     }
     function startRestLeaderboardPolling(){
@@ -674,13 +678,13 @@
             fbDbModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
             const firebaseConfig = {
               apiKey: "AIzaSyDLApbv6qovIYaGr9lifLLNn1Hxc288JJM",
-              authDomain: "snake-5dfac.firebaseapp.com",
-              projectId: "snake-5dfac",
-              storageBucket: "snake-5dfac.firebasestorage.app",
+              authDomain: "react-99f60.firebaseapp.com",
+              projectId: "react-99f60",
+              storageBucket: "react-99f60.firebasestorage.app",
               messagingSenderId: "480046494846",
               appId: "1:480046494846:web:4ecb40f4495963dcc6b42f",
               measurementId: "G-E51iFME9ZX",
-              databaseURL: "https://snake-5dfac-default-rtdb.asia-southeast1.firebasedatabase.app"
+              databaseURL: "https://react-99f60-default-rtdb.asia-southeast1.firebasedatabase.app"
             };
             const app = fbAppModule.initializeApp(firebaseConfig);
             firebaseDatabase = fbDbModule.getDatabase(app);
