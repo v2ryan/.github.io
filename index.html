@@ -224,9 +224,8 @@
     </div>
     <div class="name-row" style="margin-bottom:8px;width:100%;max-width:360px;display:flex;gap:8px;align-items:center;">
         <input id="player-name" placeholder="請輸入暱稱後開始遊戲" maxlength="16" style="flex:1;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:0.95rem;">
-        <button id="save-last" class="btn" style="background:#ff9f43;white-space:nowrap;" disabled>保存成績</button>
     </div>
-    <div id="save-status" style="font-size:0.7rem;color:#666;min-height:16px;margin:-4px 0 8px;width:100%;max-width:360px;text-align:center;"></div>
+    <div id="save-status" style="font-size:0.75rem;color:#555;min-height:16px;margin:-4px 0 8px;width:100%;max-width:360px;text-align:center;"></div>
 
     <div id="capture-area">
         <div id="current-result-board" class="results-container">
@@ -262,7 +261,6 @@
     const screenshotBtn = document.getElementById('screenshot-btn');
     const captureArea = document.getElementById('capture-area');
     const nameInput = document.getElementById('player-name');
-    const saveBtn = document.getElementById('save-last');
     const saveStatus = document.getElementById('save-status');
 
     const TOTAL_ROUNDS = 7;
@@ -319,8 +317,6 @@
         startBtn.textContent = "測試進行中...";
         currentResultBoard.style.display = 'none';
         screenshotBtn.style.display = 'none';
-        saveBtn.disabled = true;
-        saveBtn.textContent = '保存成績';
         saveStatus.textContent = '';
         
         document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
@@ -549,16 +545,21 @@
             console.warn('REST leaderboard fetch error', err);
         }
     }
+    function startRestLeaderboardPolling(){
+        if(restLeaderboardTimer){ clearInterval(restLeaderboardTimer); }
+        restLeaderboardTimer = setInterval(fetchLeaderboardViaRest, 15000);
+    }
 
     // --- Firebase saving helpers ---
     let fbAppModule = null;
     let fbDbModule = null;
     let pendingFirebaseSaves = [];
+    let pendingRetryTimer = null;
     let lastPayload = null;
     function prepareAndSaveFirebaseRecord(){
         lastPayload = buildPayload();
-        saveBtn.disabled = false;
-        saveBtn.textContent = '保存成績';
+        if(!lastPayload){ return; }
+        saveStatus.textContent = '⏳ 成績同步中...';
         pushFirebaseRecord(lastPayload);
     }
     function buildPayload(){
@@ -570,42 +571,40 @@
     function pushFirebaseRecord(payload){
         if(!payload) return;
         if(!firebaseInitialized || !firebaseDatabase || !fbDbModule){
-            pendingFirebaseSaves.push(payload);
-            saveStatus.textContent = 'Firebase 初始化中...';
+            queuePendingPayload(payload, 'Firebase 初始化中...');
             return;
         }
         const { ref, push, set } = fbDbModule;
         try {
             const newRef = push(ref(firebaseDatabase,'reactionScores'));
             set(newRef, payload).then(()=>{
-                saveStatus.textContent = '✅ 已自動保存到 Firebase';
-                saveBtn.disabled = false;
-                saveBtn.textContent = '重新保存';
+                saveStatus.textContent = '✅ 成績已同步到雲端排行榜';
             }).catch(err=>{
                 console.warn('Firebase write error', err);
-                saveStatus.textContent = '❌ 保存失敗，可重試';
-                saveBtn.disabled = false;
-                saveBtn.textContent = '重新保存';
+                queuePendingPayload(payload, '❌ 保存失敗，稍後會自動重試');
             });
         } catch(err){
             console.warn('Firebase push failed', err);
-            saveStatus.textContent = '❌ 保存失敗，可重試';
-            saveBtn.disabled = false;
-            saveBtn.textContent = '重新保存';
+            queuePendingPayload(payload, '❌ 保存失敗，稍後會自動重試');
         }
     }
     function flushPendingSaves(){
         if(!pendingFirebaseSaves.length) return;
         const queue = [...pendingFirebaseSaves];
         pendingFirebaseSaves = [];
+        saveStatus.textContent = '⏳ 正在重新嘗試保存...';
         queue.forEach(payload => pushFirebaseRecord(payload));
     }
-    saveBtn.addEventListener('click', ()=>{
-        if(!lastPayload){ saveStatus.textContent = '尚無成績可保存'; return; }
-        saveBtn.disabled = true;
-        saveBtn.textContent = '保存中...';
-        pushFirebaseRecord({ ...lastPayload, timestamp: Date.now() });
-    });
+    function queuePendingPayload(payload, message){
+        if(!payload) return;
+        pendingFirebaseSaves.push(payload);
+        if(message){ saveStatus.textContent = message; }
+        if(pendingRetryTimer) return;
+        pendingRetryTimer = setTimeout(()=>{
+            pendingRetryTimer = null;
+            flushPendingSaves();
+        }, 5000);
+    }
     nameInput.addEventListener('input', enforceNameRequirement);
     function enforceNameRequirement(){
         const hasName = nameInput.value.trim().length>0;
@@ -690,12 +689,12 @@
             flushPendingSaves();
             saveStatus.textContent = 'Firebase 已連線';
             fetchLeaderboardViaRest();
-            if(restLeaderboardTimer){ clearInterval(restLeaderboardTimer); }
-            restLeaderboardTimer = setInterval(fetchLeaderboardViaRest, 15000);
+            startRestLeaderboardPolling();
         } catch (e){
             console.warn('Firebase init failed or DB not enabled', e);
             saveStatus.textContent = 'Firebase 未啟動，僅本地保存';
             fetchLeaderboardViaRest();
+            startRestLeaderboardPolling();
         }
     }
     function subscribeFirebaseLeaderboard(dbModule){
