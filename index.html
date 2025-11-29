@@ -222,8 +222,8 @@
     <div class="controls">
         <button id="start-btn" class="btn" onclick="startGame()">開始測試</button>
     </div>
-    <div class="name-row" style="margin-bottom:12px;width:100%;max-width:360px;display:flex;gap:8px;">
-        <input id="player-name" placeholder="暱稱(選填)" maxlength="16" style="flex:1;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:0.95rem;">
+    <div class="name-row" style="margin-bottom:8px;width:100%;max-width:360px;display:flex;gap:8px;align-items:center;">
+        <input id="player-name" placeholder="請輸入暱稱後開始遊戲" maxlength="16" style="flex:1;padding:10px 14px;border:1px solid #ccc;border-radius:8px;font-size:0.95rem;">
         <button id="save-last" class="btn" style="background:#ff9f43;white-space:nowrap;" disabled>保存成績</button>
     </div>
     <div id="save-status" style="font-size:0.7rem;color:#666;min-height:16px;margin:-4px 0 8px;width:100%;max-width:360px;text-align:center;"></div>
@@ -261,6 +261,9 @@
     const leaderboardList = document.getElementById('leaderboard-list');
     const screenshotBtn = document.getElementById('screenshot-btn');
     const captureArea = document.getElementById('capture-area');
+    const nameInput = document.getElementById('player-name');
+    const saveBtn = document.getElementById('save-last');
+    const saveStatus = document.getElementById('save-status');
 
     const TOTAL_ROUNDS = 7;
     let currentRound = 0;
@@ -300,12 +303,22 @@
 
     // --- 遊戲邏輯 ---
     function startGame() {
+        const trimmedName = nameInput.value.trim();
+        if (!trimmedName) {
+            statusText.textContent = '請先輸入暱稱再開始';
+            nameInput.focus();
+            enforceNameRequirement();
+            return;
+        }
         currentRound = 0;
         reactionTimes = [];
         startBtn.disabled = true;
         startBtn.textContent = "測試進行中...";
         currentResultBoard.style.display = 'none';
         screenshotBtn.style.display = 'none';
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存成績';
+        saveStatus.textContent = '';
         
         document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
         nextRound();
@@ -397,14 +410,14 @@
 
     function endGame() {
         gamePhase = 'idle';
-        startBtn.disabled = false;
         startBtn.textContent = "再次挑戰";
+        enforceNameRequirement();
         statusText.innerHTML = "🎉 測試完成!";
         showCurrentResults();
         saveAndUpdateLeaderboard();
         screenshotBtn.style.display = 'flex';
         currentResultBoard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        document.getElementById('save-last').disabled = false;
+        prepareAndSaveFirebaseRecord();
     }
 
     // --- 計算邏輯: 去頭去尾平均 ---
@@ -490,7 +503,7 @@
             const li = document.createElement('li');
             li.classList.add('leaderboard-item', `rank-${index + 1}`);
             li.innerHTML = `
-                <div style="display:flex; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
                     <span class="rank-num">${index + 1}.</span>
                     <span class="rank-time">${score.avgTime} ms</span>
                 </div>
@@ -500,7 +513,84 @@
         });
     }
 
-    // --- 截圖功能 ---
+    function renderFirebaseLeaderboard(rows){
+        if(!rows || rows.length===0){ return; }
+        leaderboardList.innerHTML = '';
+        rows.forEach((score,index)=>{
+            const li=document.createElement('li');
+            li.className='leaderboard-item rank-'+(index+1);
+            const nameBadge = `<span style="font-size:.65rem;color:#333;background:#ececec;padding:2px 6px;border-radius:8px;">${(score.name||'匿名').slice(0,16)}</span>`;
+            li.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><span class="rank-num">${index+1}.</span><span class="rank-time">${score.avgTime} ms</span>${nameBadge}</div><span class="rank-date">${formatDateTime(score.timestamp)}</span>`;
+            leaderboardList.appendChild(li);
+        });
+    }
+
+    // --- Firebase saving helpers ---
+    let fbAppModule = null;
+    let fbDbModule = null;
+    let pendingFirebaseSaves = [];
+    let lastPayload = null;
+    function prepareAndSaveFirebaseRecord(){
+        lastPayload = buildPayload();
+        saveBtn.disabled = false;
+        saveBtn.textContent = '保存成績';
+        pushFirebaseRecord(lastPayload);
+    }
+    function buildPayload(){
+        const { avg } = calculateTrimmedScore(reactionTimes);
+        const name = nameInput.value.trim() || '匿名';
+        const penalties = reactionTimes.filter(t=>t===1000).length;
+        return { avgTime: avg, timestamp: Date.now(), name, rounds: [...reactionTimes], penalties };
+    }
+    function pushFirebaseRecord(payload){
+        if(!payload) return;
+        if(!firebaseInitialized || !firebaseDatabase || !fbDbModule){
+            pendingFirebaseSaves.push(payload);
+            saveStatus.textContent = 'Firebase 初始化中...';
+            return;
+        }
+        const { ref, push, set } = fbDbModule;
+        try {
+            const newRef = push(ref(firebaseDatabase,'reactionScores'));
+            set(newRef, payload).then(()=>{
+                saveStatus.textContent = '✅ 已自動保存到 Firebase';
+                saveBtn.disabled = false;
+                saveBtn.textContent = '重新保存';
+            }).catch(err=>{
+                console.warn('Firebase write error', err);
+                saveStatus.textContent = '❌ 保存失敗，可重試';
+                saveBtn.disabled = false;
+                saveBtn.textContent = '重新保存';
+            });
+        } catch(err){
+            console.warn('Firebase push failed', err);
+            saveStatus.textContent = '❌ 保存失敗，可重試';
+            saveBtn.disabled = false;
+            saveBtn.textContent = '重新保存';
+        }
+    }
+    function flushPendingSaves(){
+        if(!pendingFirebaseSaves.length) return;
+        const queue = [...pendingFirebaseSaves];
+        pendingFirebaseSaves = [];
+        queue.forEach(payload => pushFirebaseRecord(payload));
+    }
+    saveBtn.addEventListener('click', ()=>{
+        if(!lastPayload){ saveStatus.textContent = '尚無成績可保存'; return; }
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存中...';
+        pushFirebaseRecord({ ...lastPayload, timestamp: Date.now() });
+    });
+    nameInput.addEventListener('input', enforceNameRequirement);
+    function enforceNameRequirement(){
+        const hasName = nameInput.value.trim().length>0;
+        if(gamePhase === 'idle'){
+            startBtn.disabled = !hasName;
+            if(!hasName){ statusText.textContent = '請輸入暱稱後再開始'; }
+        }
+    }
+    enforceNameRequirement();
+
     async function takeScreenshot() {
         const originalBtnText = screenshotBtn.innerHTML;
         screenshotBtn.innerHTML = '⏳ 處理中...';
@@ -508,16 +598,15 @@
 
         try {
             const canvas = await html2canvas(captureArea, {
-                scale: 2, 
-                backgroundColor: '#f0f2f5', 
+                scale: 2,
+                backgroundColor: '#f0f2f5',
                 useCORS: true,
-                width: captureArea.scrollWidth, 
+                width: captureArea.scrollWidth,
                 height: captureArea.scrollHeight
             });
 
             canvas.toBlob(async (blob) => {
                 if (!blob) throw new Error('Canvas Error');
-                
                 if (navigator.clipboard && navigator.clipboard.write) {
                     try {
                         const item = new ClipboardItem({ 'image/png': blob });
@@ -529,7 +618,7 @@
                 } else {
                     fallbackDownload(canvas);
                 }
-                
+
                 setTimeout(() => {
                     screenshotBtn.innerHTML = originalBtnText;
                     screenshotBtn.disabled = false;
@@ -557,8 +646,8 @@
     let firebaseInitialized = false;
     async function initFirebase(){
         try {
-            const appModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-            const dbModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+            fbAppModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
+            fbDbModule = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
             const firebaseConfig = {
               apiKey: "AIzaSyDLApbv6qovIYaGr9lifLLNn1Hxc288JJM",
               authDomain: "snake-5dfac.firebaseapp.com",
@@ -569,12 +658,15 @@
               measurementId: "G-E51iFME9ZX",
               databaseURL: "https://snake-5dfac-default-rtdb.asia-southeast1.firebasedatabase.app"
             };
-            const app = appModule.initializeApp(firebaseConfig);
-            firebaseDatabase = dbModule.getDatabase(app);
+            const app = fbAppModule.initializeApp(firebaseConfig);
+            firebaseDatabase = fbDbModule.getDatabase(app);
             firebaseInitialized = true;
-            subscribeFirebaseLeaderboard(dbModule);
+            subscribeFirebaseLeaderboard(fbDbModule);
+            flushPendingSaves();
+            saveStatus.textContent = 'Firebase 已連線';
         } catch (e){
             console.warn('Firebase init failed or DB not enabled', e);
+            saveStatus.textContent = 'Firebase 未啟動，僅本地保存';
         }
     }
     function subscribeFirebaseLeaderboard(dbModule){
@@ -588,59 +680,6 @@
             renderFirebaseLeaderboard(data);
         });
     }
-    function renderFirebaseLeaderboard(rows){
-        if(!rows || rows.length===0){ return; }
-        leaderboardList.innerHTML = '';
-        rows.forEach((score,index)=>{
-            const li=document.createElement('li');
-            li.className='leaderboard-item rank-'+(index+1);
-            const nameBadge = `<span style="font-size:.6rem;color:#333;background:#eaeaea;padding:2px 6px;border-radius:8px;">${(score.name||'匿名').slice(0,16)}</span>`;
-            li.innerHTML=`<div style="display:flex; align-items:center; gap:6px;"><span class="rank-num">${index+1}.</span><span class="rank-time">${score.avgTime} ms</span>${nameBadge}</div><span class="rank-date">${formatDateTime(score.timestamp)}</span>`;
-            leaderboardList.appendChild(li);
-        });
-    }
-    // Override save to also push to Firebase
-    let firebaseSavedOnce = false;
-    function pushFirebaseRecord(avg){
-        if(!firebaseInitialized || !firebaseDatabase){
-            document.getElementById('save-status').textContent = '⚠ Firebase 未準備好';
-            return;
-        }
-        const name = (document.getElementById('player-name').value || '匿名').trim();
-        const penalties = reactionTimes.filter(t=>t===1000).length;
-        const payload = { avgTime: avg, timestamp: Date.now(), name, rounds: reactionTimes, penalties };
-        import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(dbModule => {
-            const { ref, push, set } = dbModule;
-            try {
-                const newRef = push(ref(firebaseDatabase,'reactionScores'));
-                set(newRef, payload).then(()=>{
-                    document.getElementById('save-status').textContent = '✅ Firebase 保存成功';
-                    firebaseSavedOnce = true;
-                }).catch(err=>{
-                    console.warn('Firebase write error', err);
-                    document.getElementById('save-status').textContent = '❌ 寫入失敗';
-                });
-            } catch(err){
-                console.warn('Firebase push failed', err);
-                document.getElementById('save-status').textContent = '❌ 保存失敗';
-            }
-        });
-    }
-    // Wrap original saveAndUpdateLeaderboard to include firebase push
-    const originalSave = saveAndUpdateLeaderboard;
-    function saveAndUpdateLeaderboard(){
-        originalSave();
-        const { avg } = calculateTrimmedScore(reactionTimes);
-        pushFirebaseRecord(avg);
-    }
-    // Save button manual save (in case user wants after review)
-    document.getElementById('save-last').addEventListener('click', ()=>{
-        if(!reactionTimes.length){ document.getElementById('save-status').textContent='尚無成績可保存'; return; }
-        const { avg } = calculateTrimmedScore(reactionTimes);
-        pushFirebaseRecord(avg);
-        document.getElementById('save-last').disabled = true;
-        document.getElementById('save-last').textContent = '已保存';
-    });
     initFirebase();
     init();
 </script>
