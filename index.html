@@ -280,6 +280,7 @@
     let activeCellIndex = -1;
     let timer = null;
     const STORAGE_KEY = 'reaction_game_scores_v3_penalty'; // 更新 Key
+    let useFirebaseLeaderboard = false;
 
     // --- 初始化 ---
     function init() {
@@ -492,7 +493,10 @@
         renderLeaderboard();
     }
 
-    function renderLeaderboard() {
+    function renderLeaderboard(force = false) {
+        if (useFirebaseLeaderboard && !force) {
+            return; // Firebase leaderboard already visible
+        }
         const scores = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         leaderboardList.innerHTML = '';
         if (scores.length === 0) {
@@ -514,8 +518,12 @@
     }
 
     function renderFirebaseLeaderboard(rows){
-        if(!rows || rows.length===0){ return; }
+        useFirebaseLeaderboard = !!(rows && rows.length);
         leaderboardList.innerHTML = '';
+        if(!useFirebaseLeaderboard){
+            renderLeaderboard(true);
+            return;
+        }
         rows.forEach((score,index)=>{
             const li=document.createElement('li');
             li.className='leaderboard-item rank-'+(index+1);
